@@ -3,6 +3,8 @@ extends TileMapLayer
 ## The shop's floor. Painted cells are walkable; this node owns the pathfinding grid.
 
 var _astar: AStarGrid2D = AStarGrid2D.new()
+## Cells covered by furniture. Kept separately so a navigation rebuild doesn't lose them.
+var _blocked: Dictionary[Vector2i, bool] = {}
 
 
 func _ready() -> void:
@@ -19,7 +21,17 @@ func rebuild_navigation() -> void:
 	for x: int in range(_astar.region.position.x, _astar.region.end.x):
 		for y: int in range(_astar.region.position.y, _astar.region.end.y):
 			var cell := Vector2i(x, y)
-			_astar.set_point_solid(cell, get_cell_source_id(cell) == -1)
+			_astar.set_point_solid(cell, get_cell_source_id(cell) == -1 or _blocked.has(cell))
+
+
+## Marks a cell as covered by furniture (or clears it).
+func set_cell_blocked(cell: Vector2i, blocked: bool) -> void:
+	if blocked:
+		_blocked[cell] = true
+	else:
+		_blocked.erase(cell)
+	if _astar.is_in_boundsv(cell):
+		_astar.set_point_solid(cell, blocked or get_cell_source_id(cell) == -1)
 
 
 func is_walkable(cell: Vector2i) -> bool:
@@ -38,7 +50,8 @@ func get_path_points(from_cell: Vector2i, to_cell: Vector2i) -> PackedVector2Arr
 
 
 func get_random_walkable_cell() -> Vector2i:
-	var cells: Array[Vector2i] = get_used_cells()
+	var cells: Array[Vector2i] = []
+	cells.assign(get_used_cells().filter(is_walkable))
 	if cells.is_empty():
 		return Vector2i.ZERO
 	return cells.pick_random()

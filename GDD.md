@@ -76,6 +76,7 @@ A cozy, 2.5D isometric pizza parlor management sim in the style of RimWorld. You
 - The floor grid is a **32×16 diamond** (`TileMapLayer`, diamond-down layout). Tile art can be a little larger than the grid. The overhang is intentional.
 - **Pawn sprite sheets** (15×44 frames). Row 1 is walk down-left, row 2 is walk up-left, and row 3 is idle (frames 1–2 down-left, frames 3–4 up-left). Right-facing poses are flipped in code.
 - Pawns move along the grid axes only, so they always face one of the four iso diagonals.
+- Placed objects (stations, furniture) can face 4 directions, with a sprite for each facing. Their footprint rotates with them.
 
 ## Core loop
 
@@ -94,6 +95,9 @@ Each item below is a direction, not a final spec.
 - Pizza boxes arrive as unfolded sheets, so staff have to make (fold) them before they can be used for boxing.
 - Driving is just another skill pawns can develop. Delivery drivers are regular in-house staff, not a separate hire.
 - Pawns claim work from the station queues according to their priorities and skill.
+- Each station has one work spot where a pawn stands to work it. The spot rotates with the station.
+- For now, each task type has a fixed base work time. Skill and mood will scale it later.
+- Pawns with no work wander (placeholder behavior).
 
 ### Orders and the ticket rack
 - Orders print as physical tickets from the register.
