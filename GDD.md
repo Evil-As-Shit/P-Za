@@ -35,12 +35,14 @@ Use this default layout and keep it consistent:
 
 ### Running and testing
 
-- Godot is installed through Steam. Look for the executable in the Steam library (usually under `steamapps/common`). If it isn't found, ask the designer for the path and record it here.
+- Godot (Steam install): `C:\Program Files\Steam\steamapps\common\Godot Engine\godot.windows.opt.tools.64.exe`
+- Git isn't on PATH. Use SourceTree's bundled copy: `%LOCALAPPDATA%\Atlassian\SourceTree\git_local\cmd\git.exe`
 - Headless checks are allowed. Run Godot headless to confirm the project loads and scripts parse, and verify your own work before reporting it done.
 
 ### Workflow
 
 - Use git. Make small, focused commits with clear messages, and keep the `.godot/` folder out of version control.
+- Commit locally only. The designer pushes using SourceTree.
 - Plan before building any large feature.
 - Build the smallest playable slice first (a pawn, a task and the ticket-to-pizza loop), then add systems on top of it one at a time.
 
@@ -67,6 +69,13 @@ A cozy, 2.5D isometric pizza parlor management sim in the style of RimWorld. You
 1. **Emergent pawn drama:** staff have personalities, moods and quirks that produce stories.
 2. **Tactile kitchen craft:** making pizza should feel physical, readable and satisfying.
 3. **Satisfying tycoon scaling:** the shop grows from a small parlor into a bigger operation.
+
+## Art and grid
+
+- **2D isometric** in a 2D scene (no 3D).
+- The floor grid is a **32×16 diamond** (`TileMapLayer`, diamond-down layout). Tile art can be a little larger than the grid. The overhang is intentional.
+- **Pawn sprite sheets** (15×44 frames). Row 1 is walk down-left, row 2 is walk up-left, and row 3 is idle (frames 1–2 down-left, frames 3–4 up-left). Right-facing poses are flipped in code.
+- Pawns move along the grid axes only, so they always face one of the four iso diagonals.
 
 ## Core loop
 
