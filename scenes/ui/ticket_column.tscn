@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ticket_column.gd" id="1_column"]
+
+[node name="TicketColumn" type="PanelContainer"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_column")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="Lines" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+
+[node name="Header" type="Label" parent="Margin/Lines"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="Cards" type="VBoxContainer" parent="Margin/Lines"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3

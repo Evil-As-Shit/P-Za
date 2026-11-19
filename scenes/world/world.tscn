@@ -6,10 +6,13 @@
 [ext_resource type="Script" path="res://scripts/world/shop_camera.gd" id="4_camera"]
 [ext_resource type="PackedScene" path="res://scenes/stations/station.tscn" id="5_station"]
 [ext_resource type="Resource" path="res://resources/stations/assembly_table.tres" id="6_assembly"]
-[ext_resource type="Script" path="res://scripts/tasks/job_board.gd" id="7_job_board"]
+[ext_resource type="Script" path="res://scripts/tickets/ticket_rack.gd" id="7_rack"]
+[ext_resource type="Resource" path="res://resources/recipes/plain_pizza.tres" id="8_pizza"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ticket_rack_panel.tscn" id="9_rack_panel"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
+debug_recipe = ExtResource("8_pizza")
 
 [node name="ShopFloor" parent="." instance=ExtResource("2_floor")]
 
@@ -25,5 +28,9 @@ cell = Vector2i(5, 5)
 [node name="ShopCamera" type="Camera2D" parent="."]
 script = ExtResource("4_camera")
 
-[node name="JobBoard" type="Node" parent="."]
-script = ExtResource("7_job_board")
+[node name="TicketRack" type="Node" parent="."]
+script = ExtResource("7_rack")
+
+[node name="Hud" type="CanvasLayer" parent="."]
+
+[node name="TicketRackPanel" parent="Hud" instance=ExtResource("9_rack_panel")]

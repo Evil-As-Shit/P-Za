@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ticket_rack_panel.gd" id="1_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/ticket_column.tscn" id="2_column"]
+
+[node name="TicketRackPanel" type="PanelContainer"]
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+grow_horizontal = 0
+grow_vertical = 2
+script = ExtResource("1_panel")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Lines" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Margin/Lines"]
+layout_mode = 2
+text = "Tickets"
+horizontal_alignment = 1
+
+[node name="Columns" type="HBoxContainer" parent="Margin/Lines"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="WaitColumn" parent="Margin/Lines/Columns" instance=ExtResource("2_column")]
+unique_name_in_owner = true
+layout_mode = 2
+title = "Wait"
+
+[node name="MakeColumn" parent="Margin/Lines/Columns" instance=ExtResource("2_column")]
+unique_name_in_owner = true
+layout_mode = 2
+section = 1
+title = "Make"

@@ -1,6 +1,6 @@
 class_name Station
 extends Node2D
-## A piece of kitchen equipment placed on the floor grid. Creates jobs for its task type.
+## A piece of kitchen equipment placed on the floor grid. One pawn works it at a time.
 
 @export var data: StationData
 ## Origin cell on the floor grid.
@@ -10,6 +10,7 @@ extends Node2D
 
 var _footprint: Array[Vector2i] = []
 var _work_target: Vector2 = Vector2.ZERO
+var _reserved: bool = false
 
 @onready var _sprite: Sprite2D = $Sprite
 
@@ -42,8 +43,21 @@ func place(shop_floor: ShopFloor) -> void:
 		_sprite.global_position = Vector2(left, bottom - texture.get_height())
 
 
-func create_job() -> Job:
-	return Job.new(data.task_type, self)
+func get_task_type() -> TaskType:
+	return data.task_type
+
+
+func is_reserved() -> bool:
+	return _reserved
+
+
+## Claims the station for one pawn's job. Call release() when the job ends or is dropped.
+func reserve() -> void:
+	_reserved = true
+
+
+func release() -> void:
+	_reserved = false
 
 
 func get_footprint_cells() -> Array[Vector2i]:

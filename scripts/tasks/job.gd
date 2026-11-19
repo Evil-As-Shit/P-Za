@@ -1,18 +1,21 @@
 class_name Job
 extends RefCounted
-## One unit of work at a station, claimed and worked by a single pawn.
+## One step of a ticket, claimed and worked by a single pawn at one station.
+## Progress is kept if the job is dropped and picked up again later.
 
 signal completed
 
 var task_type: TaskType
-var station: Station
+var ticket: Ticket
+## Station reserved for this job while it is claimed.
+var station: Station = null
 var claimed_by: Pawn = null
 var work_done: float = 0.0
 
 
-func _init(p_task_type: TaskType, p_station: Station) -> void:
+func _init(p_task_type: TaskType, p_ticket: Ticket) -> void:
 	task_type = p_task_type
-	station = p_station
+	ticket = p_ticket
 
 
 func get_work_required() -> float:

@@ -52,6 +52,18 @@ func assign_job(job: Job, path: PackedVector2Array, work_target: Vector2) -> voi
 	_state = State.WALKING_TO_JOB
 
 
+## Stops walking to or working the current job and returns it, progress intact.
+func drop_job() -> Job:
+	var job: Job = _job
+	_job = null
+	_path.clear()
+	_state = State.IDLE
+	_play_idle()
+	if job != null:
+		job.claimed_by = null
+	return job
+
+
 func has_job() -> bool:
 	return _job != null
 

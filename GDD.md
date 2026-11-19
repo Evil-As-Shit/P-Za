@@ -95,13 +95,18 @@ Each item below is a direction, not a final spec.
 - Pizza boxes arrive as unfolded sheets, so staff have to make (fold) them before they can be used for boxing.
 - Driving is just another skill pawns can develop. Delivery drivers are regular in-house staff, not a separate hire.
 - Pawns claim work from the station queues according to their priorities and skill.
-- Each station has one work spot where a pawn stands to work it. The spot rotates with the station.
+- Each station has one work spot where a pawn stands to work it, and one pawn uses it at a time. The spot rotates with the station.
 - For now, each task type has a fixed base work time. Skill and mood will scale it later.
 - Pawns with no work wander (placeholder behavior).
 
 ### Orders and the ticket rack
 - Orders print as physical tickets from the register.
 - The player arranges tickets on a rack with two sections: **Wait** and **Make**. Pawns work the Make tickets in order, so reordering tickets steers the kitchen indirectly.
+- The rack is a HUD panel with Wait and Make columns. Tickets are dragged between columns and reordered.
+- New tickets land in **Wait**. The player moves them to Make.
+- Pulling an in-progress ticket back to Wait stops the pawn. The work done so far is kept, and the job resumes when the ticket returns to Make.
+- Each ticket shows its order number, item and status. Order type and the ETA come later.
+- Menu items are recipes: an ordered list of task steps. Each step is one job, done by one pawn at one station.
 - **Taking or serving an order is automatic.** There is no manual "Take" step, and completed orders go out on their own.
 - Order types are dine-in, to-go, pickup and delivery. Delivery uses a driver who leaves the shop and comes back later.
 - Dine-in seating is self-serve: customers order, sit down, and a front-of-house employee brings the food to their table.
