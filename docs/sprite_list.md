@@ -6,9 +6,10 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 
 ## Already have
 
-- Pawn walk (down-left, up-left) and idle: `dood_walk.png`
+- Pawn walk (down-left, up-left) and idle: `pawn_sheet.png` (laid out on the 7-row guide; rows 4–7 still empty)
 - Floor tiles ×3: `tile_placeholder.png`
 - Small table (1×1), long table (2×1, two facings), rotation test cube, bin: `Object_Spritesheet.png`
+- Walls (work in progress): `walls_temp_wip.png`
 
 ## Priority 1: the pizza loop (next slices)
 
@@ -16,14 +17,14 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 |---|--------|-------|-------|
 | 1 | Pawn **work** animation (down-left, up-left) | pawn rows 4–5 | Pawns currently stand idle while working. |
 | 2 | Pawn **carry** walk (down-left, up-left) | pawn rows 6–7 | For carrying pizzas and boxes between stations. |
-| 3 | **Oven** | object 2×1 or 2×2 | Footprint **TBD**. Open and closed or "baking" states are nice to have. |
-| 4 | **Pizza** stages: raw, baked, sliced | item 16×16 | Item size **TBD**. Items sit on station tops. |
-| 5 | **Pizza box**: flat sheet, open box, closed box | item 16×16 | Boxes arrive flat and get folded (GDD). |
+| 3 | **Oven** | object 2×2 | Drawn in the middle of its 4 tiles, leaving room to spare around it. Open and closed or "baking" states are nice to have. |
+| 4 | **Pizza** stages: raw, baked, sliced | object 1×1 | Pizzas are 1×1 objects. |
+| 5 | **Pizza box**: flat sheet, open box, closed box | object 1×1 | 1×1 objects. Boxes arrive flat and get folded (GDD). Closed boxes stack, so draw a closed box that can sit on top of another. |
 | 6 | **Slicing** station | object 1×1 or 2×1 | Could reuse a table plus a cutting board item. |
 | 7 | **Boxing / box folding** station | object 2×1 | Could be one station or two (**TBD**). |
 | 8 | **Register** (prints tickets) | object 1×1 or 2×1 | Where orders come from. |
 | 9 | **Pickup / hand-off** counter | object 2×1 | Where finished orders go out. |
-| 10 | **Walls and door**: left wall, right wall, corner, front door | (wall guide later) | Wall height **TBD**. I'll make a guide once it's decided. |
+| 10 | **Walls and door**: left wall, right wall, corner, front door | (wall guide later) | Started in `walls_temp_wip.png`. Wall height **TBD**. |
 | 11 | Kitchen floor vs. dining floor tiles | your tile layout | Your current tiles already work on the grid. |
 
 ## Priority 2: service and customers
@@ -89,4 +90,4 @@ One cell per facing, left to right: **facing 0, 1, 2, 3**. The blue diamonds are
 
 ### `item_16x16_guide.png`
 
-An 8×4 grid of 16×16 cells, with a red center mark, for items and icons. The 16×16 size is a placeholder until item size is decided.
+An 8×4 grid of 16×16 cells, with a red center mark, for small icons (mood bubbles, menu icons). Pizzas and boxes use the 1×1 object guide instead.

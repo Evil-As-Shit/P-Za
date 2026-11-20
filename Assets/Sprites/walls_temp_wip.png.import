@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bjnu5gbvvs83v"
-path="res://.godot/imported/dood_walk.png-97c6bcbc0fc971dccf1c5966e9c34f29.ctex"
+uid="uid://dpv0ej8su8ywg"
+path="res://.godot/imported/walls_temp_wip.png-98387163b5865582a5f70d923484a982.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Sprites/dood_walk.png"
-dest_files=["res://.godot/imported/dood_walk.png-97c6bcbc0fc971dccf1c5966e9c34f29.ctex"]
+source_file="res://Assets/Sprites/walls_temp_wip.png"
+dest_files=["res://.godot/imported/walls_temp_wip.png-98387163b5865582a5f70d923484a982.ctex"]
 
 [params]
 
