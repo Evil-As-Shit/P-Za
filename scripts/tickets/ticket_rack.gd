@@ -16,6 +16,12 @@ var _make: Array[Ticket] = []
 var _next_order_number: int = 1
 
 
+func _exit_tree() -> void:
+	# Ticket and Job reference each other; break the cycle so unfinished tickets are freed.
+	for ticket: Ticket in _wait + _make:
+		ticket.current_job = null
+
+
 func print_ticket(recipe: Recipe) -> Ticket:
 	var ticket := Ticket.new(_next_order_number, recipe)
 	_next_order_number += 1

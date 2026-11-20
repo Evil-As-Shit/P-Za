@@ -6,6 +6,10 @@ extends Node2D
 @export var debug_recipe: Recipe
 @export var idle_time_min: float = 0.5
 @export var idle_time_max: float = 2.0
+## Chance an idle pawn checks their phone instead of just standing (placeholder).
+@export_range(0.0, 1.0) var phone_chance: float = 0.3
+@export var phone_time_min: float = 3.0
+@export var phone_time_max: float = 6.0
 ## Item scene spawned when a ticket's first step starts (no ingredient storage yet).
 @export var item_scene: PackedScene
 ## Seconds a finished item stays visible before it's cleared (no hand-off yet).
@@ -148,6 +152,9 @@ func _send_to_random_cell(pawn: Pawn) -> void:
 
 func _wait_then_wander(pawn: Pawn) -> void:
 	var wait: float = randf_range(idle_time_min, idle_time_max)
+	if randf() < phone_chance:
+		pawn.use_phone()
+		wait = randf_range(phone_time_min, phone_time_max)
 	get_tree().create_timer(wait).timeout.connect(_send_to_random_cell.bind(pawn))
 
 

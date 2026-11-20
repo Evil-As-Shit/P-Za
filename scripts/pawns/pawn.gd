@@ -21,6 +21,7 @@ var _path: PackedVector2Array = PackedVector2Array()
 var _work_path: PackedVector2Array = PackedVector2Array()
 var _job: Job = null
 var _held_item: Item = null
+var _on_phone: bool = false
 var _work_target: Vector2 = Vector2.ZERO
 var _facing_up: bool = false
 var _facing_right: bool = false
@@ -47,8 +48,17 @@ func _process(delta: float) -> void:
 func follow_path(points: PackedVector2Array) -> void:
 	if has_job():
 		return
+	_on_phone = false
 	_path = points
 	_state = State.WALKING
+
+
+## Looks at their phone while standing idle, until the next walk or job.
+func use_phone() -> void:
+	if _state != State.IDLE:
+		return
+	_on_phone = true
+	_play_idle()
 
 
 ## Walks `pickup_path` (if not empty) to fetch the job's item, then `work_path` to the
@@ -58,6 +68,7 @@ func assign_job(
 ) -> void:
 	_job = job
 	_job.claimed_by = self
+	_on_phone = false
 	_work_target = work_target
 	if pickup_path.is_empty():
 		_path = work_path
@@ -165,4 +176,7 @@ func _face(direction: Vector2) -> void:
 
 
 func _play_idle() -> void:
-	_sprite.play(&"idle_up" if _facing_up else &"idle_down")
+	if _on_phone:
+		_sprite.play(&"phone_up" if _facing_up else &"phone_down")
+	else:
+		_sprite.play(&"idle_up" if _facing_up else &"idle_down")

@@ -99,7 +99,7 @@ Each item below is a direction, not a final spec.
 - Pawns claim work from the station queues according to their priorities and skill.
 - Each station has one work spot where a pawn stands to work it, and one pawn uses it at a time. The spot rotates with the station.
 - For now, each task type has a fixed base work time. Skill and mood will scale it later.
-- Pawns with no work wander (placeholder behavior).
+- Pawns with no work wander and sometimes check their phone (placeholder behavior).
 
 ### Orders and the ticket rack
 - Orders print as physical tickets from the register.
