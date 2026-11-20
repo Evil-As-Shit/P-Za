@@ -19,6 +19,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/station_panel.tscn" id="23_station_panel"]
 [ext_resource type="Script" path="res://scripts/world/shop_walls.gd" id="24_walls"]
 [ext_resource type="Resource" path="res://resources/walls/plain_wall.tres" id="25_wall_style"]
+[ext_resource type="Script" path="res://scripts/world/shop_clock.gd" id="26_clock"]
+[ext_resource type="PackedScene" path="res://scenes/ui/clock_panel.tscn" id="27_clock_panel"]
 [ext_resource type="Script" path="res://scripts/tasks/work_type.gd" id="15_work_type"]
 [ext_resource type="Resource" path="res://resources/work_types/kitchen.tres" id="16_kitchen"]
 [ext_resource type="Resource" path="res://resources/work_types/oven.tres" id="17_oven"]
@@ -92,6 +94,9 @@ ExtResource("19_front"): 1
 [node name="ShopCamera" type="Camera2D" parent="."]
 script = ExtResource("4_camera")
 
+[node name="ShopClock" type="Node" parent="."]
+script = ExtResource("26_clock")
+
 [node name="TicketRack" type="Node" parent="."]
 script = ExtResource("7_rack")
 
@@ -100,6 +105,8 @@ script = ExtResource("7_rack")
 [node name="TicketRackPanel" parent="Hud" instance=ExtResource("9_rack_panel")]
 
 [node name="PriorityPanel" parent="Hud" instance=ExtResource("20_priority_panel")]
+
+[node name="ClockPanel" parent="Hud" instance=ExtResource("27_clock_panel")]
 
 [node name="StationPanel" parent="Hud" instance=ExtResource("23_station_panel")]
 visible = false

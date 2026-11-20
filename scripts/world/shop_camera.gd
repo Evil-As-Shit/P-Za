@@ -12,6 +12,7 @@ var _dragging: bool = false
 ## Panning not applied yet. The camera only moves in whole pixels so the art stays on the
 ## pixel grid.
 var _pan_remainder: Vector2 = Vector2.ZERO
+var _last_ticks: int = 0
 
 
 func _ready() -> void:
@@ -19,11 +20,15 @@ func _ready() -> void:
 	_apply_zoom()
 
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
+	# Real time, not game time, so panning works the same paused or fast-forwarded.
+	var now: int = Time.get_ticks_usec()
+	var real_delta: float = 0.0 if _last_ticks == 0 else (now - _last_ticks) / 1_000_000.0
+	_last_ticks = now
 	var direction: Vector2 = Input.get_vector(
 		&"camera_pan_left", &"camera_pan_right", &"camera_pan_up", &"camera_pan_down"
 	)
-	_pan(direction * pan_speed * delta / zoom.x)
+	_pan(direction * pan_speed * real_delta / zoom.x)
 
 
 func _unhandled_input(event: InputEvent) -> void:

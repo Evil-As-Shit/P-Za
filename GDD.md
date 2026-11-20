@@ -150,6 +150,8 @@ Each item below is a direction, not a final spec.
 
 ### Store operations
 - The day runs in phases, and the player can pause or speed up time.
+  - A day covers shop hours (10:00 to 22:00 on the clock) and lasts 10 real minutes at normal speed. For now, when it ends the next day starts and work in progress carries on; prep, close and review phases come later.
+  - Speeds are pause, 1x, 2x and 3x (Space and 1/2/3, or the HUD buttons). Speed scales all game time. While paused the player can still pan, use the rack and set priorities.
 - Ingredients arrive in regular recurring deliveries, with an emergency option at a premium. Fresh ingredients spoil, so cold storage matters.
 - Kitchens get dirty. Poor cleanliness leads to health inspector penalties.
 - Equipment can be upgraded for capacity and reliability. The player lays out and arranges the kitchen, and pawn movement is affected by the layout.

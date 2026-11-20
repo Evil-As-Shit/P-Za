@@ -44,6 +44,8 @@ var _selected_station: Station = null
 @onready var _rack_panel: TicketRackPanel = $Hud/TicketRackPanel
 @onready var _priority_panel: PriorityPanel = $Hud/PriorityPanel
 @onready var _station_panel: StationPanel = $Hud/StationPanel
+@onready var _clock: ShopClock = $ShopClock
+@onready var _clock_panel: ClockPanel = $Hud/ClockPanel
 
 
 func _ready() -> void:
@@ -66,6 +68,12 @@ func _ready() -> void:
 	_priority_panel.show_priorities(_pawns, work_types)
 	_station_panel.role_change_requested.connect(_on_role_change_requested)
 	_station_panel.close_requested.connect(_select_station.bind(null))
+	_clock_panel.setup(_clock.speeds)
+	_clock_panel.speed_requested.connect(_clock.set_speed)
+	_clock.time_changed.connect(_clock_panel.show_time)
+	_clock.speed_changed.connect(_clock_panel.show_speed)
+	_clock_panel.show_time(_clock.day, _clock.get_minute_of_day())
+	_clock_panel.show_speed(_clock.speed)
 
 	for pawn: Pawn in _pawns:
 		_wait_then_wander(pawn)
@@ -80,6 +88,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed(&"toggle_walls"):
 		_walls.cycle_view_mode()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(&"toggle_pause"):
+		_clock.toggle_pause()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(&"speed_1"):
+		_clock.set_speed(1)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(&"speed_2"):
+		_clock.set_speed(2)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(&"speed_3"):
+		_clock.set_speed(3)
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton:
 		var click := event as InputEventMouseButton
