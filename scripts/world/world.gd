@@ -195,7 +195,15 @@ func _spawn_item(texture: Texture2D) -> Item:
 ## moved again.
 func _work_unattended(item: Item, task: TaskType, done_texture: Texture2D) -> void:
 	item.busy = true
-	await get_tree().create_timer(task.base_work_time).timeout
+	var station: Station = item.station
+	var spot: int = item.spot
+	var tween: Tween = create_tween()
+	tween.tween_method(
+		func(progress: float) -> void: station.show_work(spot, progress),
+		0.0, 1.0, task.base_work_time
+	)
+	await tween.finished
+	station.hide_work()
 	if not is_instance_valid(item):
 		return
 	item.busy = false

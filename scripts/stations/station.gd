@@ -17,6 +17,8 @@ var _supply_left: int = 0
 var _supply_claimed: int = 0
 ## One array of sprites per pile, bottom to top. Inside piles first, then on-top piles.
 var _pile_sprites: Array[Array] = []
+## Top edge of the station's art, for placing the work bar above it.
+var _art_top: float = 0.0
 
 @onready var _sprite: Sprite2D = $Sprite
 @onready var _supply_inside: Node2D = $SupplyInside
@@ -24,6 +26,8 @@ var _pile_sprites: Array[Array] = []
 @onready var _item_slot: Node2D = $ItemSlot
 @onready var _cover: Sprite2D = $Cover
 @onready var _supply_on_top: Node2D = $SupplyOnTop
+## Shown while the station works an item on its own (e.g. baking).
+@onready var _work_bar: ProgressBar = $WorkBar
 
 
 ## Snaps the station onto the floor and lines its art up with its footprint.
@@ -56,6 +60,10 @@ func place(shop_floor: ShopFloor) -> void:
 
 	_line_up(_sprite, data.get_texture(facing), left, bottom)
 	_line_up(_cover, data.get_cover_texture(facing), left, bottom)
+	_art_top = bottom
+	for art: Sprite2D in [_sprite, _cover]:
+		if art.texture != null:
+			_art_top = minf(_art_top, art.global_position.y + _opaque_top(art.texture))
 	_build_piles(shop_floor.cell_to_global(cell))
 
 
@@ -65,6 +73,28 @@ static func _line_up(sprite: Sprite2D, texture: Texture2D, left: float, bottom: 
 	sprite.centered = false
 	if texture != null:
 		sprite.global_position = Vector2(left, bottom - texture.get_height())
+
+
+## First row of a texture with any visible pixels (textures often have empty space on top).
+static func _opaque_top(texture: Texture2D) -> float:
+	var top: float = 0.0
+	if texture is AtlasTexture:
+		top = (texture as AtlasTexture).margin.position.y
+	var used: Rect2i = texture.get_image().get_used_rect()
+	return top + float(used.position.y) if used.size.y > 0 else top
+
+
+## Shows the work bar over a spot, filled to `progress` (0-1).
+func show_work(spot: int, progress: float) -> void:
+	_work_bar.value = progress
+	_work_bar.global_position = Vector2(
+		_item_positions[spot].x - _work_bar.size.x / 2.0, _art_top - _work_bar.size.y - 3.0
+	)
+	_work_bar.show()
+
+
+func hide_work() -> void:
+	_work_bar.hide()
 
 
 func can_do(task_type: TaskType) -> bool:
