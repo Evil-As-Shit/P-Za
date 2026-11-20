@@ -31,6 +31,8 @@ class Spot:
 
 var _pawns: Array[Pawn] = []
 var _stations: Array[Station] = []
+## Pawns standing by a busy item (e.g. at the oven), waiting to pick it up.
+var _waiting_for: Dictionary[Item, Pawn] = {}
 
 @onready var _floor: ShopFloor = $ShopFloor
 @onready var _entities: Node2D = $Entities
@@ -91,11 +93,12 @@ func _setup_pawn(pawn: Pawn) -> void:
 ## Gives the pawn work by their priorities: priority 1 first, ties going to the leftmost
 ## work type, and within a work type the first open job in Make-rack order. Returns false
 ## if there's nothing they can do.
-func _try_assign_work(pawn: Pawn) -> bool:
+## Only priorities up to `max_priority` are considered.
+func _try_assign_work(pawn: Pawn, max_priority: int = Pawn.LOWEST_PRIORITY) -> bool:
 	if pawn.has_job():
 		return true
 	var jobs: Array[Job] = _rack.get_open_jobs()
-	for priority: int in range(1, Pawn.LOWEST_PRIORITY + 1):
+	for priority: int in range(1, max_priority + 1):
 		for work_type: WorkType in work_types:
 			if pawn.get_priority(work_type) != priority:
 				continue
@@ -107,12 +110,11 @@ func _try_assign_work(pawn: Pawn) -> bool:
 
 ## Assigns the job if the pawn can reach a free spot for it. If the job needs something
 ## brought (the ticket's item, or a supply from storage), the pawn fetches it on the way.
+## A busy item (e.g. still baking) can be fetched early: the pawn waits by it.
 func _try_job(pawn: Pawn, job: Job) -> bool:
 	var from_cell: Vector2i = _floor.global_to_cell(pawn.global_position)
 	var supply_station: Station = null
 	var carried: Item = _get_carried(job)
-	if carried != null and carried.busy:
-		return false
 	if job.task_type.fetch_supply != &"" and carried == null:
 		supply_station = _find_supply(job.task_type.fetch_supply)
 		if supply_station == null:
@@ -128,6 +130,9 @@ func _try_job(pawn: Pawn, job: Job) -> bool:
 		elif carried != null and not _is_at(carried, spot):
 			pickup_cell = _get_pickup_cell(carried)
 			needs_pickup = true
+		elif carried != null and carried.busy:
+			# Can't work an item in place while a station is still working it.
+			continue
 		if needs_pickup:
 			pickup_path = _floor.get_path_points(from_cell, pickup_cell)
 			if pickup_path.is_empty():
@@ -229,6 +234,11 @@ func _work_unattended(item: Item, task: TaskType, done_texture: Texture2D) -> vo
 		return
 	item.busy = false
 	item.set_texture(done_texture)
+	var waiting: Pawn = _waiting_for.get(item)
+	if waiting != null:
+		_waiting_for.erase(item)
+		_pick_up(waiting.get_job(), waiting)
+		waiting.resume_job()
 	_on_rack_jobs_changed()
 
 
@@ -296,13 +306,19 @@ func _on_priority_change_requested(pawn: Pawn, work_type: WorkType, priority: in
 	_try_assign_work(pawn)
 
 
+## Offers open work to idle pawns, priority 1 first across everyone, so a pawn with a job
+## at 1 gets it before another pawn who has it at 3.
 func _on_rack_jobs_changed() -> void:
-	for pawn: Pawn in _pawns:
-		_try_assign_work(pawn)
+	for max_priority: int in range(1, Pawn.LOWEST_PRIORITY + 1):
+		for pawn: Pawn in _pawns:
+			_try_assign_work(pawn, max_priority)
 
 
 func _on_rack_job_withdrawn(job: Job) -> void:
 	var pawn: Pawn = job.claimed_by
+	var waited_for: Item = _waiting_for.find_key(pawn)
+	if waited_for != null:
+		_waiting_for.erase(waited_for)
 	pawn.drop_job()
 	var held: Item = pawn.release_item()
 	if held != null:
@@ -321,6 +337,16 @@ func _on_pawn_path_finished(pawn: Pawn) -> void:
 
 
 func _on_pawn_pickup_reached(job: Job, pawn: Pawn) -> void:
+	var item: Item = _get_carried(job)
+	if job.supply_station == null and item.busy:
+		# Not ready yet (e.g. still baking): stand by until the station is done with it.
+		_waiting_for[item] = pawn
+		pawn.wait_at_pickup(item.get_outermost().global_position)
+		return
+	_pick_up(job, pawn)
+
+
+func _pick_up(job: Job, pawn: Pawn) -> void:
 	var supply_station: Station = job.supply_station
 	if supply_station != null:
 		supply_station.take_supply()

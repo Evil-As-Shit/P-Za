@@ -12,7 +12,7 @@ signal job_finished(job: Job)
 ## Emitted each frame of work with how far along the job is (0-1).
 signal work_progressed(job: Job, progress: float)
 
-enum State { IDLE, WALKING, WALKING_TO_PICKUP, WALKING_TO_JOB, WORKING }
+enum State { IDLE, WALKING, WALKING_TO_PICKUP, WAITING_AT_PICKUP, WALKING_TO_JOB, WORKING }
 
 ## Priorities run from 1 (done first) to this. 0 means the pawn never does that work.
 const LOWEST_PRIORITY: int = 4
@@ -99,6 +99,26 @@ func hold_item(item: Item) -> void:
 	item.reparent(_hold_point, false)
 	item.position = Vector2.ZERO
 	_place_hold_point()
+
+
+## Call from pickup_reached when the item isn't ready yet: the pawn stands facing
+## `look_at` until resume_job().
+func wait_at_pickup(look_at: Vector2) -> void:
+	if _state != State.WALKING_TO_JOB:
+		return
+	_state = State.WAITING_AT_PICKUP
+	_face(look_at - global_position)
+	_play_idle()
+
+
+## Carries on to the work spot after wait_at_pickup().
+func resume_job() -> void:
+	if _state == State.WAITING_AT_PICKUP:
+		_state = State.WALKING_TO_JOB
+
+
+func get_job() -> Job:
+	return _job
 
 
 ## Lets go of the held item and returns it. The caller moves it somewhere.
