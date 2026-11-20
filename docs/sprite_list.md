@@ -96,8 +96,8 @@ One cell per facing, left to right: **facing 0, 1, 2, 3**. The blue diamonds are
 Standard work-surface height, so tables and counters are consistent. Cells left to right: 1×1, 2×1 facing 0, 2×1 facing 1 (same layout as the object guides).
 
 - Blue is the floor footprint. Orange is the tabletop, **16 px** above it, with dotted leg lines at the corners.
-- The red dots are where items sit (pizzas, boxes). The game places items on those points, so a surface drawn at this height holds them flush.
-- A station drawn taller or shorter needs its item offset changed to match. For example, the pickup counter is 5 px taller (21 px), so its offset is 21 instead of 16.
+- The red dots are where items are anchored (pizzas, boxes): 20 px above the floor cell's center, 4 px above the middle of the tabletop. That's the item offset the tables and pickup counter use.
+- A station drawn taller or shorter needs its item offset changed by the same amount.
 
 ### `item_16x16_guide.png`
 
