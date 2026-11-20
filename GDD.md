@@ -93,10 +93,15 @@ Each item below is a direction, not a final spec.
 
 ### Pawns and the priority system
 - Pawns are autonomous. The player sets task priorities per pawn (a RimWorld-style work-priority grid) and never gives direct move or work commands.
-- Tasks include dough prep, sauce, assembly, oven, slicing, boxing, box making, cashier, front-of-house service, driving and cleaning. Training is also a task.
+- Tasks include dough prep, sauce, assembly, oven, slicing, boxing, box making, cashier, front-of-house service, driving and cleaning. Training is set separately (see Staff).
 - Pizza boxes arrive as unfolded sheets, so staff have to make (fold) them before they can be used for boxing.
 - Driving is just another skill pawns can develop. Delivery drivers are regular in-house staff, not a separate hire.
 - Pawns claim work from the station queues according to their priorities and skill.
+- The priority grid has pawns as rows and a few broad work types as columns. Each cell is 1–4 (1 first) or blank (never).
+  - An idle pawn takes work by its grid first: priority 1 before 2, and the leftmost column wins a tie. Within a work type, it takes the first open job in Make-rack order.
+  - Pawns finish their current job before choosing again.
+  - New hires start with everything blank until the player assigns work.
+  - When no manager has line of sight, pawns skip their low-priority work (and slack off).
 - Each station has one or more spots. A spot is where a pawn stands plus where its item sits, and one pawn uses it at a time. Spots rotate with the station. The long table has two.
 - For now, each task type has a fixed base work time. Skill and mood will scale it later.
 - Pawns with no work wander and sometimes check their phone (placeholder behavior).
@@ -138,7 +143,7 @@ Each item below is a direction, not a final spec.
 - Pawns can become friends if their personality types jive, or enemies if they don't.
 - Pawns quit after being stressed at work for a long time.
 - Hiring comes from a stack of resumes the player sorts through. Better applicants come with better reviews.
-- **Trainees** can shadow a veteran to learn safely, at some cost to the veteran's output.
+- **Trainees** can shadow a veteran to learn safely, at some cost to the veteran's output. Training is a checkbox on the pawn, not a grid column. A trainee shadows anyone doing work the trainee is also assigned, as long as that pawn's skill is higher than the trainee's.
 - A **manager** must be on shift during open hours. When the shop is quiet and the manager is out of sight, pawns slack off (for example, browsing their phones).
 
 ### Store operations
