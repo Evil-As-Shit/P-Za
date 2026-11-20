@@ -1,0 +1,89 @@
+class_name JobStop
+extends RefCounted
+## A place a pawn stops on the way to a job's work spot, and what they do there (pick
+## something up, set something out...). Whatever it needs is claimed when the job is
+## assigned, and handed back with release() if the pawn never gets there.
+
+enum Action {
+	## Pick up the job's item from where it is (a spot or the floor).
+	PICK_UP,
+	## Take one stored unit from a storage station.
+	TAKE_SUPPLY,
+	## Set the carried ingredient container out on a spot, and take a unit from it.
+	SET_OUT,
+	## Take a unit from an ingredient container set out on a spot.
+	TAKE_UNIT,
+	## Drop the carried empty container off at storage for empties.
+	STORE_EMPTY,
+}
+
+var action: Action
+## Where the pawn stands.
+var cell: Vector2i
+var station: Station = null
+var spot: int = -1
+## The ingredient container a unit is taken from (TAKE_UNIT).
+var container: Item = null
+
+
+func _init(p_action: Action, p_cell: Vector2i) -> void:
+	action = p_action
+	cell = p_cell
+
+
+static func pick_up(p_cell: Vector2i) -> JobStop:
+	return JobStop.new(Action.PICK_UP, p_cell)
+
+
+static func take_supply(p_station: Station) -> JobStop:
+	var stop := JobStop.new(Action.TAKE_SUPPLY, p_station.get_work_cell(0))
+	stop.station = p_station
+	return stop
+
+
+static func set_out(p_station: Station, p_spot: int) -> JobStop:
+	var stop := JobStop.new(Action.SET_OUT, p_station.get_work_cell(p_spot))
+	stop.station = p_station
+	stop.spot = p_spot
+	return stop
+
+
+static func take_unit(p_container: Item) -> JobStop:
+	var stop := JobStop.new(
+		Action.TAKE_UNIT, p_container.station.get_work_cell(p_container.spot)
+	)
+	stop.container = p_container
+	return stop
+
+
+static func store_empty(p_station: Station) -> JobStop:
+	var stop := JobStop.new(Action.STORE_EMPTY, p_station.get_work_cell(0))
+	stop.station = p_station
+	return stop
+
+
+## Claims what the stop needs.
+func claim() -> void:
+	match action:
+		Action.TAKE_SUPPLY:
+			station.claim_supply()
+		Action.SET_OUT:
+			station.reserve(spot)
+		Action.TAKE_UNIT:
+			container.claim_unit()
+		Action.STORE_EMPTY:
+			station.claim_room()
+
+
+## Hands back what claim() took, for a stop the pawn won't make.
+func release() -> void:
+	match action:
+		Action.TAKE_SUPPLY:
+			station.unclaim_supply()
+		Action.SET_OUT:
+			station.release(spot)
+		Action.TAKE_UNIT:
+			if is_instance_valid(container):
+				container.unclaim_unit()
+		Action.STORE_EMPTY:
+			station.unclaim_room()

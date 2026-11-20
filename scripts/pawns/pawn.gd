@@ -4,15 +4,16 @@ extends Node2D
 ## It doesn't choose what to do; its owner decides and calls follow_path() or assign_job().
 
 signal path_finished
-## Reached the spot to pick up the job's item. The owner should hand it over with hold_item().
-signal pickup_reached(job: Job)
+## Reached one of the job's stops on the way to work (e.g. to pick something up). The owner
+## does what the stop needs, like handing over an item with hold_item().
+signal stop_reached(job: Job)
 ## Reached the work spot and is about to start working.
 signal work_started(job: Job)
 signal job_finished(job: Job)
 ## Emitted each frame of work with how far along the job is (0-1).
 signal work_progressed(job: Job, progress: float)
 
-enum State { IDLE, WALKING, WALKING_TO_PICKUP, WAITING_AT_PICKUP, WALKING_TO_JOB, WORKING }
+enum State { IDLE, WALKING, WALKING_TO_STOP, WAITING_AT_STOP, WALKING_TO_JOB, WORKING }
 
 ## Priorities run from 1 (done first) to this. 0 means the pawn never does that work.
 const LOWEST_PRIORITY: int = 4
@@ -21,7 +22,7 @@ const LOWEST_PRIORITY: int = 4
 ## Work type -> priority (1 to LOWEST_PRIORITY). Missing or 0 means never.
 @export var priorities: Dictionary[WorkType, int] = {}
 
-@export var move_speed: float = 40.0
+@export var move_speed: float = 60.0
 ## Seconds of work done per second. Skill and mood will change this later.
 @export var work_speed: float = 1.0
 ## Height above the feet a carried item is held at.
@@ -31,7 +32,10 @@ const LOWEST_PRIORITY: int = 4
 
 var _state: State = State.IDLE
 var _path: PackedVector2Array = PackedVector2Array()
-var _work_path: PackedVector2Array = PackedVector2Array()
+## Paths still to walk after the current one: to each remaining stop, then to work.
+var _next_paths: Array[PackedVector2Array] = []
+## State to go back to after waiting at a stop.
+var _resume_state: State = State.IDLE
 var _job: Job = null
 var _held_item: Item = null
 var _on_phone: bool = false
@@ -51,7 +55,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	match _state:
-		State.WALKING, State.WALKING_TO_PICKUP, State.WALKING_TO_JOB:
+		State.WALKING, State.WALKING_TO_STOP, State.WALKING_TO_JOB:
 			_step_along_path(delta)
 		State.WORKING:
 			_do_work(delta)
@@ -75,22 +79,24 @@ func use_phone() -> void:
 	_play_idle()
 
 
-## Walks `pickup_path` (if not empty) to fetch the job's item, then `work_path` to the
-## work spot, then works until done. Emits pickup_reached, work_started and job_finished.
+## Walks each of `stop_paths` in turn (emitting stop_reached at the end of each), then
+## `work_path` to the work spot, then works until done. Emits work_started and job_finished.
 func assign_job(
-	job: Job, pickup_path: PackedVector2Array, work_path: PackedVector2Array, work_target: Vector2
+	job: Job, stop_paths: Array[PackedVector2Array], work_path: PackedVector2Array,
+	work_target: Vector2
 ) -> void:
 	_job = job
 	_job.claimed_by = self
 	_on_phone = false
 	_work_target = work_target
-	if pickup_path.is_empty():
-		_path = work_path
-		_state = State.WALKING_TO_JOB
-	else:
-		_path = pickup_path
-		_work_path = work_path
-		_state = State.WALKING_TO_PICKUP
+	_next_paths = stop_paths.duplicate()
+	_next_paths.append(work_path)
+	_walk_next_path()
+
+
+func _walk_next_path() -> void:
+	_path = _next_paths.pop_front()
+	_state = State.WALKING_TO_STOP if not _next_paths.is_empty() else State.WALKING_TO_JOB
 
 
 ## Carries `item` in front of the pawn (until there's a carry animation).
@@ -101,20 +107,45 @@ func hold_item(item: Item) -> void:
 	_place_hold_point()
 
 
-## Call from pickup_reached when the item isn't ready yet: the pawn stands facing
-## `look_at` until resume_job().
-func wait_at_pickup(look_at: Vector2) -> void:
-	if _state != State.WALKING_TO_JOB:
+## Call from stop_reached when the stop can't be done yet (e.g. the item is still baking):
+## the pawn stands facing `look_at` until resume_job().
+func wait_at_stop(look_at: Vector2) -> void:
+	if _state != State.WALKING_TO_STOP and _state != State.WALKING_TO_JOB:
 		return
-	_state = State.WAITING_AT_PICKUP
+	_resume_state = _state
+	_state = State.WAITING_AT_STOP
 	_face(look_at - global_position)
 	_play_idle()
 
 
-## Carries on to the work spot after wait_at_pickup().
+## Changes where the pawn will work: walks `path` there instead, once any stops left are
+## done. `path` must start where the pawn is now (or at their last stop).
+func redirect_work(path: PackedVector2Array, work_target: Vector2) -> void:
+	_work_target = work_target
+	if not _next_paths.is_empty():
+		_next_paths[_next_paths.size() - 1] = path
+	elif _state == State.WALKING_TO_JOB or (
+		_state == State.WAITING_AT_STOP and _resume_state == State.WALKING_TO_JOB
+	):
+		_path = path
+
+
+## From a stop with no stops left, makes one more stop on the way to work: walks
+## `to_stop` (emitting stop_reached at its end), then `to_work`. Returns false if the pawn
+## isn't on their way to work.
+func detour(to_stop: PackedVector2Array, to_work: PackedVector2Array) -> bool:
+	if _state != State.WALKING_TO_JOB or not _next_paths.is_empty():
+		return false
+	_next_paths = [to_work]
+	_path = to_stop
+	_state = State.WALKING_TO_STOP
+	return true
+
+
+## Carries on after wait_at_stop().
 func resume_job() -> void:
-	if _state == State.WAITING_AT_PICKUP:
-		_state = State.WALKING_TO_JOB
+	if _state == State.WAITING_AT_STOP:
+		_state = _resume_state
 
 
 func get_job() -> Job:
@@ -133,7 +164,7 @@ func drop_job() -> Job:
 	var job: Job = _job
 	_job = null
 	_path.clear()
-	_work_path.clear()
+	_next_paths.clear()
 	_state = State.IDLE
 	_work_bar.hide()
 	_play_idle()
@@ -178,11 +209,10 @@ func _step_along_path(delta: float) -> void:
 
 
 func _on_path_end() -> void:
-	if _state == State.WALKING_TO_PICKUP:
-		_path = _work_path
-		_work_path = PackedVector2Array()
-		_state = State.WALKING_TO_JOB
-		pickup_reached.emit(_job)
+	if _state == State.WALKING_TO_STOP:
+		# Move on first, so a handler that makes the pawn wait pauses the next walk.
+		_walk_next_path()
+		stop_reached.emit(_job)
 		return
 	if _state == State.WALKING_TO_JOB:
 		_state = State.WORKING

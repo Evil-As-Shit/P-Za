@@ -29,6 +29,10 @@
 [ext_resource type="Resource" path="res://resources/work_types/boxing.tres" id="18_boxing"]
 [ext_resource type="Resource" path="res://resources/work_types/front.tres" id="19_front"]
 [ext_resource type="PackedScene" path="res://scenes/ui/priority_panel.tscn" id="20_priority_panel"]
+[ext_resource type="Resource" path="res://resources/station_roles/box_storage.tres" id="30_box_storage"]
+[ext_resource type="Resource" path="res://resources/station_roles/dough_storage.tres" id="31_dough_storage"]
+[ext_resource type="Resource" path="res://resources/station_roles/empty_dough_storage.tres" id="32_empty_dough"]
+[ext_resource type="Resource" path="res://resources/stations/small_table.tres" id="33_small_table"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -52,14 +56,35 @@ data = ExtResource("6_table")
 cell = Vector2i(5, 5)
 role = ExtResource("13_prep")
 
+[node name="PrepTable2" parent="Entities" instance=ExtResource("5_station")]
+data = ExtResource("6_table")
+cell = Vector2i(5, 7)
+role = ExtResource("13_prep")
+
 [node name="SmallOven" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("10_oven")
 cell = Vector2i(8, 5)
+
+[node name="SmallOven2" parent="Entities" instance=ExtResource("5_station")]
+data = ExtResource("10_oven")
+cell = Vector2i(9, 5)
 
 [node name="BoxRack" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("12_box_rack")
 cell = Vector2i(8, 8)
 facing = 3
+role = ExtResource("30_box_storage")
+
+[node name="DoughRack" parent="Entities" instance=ExtResource("5_station")]
+data = ExtResource("12_box_rack")
+cell = Vector2i(3, 5)
+facing = 3
+role = ExtResource("31_dough_storage")
+
+[node name="EmptyDoughTable" parent="Entities" instance=ExtResource("5_station")]
+data = ExtResource("33_small_table")
+cell = Vector2i(3, 7)
+role = ExtResource("32_empty_dough")
 
 [node name="BoxingTable" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("6_table")
@@ -90,6 +115,21 @@ display_name = "Pawn 2"
 priorities = Dictionary[ExtResource("15_work_type"), int]({
 ExtResource("17_oven"): 2,
 ExtResource("18_boxing"): 1,
+ExtResource("19_front"): 1
+})
+
+[node name="Pawn3" parent="Entities" instance=ExtResource("3_pawn")]
+display_name = "Pawn 3"
+priorities = Dictionary[ExtResource("15_work_type"), int]({
+ExtResource("16_kitchen"): 1,
+ExtResource("17_oven"): 2,
+ExtResource("18_boxing"): 3,
+ExtResource("19_front"): 3
+})
+
+[node name="Pawn4" parent="Entities" instance=ExtResource("3_pawn")]
+display_name = "Pawn 4"
+priorities = Dictionary[ExtResource("15_work_type"), int]({
 ExtResource("19_front"): 1
 })
 

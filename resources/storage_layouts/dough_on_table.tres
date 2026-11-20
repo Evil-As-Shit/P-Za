@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StorageLayout" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/storage_layout.gd" id="1_layout"]
+[ext_resource type="Texture2D" path="res://resources/items/dough_container_back.tres" id="2_back"]
+[ext_resource type="Texture2D" path="res://resources/items/dough_container_front.tres" id="3_front"]
+[ext_resource type="Texture2D" path="res://resources/items/dough_container_lid.tres" id="4_lid"]
+
+[resource]
+script = ExtResource("1_layout")
+kind = &"dough"
+textures = Array[Texture2D]([ExtResource("2_back"), ExtResource("3_front"), ExtResource("4_lid")])
+piles_at_spots = true
+per_pile = 4
+pile_step = 3.0
+starts_full = true

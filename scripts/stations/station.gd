@@ -15,10 +15,14 @@ var _footprint: Array[Vector2i] = []
 var _item_positions: Array[Vector2] = []
 var _items: Array[Item] = []
 var _reserved: Array[bool] = []
-var _supply_left: int = 0
-var _supply_claimed: int = 0
-## One array of sprites per pile, bottom to top. Inside piles first, then on-top piles.
-var _pile_sprites: Array[Array] = []
+## Stored units (of the storage role's kind), how many are promised to pawns on their way to
+## take one, and how many free places are promised to pawns bringing one.
+var _stock: int = 0
+var _stock_claimed: int = 0
+var _room_claimed: int = 0
+## One array of unit nodes per pile, bottom to top. Inside piles first, then on-top piles.
+var _pile_units: Array[Array] = []
+var _origin_center: Vector2 = Vector2.ZERO
 ## Top edge of the station's art, for placing the work bar above it.
 var _art_top: float = 0.0
 
@@ -68,7 +72,8 @@ func place(shop_floor: ShopFloor) -> void:
 	for art: Sprite2D in [_sprite, _cover]:
 		if art.texture != null:
 			_art_top = minf(_art_top, art.global_position.y + _opaque_top(art.texture))
-	_build_piles(shop_floor.cell_to_global(cell))
+	_origin_center = shop_floor.cell_to_global(cell)
+	_build_piles()
 	# On the tabletop, over the middle of the footprint.
 	_role_label.size = Vector2(48.0, 12.0)
 	_role_label.global_position = centroid + data.item_offset - Vector2(24.0, 6.0)
@@ -77,8 +82,11 @@ func place(shop_floor: ShopFloor) -> void:
 
 ## Assigns a role (or null for unused). Only for stations that take roles.
 func set_role(new_role: StationRole) -> void:
+	var old_kind: StringName = get_stored_kind()
 	role = new_role
 	_update_role_label()
+	if get_stored_kind() != old_kind:
+		_build_piles()
 
 
 ## Highlights the station while it's selected.
@@ -205,57 +213,128 @@ func get_work_target(spot: int) -> Vector2:
 	return _item_positions[spot]
 
 
+## Kind of thing the station stores (from its role), or empty if it isn't storage.
+func get_stored_kind() -> StringName:
+	return role.stores if role != null else &""
+
+
+func get_storage_layout() -> StorageLayout:
+	var kind: StringName = get_stored_kind()
+	return data.get_storage_layout(kind) if kind != &"" else null
+
+
 ## True if one unit of `kind` is in stock and not already promised to a pawn.
 func has_supply(kind: StringName) -> bool:
-	return kind != &"" and data.supply == kind and _supply_left - _supply_claimed > 0
+	return kind != &"" and get_stored_kind() == kind and _stock - _stock_claimed > 0
 
 
 ## Promises one unit to a pawn on its way. Undo with unclaim_supply() if it never arrives.
 func claim_supply() -> void:
-	_supply_claimed += 1
+	_stock_claimed += 1
 
 
 func unclaim_supply() -> void:
-	_supply_claimed -= 1
+	_stock_claimed -= 1
 
 
-## Removes a claimed unit from stock.
+## Removes a claimed unit from stock. Placeholder until deliveries: storage that starts
+## full refills the moment it runs out.
 func take_supply() -> void:
-	_supply_claimed -= 1
-	_supply_left -= 1
+	_stock_claimed -= 1
+	_stock -= 1
+	var layout: StorageLayout = get_storage_layout()
+	if _stock == 0 and layout != null and layout.starts_full:
+		_stock = _get_capacity()
 	_update_piles()
 
 
-func _build_piles(origin_center: Vector2) -> void:
-	_supply_left = data.get_supply_capacity()
-	for pile_offset: Vector2 in data.supply_piles:
-		_pile_sprites.append(
-			_make_pile(_supply_inside, origin_center + pile_offset, _pile_sprites.size())
-		)
-	for pile_offset: Vector2 in data.supply_piles_on_top:
-		_pile_sprites.append(
-			_make_pile(_supply_on_top, origin_center + pile_offset, _pile_sprites.size())
-		)
+func _get_capacity() -> int:
+	var total: int = 0
+	for pile: Array in _pile_units:
+		total += pile.size()
+	return total
+
+
+## True if there's a free place for one unit of `kind` not already promised to a pawn.
+func has_room(kind: StringName) -> bool:
+	return (
+		kind != &"" and get_stored_kind() == kind
+		and _stock + _room_claimed < _get_capacity()
+	)
+
+
+## Promises a free place to a pawn bringing a unit. Undo with unclaim_room().
+func claim_room() -> void:
+	_room_claimed += 1
+
+
+func unclaim_room() -> void:
+	_room_claimed -= 1
+
+
+## Stores a unit in a claimed place. Placeholder until a cleaning station: storage that
+## clears when full does so the moment it fills.
+func add_stock() -> void:
+	_room_claimed -= 1
+	_stock += 1
+	var layout: StorageLayout = get_storage_layout()
+	if layout != null and layout.clears_when_full and _stock >= _get_capacity():
+		_stock = 0
 	_update_piles()
 
 
-func _make_pile(parent: Node2D, base: Vector2, index: int) -> Array[Sprite2D]:
-	var pile: Array[Sprite2D] = []
-	for level: int in data.get_pile_size(index):
-		var sprite := Sprite2D.new()
-		sprite.texture = data.supply_texture
-		sprite.centered = false
-		sprite.offset = Vector2(-16, -56)
-		parent.add_child(sprite)
-		sprite.global_position = base - Vector2(0.0, level * data.supply_pile_step)
-		pile.append(sprite)
+## Lays out the piles for the stored kind. Stock starts full or empty (see
+## StorageLayout.starts_full) until there are deliveries.
+func _build_piles() -> void:
+	for pile: Array in _pile_units:
+		for unit: Node2D in pile:
+			unit.queue_free()
+	_pile_units.clear()
+	_stock = 0
+	_stock_claimed = 0
+	_room_claimed = 0
+	var layout: StorageLayout = get_storage_layout()
+	if layout == null:
+		return
+	if layout.piles_at_spots:
+		for item_position: Vector2 in _item_positions:
+			_pile_units.append(
+				_make_pile(layout, _supply_inside, item_position, _pile_units.size())
+			)
+	else:
+		for pile_offset: Vector2 in layout.piles:
+			_pile_units.append(_make_pile(
+				layout, _supply_inside, _origin_center + pile_offset, _pile_units.size()
+			))
+		for pile_offset: Vector2 in layout.piles_on_top:
+			_pile_units.append(_make_pile(
+				layout, _supply_on_top, _origin_center + pile_offset, _pile_units.size()
+			))
+	if layout.starts_full:
+		_stock = _get_capacity()
+	_update_piles()
+
+
+func _make_pile(layout: StorageLayout, parent: Node2D, base: Vector2, index: int) -> Array[Node2D]:
+	var pile: Array[Node2D] = []
+	for level: int in layout.get_pile_size(index):
+		var unit := Node2D.new()
+		for texture: Texture2D in layout.textures:
+			var sprite := Sprite2D.new()
+			sprite.texture = texture
+			sprite.centered = false
+			sprite.offset = Vector2(-16, -56)
+			unit.add_child(sprite)
+		parent.add_child(unit)
+		unit.global_position = base - Vector2(0.0, level * layout.pile_step)
+		pile.append(unit)
 	return pile
 
 
-## Shows the first `_supply_left` units, filling piles in order, bottom up.
+## Shows the first `_stock` units, filling piles in order, bottom up.
 func _update_piles() -> void:
 	var shown: int = 0
-	for pile: Array in _pile_sprites:
-		for sprite: Sprite2D in pile:
-			sprite.visible = shown < _supply_left
+	for pile: Array in _pile_units:
+		for unit: Node2D in pile:
+			unit.visible = shown < _stock
 			shown += 1

@@ -8,5 +8,5 @@ script = ExtResource("1_task")
 id = &"load_oven"
 display_name = "Load oven"
 work_type = ExtResource("9_work_type")
-base_work_time = 12.0
+base_work_time = 12.5
 unattended = true

@@ -18,19 +18,25 @@ func _ready() -> void:
 	_header.text = title
 
 
-func show_tickets(tickets: Array[Ticket]) -> void:
+## `now_minutes` is the current shop time, for showing how long each ticket has waited.
+func show_tickets(tickets: Array[Ticket], now_minutes: int) -> void:
 	for child: Node in _cards.get_children():
 		_cards.remove_child(child)
 		child.queue_free()
 	for ticket: Ticket in tickets:
 		var card := TICKET_CARD_SCENE.instantiate() as TicketCard
 		_cards.add_child(card)
-		card.show_ticket(ticket)
+		card.show_ticket(ticket, now_minutes)
 		card.set_drag_forwarding(
 			_get_card_drag_data.bind(card),
 			_can_drop_on_card.bind(card),
 			_drop_on_card.bind(card)
 		)
+
+
+func update_times(now_minutes: int) -> void:
+	for card: TicketCard in _cards.get_children():
+		card.update_time(now_minutes)
 
 
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:

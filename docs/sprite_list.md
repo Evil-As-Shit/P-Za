@@ -13,6 +13,7 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 - Small oven (1×1, one facing): `Small_Oven.png`
 - Pizza stages (dough ball, dough, sauce, cheese, baked) and 4 cut-line frames above them: `pizza_sheet.png`. Cut lines are drawn 16 px above where they land on the pizza.
 - Pizza box (closed, open base and lid): `box_sheet.png`
+- Dough container (lid, inside/back, front edge; 32×16 cells stacked in that order, same anchor): `dough_container.png`. Holds 6 dough balls.
 - Box rack (2×1, one facing, split into top and bottom shelf): `box_rack_sheet.png`
 - Pickup counter (1×1, one facing): `Object_Spritesheet.png` at (128, 0)
 

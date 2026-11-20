@@ -12,12 +12,18 @@ extends Resource
 ## its own (e.g. baking). The ticket moves on right away, so its next steps can be done
 ## meanwhile, but the item can't be moved until it's done.
 @export var unattended: bool = false
-## If true, this step can be done any time once the ticket is in Make, alongside the other
-## steps (e.g. setting out a box early). Later steps that need it wait until it's done.
+## If true, this step opens once the steps before it are done and is worked alongside the
+## steps after it (e.g. setting out a box while the pizza bakes). Later steps that need it
+## wait until it's done.
 @export var prep: bool = false
 ## Drawn over the item while it's worked, one after another as the work fills (e.g. cut
 ## lines), after a first stretch with none. The last one stays when done.
 @export var work_frames: Array[Texture2D] = []
+
+## If set, the pawn takes a unit from an open container of this ingredient on a station
+## that does this task (setting a full one out from storage first if none is open), and the
+## unit becomes the ticket's item.
+@export var ingredient: IngredientContainer
 
 @export_group("Containers")
 ## If set, the pawn fetches one of this supply from storage (e.g. &"box") and sets it out

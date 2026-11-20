@@ -13,6 +13,14 @@ func _ready() -> void:
 	_make_column.ticket_dropped.connect(move_requested.emit)
 
 
-func show_rack(wait_tickets: Array[Ticket], make_tickets: Array[Ticket]) -> void:
-	_wait_column.show_tickets(wait_tickets)
-	_make_column.show_tickets(make_tickets)
+## `now_minutes` is the current shop time, for showing how long each ticket has waited.
+func show_rack(
+	wait_tickets: Array[Ticket], make_tickets: Array[Ticket], now_minutes: int
+) -> void:
+	_wait_column.show_tickets(wait_tickets, now_minutes)
+	_make_column.show_tickets(make_tickets, now_minutes)
+
+
+func update_times(now_minutes: int) -> void:
+	_wait_column.update_times(now_minutes)
+	_make_column.update_times(now_minutes)

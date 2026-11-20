@@ -8,7 +8,7 @@ signal order_placed(recipe: Recipe)
 ## Recipes customers pick from, at random.
 @export var menu: Array[Recipe] = []
 ## Average shop-clock minutes between orders outside rushes.
-@export var base_interval_minutes: float = 20.0
+@export var base_interval_minutes: float = 6.0
 ## Rush windows as (start, end) in minutes since midnight.
 @export var rushes: Array[Vector2] = [Vector2(720, 810), Vector2(1080, 1170)]
 ## How many times more often orders come during a rush.

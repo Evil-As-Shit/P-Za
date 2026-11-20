@@ -12,6 +12,14 @@ var spot: int = -1
 var container: Item = null
 ## True while a station works it on its own (e.g. baking). It can't be moved meanwhile.
 var busy: bool = false
+## Set if this is an ingredient container (e.g. a dough tub); its contents are the units.
+var ingredient: IngredientContainer = null
+
+var _mirrored: bool = false
+## Where each item inside sits, as if not mirrored.
+var _content_offsets: Dictionary[Item, Vector2] = {}
+## Units promised to pawns on their way to take one.
+var _units_claimed: int = 0
 
 @onready var _under: Sprite2D = $Under
 @onready var _sprite: Sprite2D = $Sprite
@@ -19,10 +27,16 @@ var busy: bool = false
 @onready var _overlay: Sprite2D = $Overlay
 @onready var _contents: Node2D = $Contents
 @onready var _over: Sprite2D = $Over
+@onready var _lid: Sprite2D = $Lid
 
 
 func set_texture(texture: Texture2D) -> void:
 	_sprite.texture = texture
+
+
+## Drawn over everything, contents included. Pass null to take it off.
+func set_lid(texture: Texture2D) -> void:
+	_lid.texture = texture
 
 
 ## Marks drawn over the item (e.g. cut lines). Pass null to clear.
@@ -42,17 +56,62 @@ func set_wrap(
 
 ## Item art is drawn with its front facing down-right (a box's fold and lid are at the
 ## back, up-left). Mirrored, it faces down-left. Only flips the item's own art, not its
-## contents.
+## contents' own art, though they move to stay in the same place inside it.
 func set_mirrored(mirrored: bool) -> void:
-	for sprite: Sprite2D in [_under, _sprite, _overlay, _over]:
+	_mirrored = mirrored
+	for sprite: Sprite2D in [_under, _sprite, _overlay, _over, _lid]:
 		sprite.flip_h = mirrored
+	for item: Item in _content_offsets:
+		_place_content(item)
 
 
-## Puts `item` inside this one, between its under and over art.
-func put_in(item: Item) -> void:
+## Puts `item` inside this one, between its under and over art, at `offset`. Items put in
+## later draw in front.
+func put_in(item: Item, offset: Vector2 = Vector2.ZERO) -> void:
 	item.container = self
 	item.reparent(_contents, false)
-	item.position = Vector2.ZERO
+	_content_offsets[item] = offset
+	_place_content(item)
+
+
+## Takes `item` out. The caller moves it somewhere.
+func take_out(item: Item) -> void:
+	_content_offsets.erase(item)
+	item.container = null
+
+
+func _place_content(item: Item) -> void:
+	var offset: Vector2 = _content_offsets[item]
+	item.position = Vector2(-offset.x, offset.y) if _mirrored else offset
+
+
+## Items inside, back to front (for an ingredient container, its units).
+func get_units() -> Array[Item]:
+	var units: Array[Item] = []
+	units.assign(_content_offsets.keys())
+	return units
+
+
+## Units left that no pawn has claimed.
+func get_free_units() -> int:
+	return _content_offsets.size() - _units_claimed
+
+
+## Promises a unit to a pawn on its way. Undo with unclaim_unit() if they never arrive.
+func claim_unit() -> void:
+	_units_claimed += 1
+
+
+func unclaim_unit() -> void:
+	_units_claimed -= 1
+
+
+## Takes a claimed unit out (the front-most) and returns it. The caller moves it.
+func take_unit() -> Item:
+	_units_claimed -= 1
+	var unit: Item = get_units().back()
+	take_out(unit)
+	return unit
 
 
 ## The outermost item this one is inside (or itself), which is what sits somewhere.

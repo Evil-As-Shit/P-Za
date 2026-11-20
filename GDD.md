@@ -105,7 +105,7 @@ Each item below is a direction, not a final spec.
   - New hires start with everything blank until the player assigns work.
   - When no manager has line of sight, pawns skip their low-priority work (and slack off).
 - Each station has one or more spots. A spot is where a pawn stands plus where its item sits, and one pawn uses it at a time. Spots rotate with the station. The long table has two.
-- **Station roles (zones, part 1):** tables and counters are general-purpose. The player clicks one to give it a role: Prep (making pizzas), Boxing (boxes, unloading, cutting), Pickup (hand-off), or unused. The role decides what work happens there. Ovens and storage keep a fixed purpose. Later zone work: storage shelves with item filters and priority (like RimWorld stockpiles), then painted front/back-of-house areas.
+- **Station roles (zones, part 1):** tables, counters and racks are general-purpose. The player clicks one to give it a role, either work or storage: Prep (making pizzas), Boxing (boxes, unloading, cutting), Pickup (hand-off), storing Boxes, Dough (full dough containers) or Empty Dough (empty containers), or unused. A station either works or stores. Ovens keep a fixed purpose. Each station type sets how each stored kind stacks on it (racks have shelf positions; tables stack on each spot). Until deliveries exist, Boxes and Dough storage start full and refill the moment they run out. Until there's a cleaning station, Empty Dough storage clears the moment it fills. Later zone work: storage priority (like RimWorld stockpiles), then painted front/back-of-house areas.
 - For now, each task type has a fixed base work time. Skill and mood will scale it later.
 - Pawns with no work wander and sometimes check their phone (placeholder behavior).
 
@@ -113,13 +113,15 @@ Each item below is a direction, not a final spec.
 - Orders print as physical tickets from the register.
 - The player arranges tickets on a rack with two sections: **Wait** and **Make**. Pawns work the Make tickets in order, so reordering tickets steers the kitchen indirectly.
 - The rack is a HUD panel with Wait and Make columns. Tickets are dragged between columns and reordered.
-- New tickets land in **Wait**. The player moves them to Make.
-- Until customers exist, orders arrive at random while the shop is open: about one every 20 clock minutes, twice as often during the lunch (12:00–13:30) and dinner (18:00–19:30) rushes, and none in the last hour (from 21:00). That's roughly 40 a day.
+- New tickets land in **Wait**. The player moves them to Make. (For now, as a placeholder, new tickets go straight to the bottom of Make; the player can still drag them back to Wait.)
+- Until customers exist, orders arrive at random while the shop is open: about one every 6 clock minutes, twice as often during the lunch (12:00–13:30) and dinner (18:00–19:30) rushes, and none in the last hour (from 21:00). That's roughly 120–140 a day: the starting 3 pawns keep up between rushes (orders out in about 10–15 minutes) and fall behind during them.
+- Timing target: like a real shop, one pizza on its own takes about 10 shop minutes from ticket to customer, and baking is most of that (about 5 minutes). Prep steps take well under a minute each.
 - Pulling an in-progress ticket back to Wait stops the pawn. The work done so far is kept, and the job resumes when the ticket returns to Make.
-- Each ticket shows its order number, item and status. Order type and the ETA come later.
+- Each ticket shows its order number, item, status and how many shop-clock minutes it's been since it printed (counting until it goes out; closed hours don't count). Order type and the ETA come later.
 - Menu items are recipes: an ordered list of task steps. Each step is one job, done by one pawn at one station. A plain pizza is stretch, sauce, cheese, load oven, set out box, unload oven, cut, then hand off, so a ticket can be paused between steps.
+- Dough balls come in lidded containers of 6, stacked in Dough storage. To stretch, a pawn takes a ball from the open container on a Prep spot. If none is open, they first fetch a full one from storage and set it out on a Prep spot (lid off), so it takes up that spot until it's empty. The pawn who takes the last ball carries the empty container to Empty Dough storage on the way. Later, empties go to a cleaning station. Only one container is set out at a time.
 - Baking runs on its own: a Kitchen pawn loads the pizza and is free while it cooks. Taking it out is Oven work: once it's done, an Oven pawn takes it out and drops it into the open box. If no box is out yet, the pizza waits in the oven. Later, when it's taken out will set its doneness (under, perfect, over), modified by Oven skill.
-- The box rack stores folded boxes. As soon as a ticket enters Make, a pawn takes a box from the rack and opens it on an empty Boxing spot. Once the pizza is in the box, a pawn cuts it there (a cut line appears as the work goes), and the box closes. A pizza never waits in the oven for a box: if its box isn't open yet, it's set down on a free Boxing spot and moved into the box when it's cut. When the rack is empty, boxing waits (no restocking yet).
+- The box rack stores folded boxes. Once the pizza is in the oven, a pawn takes a box from the rack and opens it on an empty Boxing spot while it bakes. Once the pizza is in the box, a pawn cuts it there (a cut line appears as the work goes), and the box closes. A pizza never waits in the oven for a box: if its box isn't open yet, it's set down on a free Boxing spot and moved into the box when it's cut. That only happens while a spot would still be free to open its box (and the boxes of any other pizzas already waiting); otherwise the pizza stays in the oven, so unboxed pizzas can't fill every spot.
 - Finished boxes stack on the boxing table (up to 8). When an order is ready to go out, its whole stack is carried to the pickup counter: right away for to-go, or when the customer arrives for pickup. For now orders are one pizza: the box goes straight to the pickup counter, the ticket shows Ready, and after a short placeholder wait the order goes out and the ticket leaves the rack.
 - The pizza is a real item. It sits on a station, and pawns carry it between stations. A station holding another ticket's pizza can't be used. A pizza being carried when its ticket is pulled gets set down on the floor.
 - **Taking or serving an order is automatic.** There is no manual "Take" step, and completed orders go out on their own.
@@ -151,7 +153,7 @@ Each item below is a direction, not a final spec.
 
 ### Store operations
 - The day runs in phases, and the player can pause or speed up time.
-  - A day covers shop hours (10:00 to 22:00 on the clock) and lasts 10 real minutes at normal speed. For now, when it ends the next day starts and work in progress carries on; prep, close and review phases come later.
+  - A day covers shop hours (10:00 to 22:00 on the clock) and lasts 30 real minutes at normal speed (one shop minute is 2.5 real seconds). For now, when it ends the next day starts and work in progress carries on; prep, close and review phases come later.
   - Speeds are pause, 1x, 2x and 3x (Space and 1/2/3, or the HUD buttons). Speed scales all game time. While paused the player can still pan, use the rack and set priorities.
 - Ingredients arrive in regular recurring deliveries, with an emergency option at a premium. Fresh ingredients spoil, so cold storage matters.
 - Kitchens get dirty. Poor cleanliness leads to health inspector penalties.

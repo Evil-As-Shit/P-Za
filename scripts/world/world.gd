@@ -27,12 +27,16 @@ class Spot:
 @export var item_scene: PackedScene
 ## Seconds a finished order waits where it was handed off before it goes out (placeholder
 ## until customers pick orders up).
-@export var pickup_wait: float = 5.0
+@export var pickup_wait: float = 1.5
+## Placeholder: new tickets go straight to the bottom of Make instead of waiting in Wait.
+@export var auto_make: bool = true
 
 var _pawns: Array[Pawn] = []
 var _stations: Array[Station] = []
 ## Pawns standing by a busy item (e.g. at the oven), waiting to pick it up.
 var _waiting_for: Dictionary[Item, Pawn] = {}
+## Pawns holding a ticket's item (e.g. by the oven) while someone sets out its container.
+var _waiting_for_container: Dictionary[Ticket, Pawn] = {}
 ## Station shown in the station panel, or null.
 var _selected_station: Station = null
 
@@ -75,8 +79,9 @@ func _ready() -> void:
 	_clock.speed_changed.connect(_clock_panel.show_speed)
 	_clock_panel.show_time(_clock.day, _clock.get_minute_of_day())
 	_clock_panel.show_speed(_clock.speed)
+	_clock.time_changed.connect(_on_time_changed)
 	_orders.setup(_clock)
-	_orders.order_placed.connect(_rack.print_ticket)
+	_orders.order_placed.connect(_print_ticket)
 
 	for pawn: Pawn in _pawns:
 		_wait_then_wander(pawn)
@@ -84,7 +89,7 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"debug_queue_job"):
-		_rack.print_ticket(debug_recipe)
+		_print_ticket(debug_recipe)
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed(&"toggle_priorities"):
 		_priority_panel.visible = not _priority_panel.visible
@@ -153,7 +158,7 @@ func _setup_station(station: Station) -> void:
 func _setup_pawn(pawn: Pawn) -> void:
 	pawn.global_position = _floor.cell_to_global(_floor.get_random_walkable_cell())
 	pawn.path_finished.connect(_on_pawn_path_finished.bind(pawn))
-	pawn.pickup_reached.connect(_on_pawn_pickup_reached.bind(pawn))
+	pawn.stop_reached.connect(_on_pawn_stop_reached.bind(pawn))
 	pawn.work_started.connect(_on_pawn_work_started.bind(pawn))
 	pawn.job_finished.connect(_on_pawn_job_finished.bind(pawn))
 	pawn.work_progressed.connect(_on_pawn_work_progressed.bind(pawn))
@@ -179,49 +184,118 @@ func _try_assign_work(pawn: Pawn, max_priority: int = Pawn.LOWEST_PRIORITY) -> b
 
 
 ## Assigns the job if the pawn can reach a free spot for it. If the job needs something
-## brought (the ticket's item, or a supply from storage), the pawn fetches it on the way.
-## A busy item (e.g. still baking) can be fetched early: the pawn waits by it.
+## brought (the ticket's item, a supply from storage, an ingredient), the pawn fetches it
+## on the way. A busy item (e.g. still baking) can be fetched early: the pawn waits by it.
 func _try_job(pawn: Pawn, job: Job) -> bool:
-	var from_cell: Vector2i = _floor.global_to_cell(pawn.global_position)
-	var supply_station: Station = null
+	var task: TaskType = job.task_type
 	var carried: Item = _get_carried(job)
-	if job.task_type.fetch_supply != &"" and carried == null:
-		supply_station = _find_supply(job.task_type.fetch_supply)
+	if carried == null and task.ingredient != null:
+		return _try_ingredient_job(pawn, job)
+	var supply_station: Station = null
+	if carried == null and task.fetch_supply != &"":
+		supply_station = _find_supply(task.fetch_supply)
 		if supply_station == null:
 			return false
 	for spot: Spot in _spots_for(job):
-		var pickup_path := PackedVector2Array()
-		var work_from: Vector2i = from_cell
-		var pickup_cell: Vector2i = from_cell
-		var needs_pickup: bool = false
+		var stops: Array[JobStop] = []
 		if supply_station != null:
-			pickup_cell = supply_station.get_work_cell(0)
-			needs_pickup = true
+			stops.append(JobStop.take_supply(supply_station))
 		elif carried != null and not _is_at(carried, spot):
-			pickup_cell = _get_pickup_cell(carried)
-			needs_pickup = true
+			stops.append(JobStop.pick_up(_get_pickup_cell(carried)))
 		elif carried != null and carried.busy:
 			# Can't work an item in place while a station is still working it.
 			continue
-		if needs_pickup:
-			pickup_path = _floor.get_path_points(from_cell, pickup_cell)
-			if pickup_path.is_empty():
+		if _start_job(pawn, job, spot, stops):
+			return true
+	return false
+
+
+## For a step that starts from an ingredient (e.g. stretching a dough ball): takes a unit
+## from an open container on a station that does the step, or if none is open, sets a full
+## one out from storage first. Whoever takes the last unit drops the empty container off at
+## storage for empties on the way, if there's room.
+func _try_ingredient_job(pawn: Pawn, job: Job) -> bool:
+	var ingredient: IngredientContainer = job.task_type.ingredient
+	var spots: Array[Spot] = _spots_for(job)
+	var container: Item = _find_open_container(job)
+	if container != null:
+		# Whoever ends up taking the last unit is decided on arrival (see TAKE_UNIT).
+		var stops: Array[JobStop] = [JobStop.take_unit(container)]
+		for spot: Spot in spots:
+			if _start_job(pawn, job, spot, stops):
+				return true
+		return false
+	# One container set out at a time; the others wait for it.
+	if _is_setting_out(ingredient):
+		return false
+	var storage: Station = _find_supply(ingredient.full_kind)
+	if storage == null:
+		return false
+	for set_out_spot: Spot in spots:
+		for spot: Spot in spots:
+			if spot.station == set_out_spot.station and spot.index == set_out_spot.index:
 				continue
-			work_from = pickup_cell
-		var work_path: PackedVector2Array = _floor.get_path_points(
-			work_from, spot.station.get_work_cell(spot.index)
-		)
-		if work_path.is_empty():
+			var stops: Array[JobStop] = [
+				JobStop.take_supply(storage),
+				JobStop.set_out(set_out_spot.station, set_out_spot.index),
+			]
+			if _start_job(pawn, job, spot, stops):
+				return true
+	return false
+
+
+## Gives the pawn the job if they can walk to each stop and then the spot. Claims what the
+## stops need and reserves the spot.
+func _start_job(pawn: Pawn, job: Job, spot: Spot, stops: Array[JobStop]) -> bool:
+	var from_cell: Vector2i = _floor.global_to_cell(pawn.global_position)
+	var stop_paths: Array[PackedVector2Array] = []
+	for stop: JobStop in stops:
+		var path: PackedVector2Array = _floor.get_path_points(from_cell, stop.cell)
+		if path.is_empty():
+			return false
+		stop_paths.append(path)
+		from_cell = stop.cell
+	var work_path: PackedVector2Array = _floor.get_path_points(
+		from_cell, spot.station.get_work_cell(spot.index)
+	)
+	if work_path.is_empty():
+		return false
+	spot.station.reserve(spot.index)
+	job.station = spot.station
+	job.spot = spot.index
+	for stop: JobStop in stops:
+		stop.claim()
+	job.stops = stops
+	pawn.assign_job(job, stop_paths, work_path, spot.station.get_work_target(spot.index))
+	_rack.notify_job_state_changed()
+	return true
+
+
+## An ingredient container for the job's step, set out on a station that does the step,
+## with a unit no one has claimed. Null if there's none.
+func _find_open_container(job: Job) -> Item:
+	for station: Station in _stations:
+		if not station.can_do(job.task_type):
 			continue
-		spot.station.reserve(spot.index)
-		job.station = spot.station
-		job.spot = spot.index
-		if supply_station != null:
-			supply_station.claim_supply()
-			job.supply_station = supply_station
-		pawn.assign_job(job, pickup_path, work_path, spot.station.get_work_target(spot.index))
-		_rack.notify_job_state_changed()
-		return true
+		for index: int in station.get_spot_count():
+			var item: Item = station.get_item(index)
+			if (
+				item != null and item.ingredient == job.task_type.ingredient
+				and item.get_free_units() > 0
+			):
+				return item
+	return null
+
+
+## True if a pawn is on their way to set out a container of `ingredient`.
+func _is_setting_out(ingredient: IngredientContainer) -> bool:
+	for pawn: Pawn in _pawns:
+		var job: Job = pawn.get_job()
+		if job == null or job.task_type.ingredient != ingredient:
+			continue
+		for stop: JobStop in job.stops:
+			if stop.action == JobStop.Action.SET_OUT:
+				return true
 	return false
 
 
@@ -261,7 +335,26 @@ func _spots_for(job: Job) -> Array[Spot]:
 				result.push_front(Spot.new(station, index))
 			else:
 				result.append(Spot.new(station, index))
+	if task.into_container and result.size() < _count_waiting_for_container() + 2:
+		# Setting this item down without its container must leave a spot free to set the
+		# container out on, for it and every other item already waiting. Otherwise unboxed
+		# pizzas could fill every spot and no box could ever be opened.
+		result.clear()
 	return result
+
+
+## Tickets whose item sits set down on a spot, waiting for its container (e.g. a pizza out
+## of the oven before its box was opened).
+func _count_waiting_for_container() -> int:
+	var count: int = 0
+	for ticket: Ticket in _rack.get_tickets(Ticket.Section.MAKE):
+		if (
+			ticket.container == null and ticket.item != null and ticket.item.station != null
+			and ticket.current_job != null and ticket.current_job.task_type.is_at_container()
+			and not ticket.current_job.task_type.into_container
+		):
+			count += 1
+	return count
 
 
 ## The free spot where the ticket's container sits set out and ready, or null.
@@ -278,6 +371,14 @@ func _get_container_spot(ticket: Ticket) -> Spot:
 func _find_supply(kind: StringName) -> Station:
 	for station: Station in _stations:
 		if station.has_supply(kind):
+			return station
+	return null
+
+
+## First storage station with an unclaimed free place for `kind`, or null.
+func _find_room(kind: StringName) -> Station:
+	for station: Station in _stations:
+		if station.has_room(kind):
 			return station
 	return null
 
@@ -302,6 +403,17 @@ func _spawn_item(texture: Texture2D) -> Item:
 	return item
 
 
+## A full ingredient container, lid on.
+func _spawn_ingredient_container(ingredient: IngredientContainer) -> Item:
+	var container: Item = _spawn_item(null)
+	container.ingredient = ingredient
+	container.set_wrap(ingredient.back_texture, ingredient.front_texture)
+	container.set_lid(ingredient.lid_texture)
+	for offset: Vector2 in ingredient.unit_offsets:
+		container.put_in(_spawn_item(ingredient.unit_texture), offset)
+	return container
+
+
 ## The station works the item on its own; when done it takes its new look and can be
 ## moved again.
 func _work_unattended(item: Item, task: TaskType, done_texture: Texture2D) -> void:
@@ -323,7 +435,8 @@ func _work_unattended(item: Item, task: TaskType, done_texture: Texture2D) -> vo
 	if waiting != null:
 		_waiting_for.erase(item)
 		_pick_up(waiting.get_job(), waiting)
-		waiting.resume_job()
+		if not _waiting_for_container.values().has(waiting):
+			waiting.resume_job()
 	_on_rack_jobs_changed()
 
 
@@ -353,9 +466,9 @@ func _release_station(job: Job) -> void:
 		job.station.release(job.spot)
 		job.station = null
 		job.spot = -1
-	if job.supply_station != null:
-		job.supply_station.unclaim_supply()
-		job.supply_station = null
+	for stop: JobStop in job.stops:
+		stop.release()
+	job.stops.clear()
 
 
 func _send_to_random_cell(pawn: Pawn) -> void:
@@ -379,9 +492,23 @@ func _wait_then_wander(pawn: Pawn) -> void:
 	get_tree().create_timer(wait).timeout.connect(_send_to_random_cell.bind(pawn))
 
 
+func _print_ticket(recipe: Recipe) -> void:
+	var ticket: Ticket = _rack.print_ticket(recipe)
+	if auto_make:
+		_rack.move_ticket(
+			ticket, Ticket.Section.MAKE, _rack.get_tickets(Ticket.Section.MAKE).size()
+		)
+
+
+func _on_time_changed(_day: int, _minute: int) -> void:
+	_rack.now_minutes = _clock.get_open_minutes()
+	_rack_panel.update_times(_rack.now_minutes)
+
+
 func _on_rack_changed() -> void:
 	_rack_panel.show_rack(
-		_rack.get_tickets(Ticket.Section.WAIT), _rack.get_tickets(Ticket.Section.MAKE)
+		_rack.get_tickets(Ticket.Section.WAIT), _rack.get_tickets(Ticket.Section.MAKE),
+		_rack.now_minutes
 	)
 
 
@@ -404,6 +531,9 @@ func _on_rack_job_withdrawn(job: Job) -> void:
 	var waited_for: Item = _waiting_for.find_key(pawn)
 	if waited_for != null:
 		_waiting_for.erase(waited_for)
+	var waited_ticket: Ticket = _waiting_for_container.find_key(pawn)
+	if waited_ticket != null:
+		_waiting_for_container.erase(waited_ticket)
 	pawn.drop_job()
 	var held: Item = pawn.release_item()
 	if held != null:
@@ -421,32 +551,148 @@ func _on_pawn_path_finished(pawn: Pawn) -> void:
 	_work_or_wander(pawn)
 
 
-func _on_pawn_pickup_reached(job: Job, pawn: Pawn) -> void:
-	var item: Item = _get_carried(job)
-	if job.supply_station == null and item.busy:
-		# Not ready yet (e.g. still baking): stand by until the station is done with it.
-		_waiting_for[item] = pawn
-		pawn.wait_at_pickup(item.get_outermost().global_position)
+func _on_pawn_stop_reached(job: Job, pawn: Pawn) -> void:
+	var stop: JobStop = job.stops.pop_front()
+	match stop.action:
+		JobStop.Action.PICK_UP:
+			var item: Item = _get_carried(job)
+			if item.busy:
+				# Not ready yet (e.g. still baking): stand by until the station is done.
+				_waiting_for[item] = pawn
+				pawn.wait_at_stop(item.get_outermost().global_position)
+				return
+			_pick_up(job, pawn)
+		JobStop.Action.TAKE_SUPPLY:
+			_take_supply(job, stop.station, pawn)
+		JobStop.Action.SET_OUT:
+			# Lid off, onto the spot, and the first unit out.
+			var container: Item = pawn.release_item()
+			stop.station.release(stop.spot)
+			container.set_lid(null)
+			stop.station.put_item(stop.spot, container)
+			container.claim_unit()
+			_take_unit(job, container, pawn)
+			_on_rack_jobs_changed()
+		JobStop.Action.TAKE_UNIT:
+			var container: Item = stop.container
+			if container.get_units().size() == 1 and _detour_to_store_empty(job, pawn):
+				# The last unit: carry the container off with it, and take it out there.
+				job.ticket.item = container.get_units().back()
+				container.unclaim_unit()
+				container.station.take_item(container.spot)
+				pawn.hold_item(container)
+				_on_rack_jobs_changed()
+			else:
+				_take_unit(job, container, pawn)
+		JobStop.Action.STORE_EMPTY:
+			var container: Item = pawn.release_item()
+			var unit: Item = job.ticket.item
+			container.take_out(unit)
+			pawn.hold_item(unit)
+			container.queue_free()
+			stop.station.add_stock()
+			_on_rack_jobs_changed()
+
+
+## Takes a claimed unit of stock from storage and carries it: a full ingredient container
+## for ingredient steps, otherwise the ticket's container (e.g. a box).
+func _take_supply(job: Job, station: Station, pawn: Pawn) -> void:
+	station.take_supply()
+	if job.task_type.ingredient != null:
+		pawn.hold_item(_spawn_ingredient_container(job.task_type.ingredient))
 		return
-	_pick_up(job, pawn)
+	job.ticket.container = _spawn_item(station.get_storage_layout().textures[0])
+	pawn.hold_item(job.ticket.container)
+
+
+## Adds a stop at storage for empties before the pawn goes on to work, if there's room
+## and they can get there. Returns false if not (the empty container stays where it is).
+func _detour_to_store_empty(job: Job, pawn: Pawn) -> bool:
+	var empties: Station = _find_room(job.task_type.ingredient.empty_kind)
+	if empties == null:
+		return false
+	var stop: JobStop = JobStop.store_empty(empties)
+	var to_stop: PackedVector2Array = _floor.get_path_points(
+		_floor.global_to_cell(pawn.global_position), stop.cell
+	)
+	var to_work: PackedVector2Array = _floor.get_path_points(
+		stop.cell, job.station.get_work_cell(job.spot)
+	)
+	if to_stop.is_empty() or to_work.is_empty() or not pawn.detour(to_stop, to_work):
+		return false
+	stop.claim()
+	job.stops.push_front(stop)
+	return true
+
+
+## Takes a claimed unit out of an ingredient container; it becomes the ticket's item.
+func _take_unit(job: Job, container: Item, pawn: Pawn) -> void:
+	var unit: Item = container.take_unit()
+	job.ticket.item = unit
+	pawn.hold_item(unit)
 
 
 func _pick_up(job: Job, pawn: Pawn) -> void:
-	var supply_station: Station = job.supply_station
-	if supply_station != null:
-		supply_station.take_supply()
-		job.supply_station = null
-		job.ticket.container = _spawn_item(supply_station.data.supply_texture)
-		pawn.hold_item(job.ticket.container)
-		return
 	var item: Item = _get_carried(job)
+	if item.container != null and item.container.ingredient != null:
+		# Left in a dropped ingredient container: take it out.
+		item.container.take_out(item)
 	var from_station: Station = item.station
 	if from_station != null:
 		from_station.take_item(item.spot)
 	pawn.hold_item(item)
+	if job.task_type.into_container:
+		_redirect_to_container(job, pawn)
 	if from_station != null:
 		# The spot is free for other tickets now.
 		_on_rack_jobs_changed()
+
+
+## The pawn was headed to set the item down on a free spot because its container wasn't
+## ready when they took the job (e.g. they waited by the oven). If it's ready now, they
+## take the item straight to it instead.
+## If someone is setting the container out right now, the pawn waits holding the item.
+func _redirect_to_container(job: Job, pawn: Pawn) -> void:
+	var box_spot: Spot = _get_container_spot(job.ticket)
+	if box_spot == null:
+		if _is_container_on_its_way(job.ticket):
+			_waiting_for_container[job.ticket] = pawn
+			pawn.wait_at_stop(pawn.global_position + Vector2(0.0, -1.0))
+		return
+	if box_spot.station == job.station and box_spot.index == job.spot:
+		return
+	var path: PackedVector2Array = _floor.get_path_points(
+		_floor.global_to_cell(pawn.global_position),
+		box_spot.station.get_work_cell(box_spot.index)
+	)
+	if path.is_empty():
+		return
+	job.station.release(job.spot)
+	box_spot.station.reserve(box_spot.index)
+	job.station = box_spot.station
+	job.spot = box_spot.index
+	pawn.redirect_work(path, box_spot.station.get_work_target(box_spot.index))
+	_on_rack_jobs_changed()
+
+
+## True if a pawn is fetching or opening the ticket's container.
+func _is_container_on_its_way(ticket: Ticket) -> bool:
+	for job: Job in ticket.prep_jobs:
+		if job.task_type.fetch_supply != &"" and job.claimed_by != null:
+			return true
+	return false
+
+
+## The container is set out: a pawn holding its item by the oven takes it there.
+func _on_container_ready(ticket: Ticket) -> void:
+	var pawn: Pawn = _waiting_for_container.get(ticket)
+	if pawn == null:
+		return
+	_waiting_for_container.erase(ticket)
+	var job: Job = pawn.get_job()
+	if job != null:
+		_redirect_to_container(job, pawn)
+	pawn.resume_job()
 
 
 func _on_pawn_work_started(job: Job, pawn: Pawn) -> void:
@@ -485,6 +731,7 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 		)
 	if task.closes_container:
 		# The item and its container become one (e.g. a closed box).
+		ticket.container.take_out(ticket.item)
 		ticket.item.queue_free()
 		ticket.item = ticket.container
 		ticket.container = null
@@ -493,6 +740,8 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	var item: Item = ticket.item
 	_release_station(job)
 	_rack.complete_job(job)
+	if task.fetch_supply != &"":
+		_on_container_ready(ticket)
 	if item != null and task.unattended:
 		_work_unattended(item, task, ticket.recipe.get_stage_texture(ticket.step_index))
 	elif item != null and task.fetch_supply == &"":

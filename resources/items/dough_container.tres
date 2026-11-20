@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="IngredientContainer" format=3]
+
+[ext_resource type="Script" path="res://scripts/items/ingredient_container.gd" id="1_container"]
+[ext_resource type="Texture2D" path="res://resources/items/dough_container_back.tres" id="2_back"]
+[ext_resource type="Texture2D" path="res://resources/items/dough_container_front.tres" id="3_front"]
+[ext_resource type="Texture2D" path="res://resources/items/dough_container_lid.tres" id="4_lid"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/pizza_sheet.png" id="5_pizza"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ball"]
+atlas = ExtResource("5_pizza")
+region = Rect2(0, 48, 32, 16)
+margin = Rect2(0, 48, 0, 48)
+
+[resource]
+script = ExtResource("1_container")
+display_name = "Dough Container"
+full_kind = &"dough"
+empty_kind = &"empty_dough"
+back_texture = ExtResource("2_back")
+front_texture = ExtResource("3_front")
+lid_texture = ExtResource("4_lid")
+unit_texture = SubResource("AtlasTexture_ball")
+unit_offsets = Array[Vector2]([Vector2(-2, -5), Vector2(2, -3), Vector2(-6, -3), Vector2(6, -1), Vector2(-2, -1), Vector2(2, 1)])

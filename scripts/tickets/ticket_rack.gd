@@ -14,6 +14,9 @@ signal ticket_completed(ticket: Ticket)
 var _wait: Array[Ticket] = []
 var _make: Array[Ticket] = []
 var _next_order_number: int = 1
+## Current shop time (ShopClock.get_open_minutes()), kept up to date by the owner. New
+## tickets are stamped with it.
+var now_minutes: int = 0
 
 
 func _exit_tree() -> void:
@@ -24,6 +27,7 @@ func _exit_tree() -> void:
 
 func print_ticket(recipe: Recipe) -> Ticket:
 	var ticket := Ticket.new(_next_order_number, recipe)
+	ticket.printed_at = now_minutes
 	_next_order_number += 1
 	_wait.append(ticket)
 	changed.emit()

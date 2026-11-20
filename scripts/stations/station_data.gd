@@ -22,22 +22,9 @@ extends Resource
 ## Where an item sits, relative to its spot's floor center (e.g. up on the tabletop).
 @export var item_offset: Vector2 = Vector2.ZERO
 
-@export_group("Storage")
-## Kind of supply stored here (e.g. &"box"), or empty. Pawns fetch it from spot 0.
-@export var supply: StringName
-## How one stored unit looks, in the item frame layout.
-@export var supply_texture: Texture2D
-## Pile positions drawn under the cover, back to front, relative to the origin cell's
-## floor center.
-@export var supply_piles: Array[Vector2] = []
-## Pile positions drawn over the cover (e.g. on a top shelf), back to front.
-@export var supply_piles_on_top: Array[Vector2] = []
-@export var supply_per_pile: int = 3
-## Optional units per pile, in the same order (inside piles, then on-top piles). Overrides
-## supply_per_pile for piles it covers.
-@export var supply_pile_sizes: Array[int] = []
-## Pixels each stacked unit sits above the one below it.
-@export var supply_pile_step: float = 3.0
+## How each kind of thing this station can store is stacked on it. Storage roles need a
+## layout for their kind. Pawns fetch and drop off stored things at spot 0.
+@export var storage_layouts: Array[StorageLayout] = []
 
 
 ## Rotates a map-grid offset by `facing` quarter turns.
@@ -68,16 +55,12 @@ func get_item_cell(origin: Vector2i, facing: int, spot: int) -> Vector2i:
 	return origin + rotate_offset(spots[spot].item_cell, facing)
 
 
-func get_supply_capacity() -> int:
-	var total: int = 0
-	for pile: int in supply_piles.size() + supply_piles_on_top.size():
-		total += get_pile_size(pile)
-	return total
-
-
-## Units pile `pile` holds (inside piles first, then on-top piles).
-func get_pile_size(pile: int) -> int:
-	return supply_pile_sizes[pile] if pile < supply_pile_sizes.size() else supply_per_pile
+## Layout for storing `kind` here, or null if this station can't store it.
+func get_storage_layout(kind: StringName) -> StorageLayout:
+	for layout: StorageLayout in storage_layouts:
+		if layout.kind == kind:
+			return layout
+	return null
 
 
 func get_texture(facing: int) -> Texture2D:

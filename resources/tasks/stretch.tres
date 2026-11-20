@@ -2,10 +2,12 @@
 
 [ext_resource type="Resource" path="res://resources/work_types/kitchen.tres" id="9_work_type"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
+[ext_resource type="Resource" path="res://resources/items/dough_container.tres" id="2_dough"]
 
 [resource]
 script = ExtResource("1_task")
 id = &"stretch"
 display_name = "Stretch"
 work_type = ExtResource("9_work_type")
-base_work_time = 4.0
+base_work_time = 2.5
+ingredient = ExtResource("2_dough")

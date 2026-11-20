@@ -9,7 +9,7 @@ signal day_started(day: int)
 signal speed_changed(speed: int)
 
 ## Real minutes one day lasts at 1x speed.
-@export var day_length_minutes: float = 10.0
+@export var day_length_minutes: float = 30.0
 @export_range(0, 23) var open_hour: int = 10
 @export_range(1, 24) var close_hour: int = 22
 ## Game speeds the player can pick. 0 is paused.
@@ -49,6 +49,13 @@ func _process(delta: float) -> void:
 ## Shop-clock minutes that pass in `game_seconds` of game time.
 func to_clock_minutes(game_seconds: float) -> float:
 	return game_seconds * (close_hour - open_hour) * 60.0 / (day_length_minutes * 60.0)
+
+
+## Shop-clock minutes the shop has been open in total, across days (closed hours don't
+## count). For measuring how long things take.
+func get_open_minutes() -> int:
+	var minutes_per_day: int = (close_hour - open_hour) * 60
+	return (day - 1) * minutes_per_day + get_minute_of_day() - open_hour * 60
 
 
 ## Minutes since midnight on the shop clock.
