@@ -15,6 +15,10 @@ enum State { IDLE, WALKING, WALKING_TO_PICKUP, WALKING_TO_JOB, WORKING }
 @export var move_speed: float = 40.0
 ## Seconds of work done per second. Skill and mood will change this later.
 @export var work_speed: float = 1.0
+## Height above the feet a carried item is held at.
+@export var hold_height: float = 24.0
+## How far in front of the pawn a carried item is held, for a down-left facing.
+@export var hold_reach: Vector2 = Vector2(-5.0, 3.0)
 
 var _state: State = State.IDLE
 var _path: PackedVector2Array = PackedVector2Array()
@@ -33,6 +37,7 @@ var _facing_right: bool = false
 
 func _ready() -> void:
 	_play_idle()
+	_place_hold_point()
 
 
 func _process(delta: float) -> void:
@@ -79,7 +84,7 @@ func assign_job(
 		_state = State.WALKING_TO_PICKUP
 
 
-## Carries `item` (floating in front of the pawn until there's a carry animation).
+## Carries `item` in front of the pawn (until there's a carry animation).
 func hold_item(item: Item) -> void:
 	_held_item = item
 	item.reparent(_hold_point, false)
@@ -174,6 +179,18 @@ func _face(direction: Vector2) -> void:
 		_facing_right = direction.x > 0.0
 	# The sheet only has left-facing art; right-facing is a horizontal flip.
 	_sprite.flip_h = _facing_right
+	_place_hold_point()
+
+
+## Holds carried items in front of the pawn, drawn behind them when facing away.
+func _place_hold_point() -> void:
+	var reach: Vector2 = hold_reach
+	if _facing_right:
+		reach.x = -reach.x
+	if _facing_up:
+		reach.y = -reach.y
+	_hold_point.position = reach + Vector2(0.0, -hold_height)
+	move_child(_hold_point, 0 if _facing_up else _sprite.get_index() + 1)
 
 
 func _play_idle() -> void:
