@@ -91,6 +91,14 @@ One cell per facing, left to right: **facing 0, 1, 2, 3**. The blue diamonds are
 - Mirroring facing 0 horizontally gives a rough start for facing 1.
 - **Carried items** (pizzas, boxes and so on) need only one view: draw them with their front facing **down-right**, with the back (like a box's fold or lid) up-left. The game flips them to match the pawn carrying them, and to face the pawn when set down.
 
+### `table_height_guide.png`
+
+Standard work-surface height, so tables and counters are consistent. Cells left to right: 1×1, 2×1 facing 0, 2×1 facing 1 (same layout as the object guides).
+
+- Blue is the floor footprint. Orange is the tabletop, **16 px** above it, with dotted leg lines at the corners.
+- The red dots are where items sit (pizzas, boxes). The game places items on those points, so a surface drawn at this height holds them flush.
+- A station drawn taller or shorter needs its item offset changed to match. For example, the pickup counter is 5 px taller (21 px), so its offset is 21 instead of 16.
+
 ### `item_16x16_guide.png`
 
 An 8×4 grid of 16×16 cells, with a red center mark, for small icons (mood bubbles, menu icons). Pizzas and boxes use the 1×1 object guide instead.
