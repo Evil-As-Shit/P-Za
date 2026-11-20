@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/ticket_rack_panel.tscn" id="9_rack_panel"]
 [ext_resource type="Resource" path="res://resources/stations/small_oven.tres" id="10_oven"]
 [ext_resource type="PackedScene" path="res://scenes/items/item.tscn" id="11_item"]
+[ext_resource type="Resource" path="res://resources/stations/box_rack.tres" id="12_box_rack"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -29,6 +30,11 @@ cell = Vector2i(5, 5)
 [node name="SmallOven" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("10_oven")
 cell = Vector2i(8, 5)
+
+[node name="BoxRack" parent="Entities" instance=ExtResource("5_station")]
+data = ExtResource("12_box_rack")
+cell = Vector2i(8, 8)
+facing = 3
 
 [node name="Pawn" parent="Entities" instance=ExtResource("3_pawn")]
 

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="StationData" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/station_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="2_task_type"]
+[ext_resource type="Resource" path="res://resources/tasks/box.tres" id="3_box"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/box_rack_sheet.png" id="4_sheet"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bottom"]
+atlas = ExtResource("4_sheet")
+region = Rect2(48, 0, 48, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_top"]
+atlas = ExtResource("4_sheet")
+region = Rect2(0, 0, 48, 64)
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Box Rack"
+task_types = Array[ExtResource("2_task_type")]([ExtResource("3_box")])
+footprint = Vector2i(2, 1)
+facing_textures = Array[Texture2D]([SubResource("AtlasTexture_bottom")])
+cover_textures = Array[Texture2D]([SubResource("AtlasTexture_top")])
+work_spot = Vector2i(0, 1)
+item_offset = Vector2(0, -5)

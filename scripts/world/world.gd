@@ -175,6 +175,8 @@ func _on_rack_job_withdrawn(job: Job) -> void:
 	var held: Item = pawn.release_item()
 	if held != null:
 		_drop_on_floor(held, _floor.global_to_cell(pawn.global_position))
+	if job.ticket.item != null:
+		job.ticket.item.set_wrap(null, null)
 	_release_station(job)
 	_rack.notify_job_state_changed()
 	_work_or_wander(pawn)
@@ -209,6 +211,7 @@ func _on_pawn_work_started(job: Job, pawn: Pawn) -> void:
 		ticket.item = item
 	if item != null:
 		job.station.put_item(item)
+	ticket.item.set_wrap(job.task_type.item_under_texture, job.task_type.item_over_texture)
 
 
 func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
@@ -222,6 +225,7 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	_release_station(job)
 	_rack.complete_job(job)
 	if item != null:
+		item.set_wrap(null, null)
 		item.set_texture(ticket.recipe.get_stage_texture(ticket.step_index))
 		if last_step:
 			get_tree().create_timer(finished_item_linger).timeout.connect(item.queue_free)

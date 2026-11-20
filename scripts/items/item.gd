@@ -6,8 +6,16 @@ extends Node2D
 ## Station it's sitting on, or null when carried or on the floor.
 var station: Station = null
 
+@onready var _under: Sprite2D = $Under
 @onready var _sprite: Sprite2D = $Sprite
+@onready var _over: Sprite2D = $Over
 
 
 func set_texture(texture: Texture2D) -> void:
 	_sprite.texture = texture
+
+
+## Art drawn under and over the item (e.g. an open box). Pass nulls to clear.
+func set_wrap(under: Texture2D, over: Texture2D) -> void:
+	_under.texture = under
+	_over.texture = over

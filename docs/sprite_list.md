@@ -12,6 +12,8 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 - Walls (work in progress): `walls_temp_wip.png`
 - Small oven (1×1, one facing): `Small_Oven.png`
 - Pizza stages (dough ball, dough, sauce, cheese, baked): `pizza_sheet.png`
+- Pizza box (closed, open base and lid): `box_sheet.png`
+- Box rack (2×1, one facing, split into top and bottom shelf): `box_rack_sheet.png`
 
 ## Priority 1: the pizza loop (next slices)
 
@@ -21,9 +23,9 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 | 2 | Pawn **carry** walk (down-left, up-left) | pawn rows 6–7 | For carrying pizzas and boxes between stations. |
 | 3 | **Oven** | object 2×2 | Drawn in the middle of its 4 tiles, leaving room to spare around it. Open and closed or "baking" states are nice to have. |
 | 4 | **Pizza** sliced stage | object 1×1 | The other stages are done. |
-| 5 | **Pizza box**: flat sheet, open box, closed box | object 1×1 | 1×1 objects. Boxes arrive flat and get folded (GDD). Closed boxes stack, so draw a closed box that can sit on top of another. |
+| 5 | **Pizza box**: flat sheet | object 1×1 | Open and closed boxes are done. Boxes arrive flat and get folded (GDD). |
 | 6 | **Slicing** station | object 1×1 or 2×1 | Could reuse a table plus a cutting board item. |
-| 7 | **Boxing / box folding** station | object 2×1 | Could be one station or two (**TBD**). |
+| 7 | **Box folding** station; other box rack facings | object 2×1 | Boxing uses the box rack. Folding could share it or not (**TBD**). |
 | 8 | **Register** (prints tickets) | object 1×1 or 2×1 | Where orders come from. |
 | 9 | **Pickup / hand-off** counter | object 2×1 | Where finished orders go out. |
 | 10 | **Walls and door**: left wall, right wall, corner, front door | (wall guide later) | Started in `walls_temp_wip.png`. Wall height **TBD**. |
