@@ -77,7 +77,7 @@ A cozy, 2.5D isometric pizza parlor management sim in the style of RimWorld. You
 - **Pawn sprite sheets** (15×44 frames). Row 1 is walk down-left, row 2 is walk up-left, and row 3 is idle (frames 1–2 down-left, frames 3–4 up-left). Right-facing poses are flipped in code.
 - Pawns move along the grid axes only, so they always face one of the four iso diagonals.
 - Placed objects (stations, furniture) can face 4 directions, with a sprite for each facing. Their footprint rotates with them.
-- The oven has a 2×2 footprint, with its art centered on the 4 tiles.
+- The oven has a 2×2 footprint, with its art centered on the 4 tiles. There's also a small 1×1 oven.
 - Pizzas and pizza boxes are 1×1 objects. Closed boxes stack.
 
 ## Core loop

@@ -10,6 +10,7 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 - Floor tiles ×3: `tile_placeholder.png`
 - Small table (1×1), long table (2×1, two facings), rotation test cube, bin: `Object_Spritesheet.png`
 - Walls (work in progress): `walls_temp_wip.png`
+- Small oven (1×1, one facing): `Small_Oven.png`
 
 ## Priority 1: the pizza loop (next slices)
 

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StationData" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/station_data.gd" id="1_data"]
+[ext_resource type="Resource" path="res://resources/tasks/bake.tres" id="2_task"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/Small_Oven.png" id="3_oven"]
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Small Oven"
+task_type = ExtResource("2_task")
+footprint = Vector2i(1, 1)
+facing_textures = Array[Texture2D]([ExtResource("3_oven")])
+work_spot = Vector2i(0, 1)

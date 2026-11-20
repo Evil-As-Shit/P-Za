@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/tickets/ticket_rack.gd" id="7_rack"]
 [ext_resource type="Resource" path="res://resources/recipes/plain_pizza.tres" id="8_pizza"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ticket_rack_panel.tscn" id="9_rack_panel"]
+[ext_resource type="Resource" path="res://resources/stations/small_oven.tres" id="10_oven"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -22,6 +23,10 @@ y_sort_enabled = true
 [node name="AssemblyTable" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("6_assembly")
 cell = Vector2i(5, 5)
+
+[node name="SmallOven" parent="Entities" instance=ExtResource("5_station")]
+data = ExtResource("10_oven")
+cell = Vector2i(8, 5)
 
 [node name="Pawn" parent="Entities" instance=ExtResource("3_pawn")]
 

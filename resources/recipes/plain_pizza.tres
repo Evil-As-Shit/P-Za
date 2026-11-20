@@ -3,8 +3,9 @@
 [ext_resource type="Script" path="res://scripts/menu/recipe.gd" id="1_recipe"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="2_task_type"]
 [ext_resource type="Resource" path="res://resources/tasks/assembly.tres" id="3_assembly"]
+[ext_resource type="Resource" path="res://resources/tasks/bake.tres" id="4_bake"]
 
 [resource]
 script = ExtResource("1_recipe")
 display_name = "Pizza"
-steps = Array[ExtResource("2_task_type")]([ExtResource("3_assembly")])
+steps = Array[ExtResource("2_task_type")]([ExtResource("3_assembly"), ExtResource("4_bake")])
