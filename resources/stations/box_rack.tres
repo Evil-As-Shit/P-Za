@@ -35,4 +35,4 @@ supply_texture = SubResource("AtlasTexture_closed_box")
 supply_piles = Array[Vector2]([Vector2(16, -13), Vector2(0, -5)])
 supply_piles_on_top = Array[Vector2]([Vector2(16, -37), Vector2(0, -29)])
 supply_per_pile = 3
-supply_pile_step = 3.0
+supply_pile_step = 2.0

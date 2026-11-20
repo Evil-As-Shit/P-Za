@@ -24,9 +24,12 @@ func set_texture(texture: Texture2D) -> void:
 
 
 ## Art drawn under and over the item's contents (e.g. an open box). Pass nulls to clear.
-func set_wrap(under: Texture2D, over: Texture2D) -> void:
+## `mirrored` flips it left-right.
+func set_wrap(under: Texture2D, over: Texture2D, mirrored: bool = false) -> void:
 	_under.texture = under
 	_over.texture = over
+	_under.flip_h = mirrored
+	_over.flip_h = mirrored
 
 
 ## Puts `item` inside this one, between its under and over art.

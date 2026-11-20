@@ -151,6 +151,11 @@ func get_work_cell(spot: int) -> Vector2i:
 	return data.get_work_cell(cell, facing, spot)
 
 
+## Grid step from a spot's item cell to where its pawn stands.
+func get_pawn_side(spot: int) -> Vector2i:
+	return data.get_work_cell(cell, facing, spot) - data.get_item_cell(cell, facing, spot)
+
+
 ## Global point a pawn working the spot faces.
 func get_work_target(spot: int) -> Vector2:
 	return _item_positions[spot]

@@ -318,9 +318,13 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	var ticket: Ticket = job.ticket
 	var task: TaskType = job.task_type
 	if task.fetch_supply != &"":
-		# The container is set out: show it open.
+		# The container is set out: show it open. Its lid art rises on the up-left side, so
+		# mirror it when the pawn stands down-left, putting the lid on the far side.
+		var mirrored: bool = job.station.get_pawn_side(job.spot).y > 0
 		ticket.container.set_texture(null)
-		ticket.container.set_wrap(task.container_under_texture, task.container_over_texture)
+		ticket.container.set_wrap(
+			task.container_under_texture, task.container_over_texture, mirrored
+		)
 	if task.into_container:
 		# The item and its container become one (e.g. a closed box).
 		ticket.item.queue_free()
