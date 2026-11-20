@@ -15,12 +15,19 @@ var busy: bool = false
 
 @onready var _under: Sprite2D = $Under
 @onready var _sprite: Sprite2D = $Sprite
+## Marks drawn on top of the item, like cut lines.
+@onready var _overlay: Sprite2D = $Overlay
 @onready var _contents: Node2D = $Contents
 @onready var _over: Sprite2D = $Over
 
 
 func set_texture(texture: Texture2D) -> void:
 	_sprite.texture = texture
+
+
+## Marks drawn over the item (e.g. cut lines). Pass null to clear.
+func set_overlay(texture: Texture2D) -> void:
+	_overlay.texture = texture
 
 
 ## Art drawn under and over the item's contents (e.g. an open box), and where the
@@ -37,7 +44,7 @@ func set_wrap(
 ## back, up-left). Mirrored, it faces down-left. Only flips the item's own art, not its
 ## contents.
 func set_mirrored(mirrored: bool) -> void:
-	for sprite: Sprite2D in [_under, _sprite, _over]:
+	for sprite: Sprite2D in [_under, _sprite, _overlay, _over]:
 		sprite.flip_h = mirrored
 
 

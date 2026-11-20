@@ -9,6 +9,8 @@ signal pickup_reached(job: Job)
 ## Reached the work spot and is about to start working.
 signal work_started(job: Job)
 signal job_finished(job: Job)
+## Emitted each frame of work with how far along the job is (0-1).
+signal work_progressed(job: Job, progress: float)
 
 enum State { IDLE, WALKING, WALKING_TO_PICKUP, WALKING_TO_JOB, WORKING }
 
@@ -159,6 +161,7 @@ func _on_path_end() -> void:
 func _do_work(delta: float) -> void:
 	var done: bool = _job.add_work(work_speed * delta)
 	_update_work_bar()
+	work_progressed.emit(_job, _work_bar.value)
 	if not done:
 		return
 	var job: Job = _job

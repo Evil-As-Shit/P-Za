@@ -75,6 +75,7 @@ func _setup_pawn(pawn: Pawn) -> void:
 	pawn.pickup_reached.connect(_on_pawn_pickup_reached.bind(pawn))
 	pawn.work_started.connect(_on_pawn_work_started.bind(pawn))
 	pawn.job_finished.connect(_on_pawn_job_finished.bind(pawn))
+	pawn.work_progressed.connect(_on_pawn_work_progressed.bind(pawn))
 	_pawns.append(pawn)
 
 
@@ -149,7 +150,7 @@ func _spots_for(job: Job) -> Array[Spot]:
 			if station.is_reserved(index):
 				continue
 			var held: Item = station.get_item(index)
-			if task.into_container:
+			if task.is_at_container():
 				# Worked where the container was set out, and nowhere else.
 				if held != null and held == job.ticket.container:
 					result.append(Spot.new(station, index))
@@ -314,6 +315,14 @@ func _on_pawn_work_started(job: Job, pawn: Pawn) -> void:
 	job.station.put_item(job.spot, item)
 
 
+func _on_pawn_work_progressed(job: Job, progress: float, _pawn: Pawn) -> void:
+	var frames: Array[Texture2D] = job.task_type.work_frames
+	if frames.is_empty() or job.ticket.item == null:
+		return
+	var index: int = mini(int(progress * frames.size()), frames.size() - 1)
+	job.ticket.item.set_overlay(frames[index])
+
+
 func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	var ticket: Ticket = job.ticket
 	var task: TaskType = job.task_type
@@ -324,7 +333,7 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 			task.container_under_texture, task.container_over_texture,
 			task.container_contents_offset
 		)
-	if task.into_container:
+	if task.closes_container:
 		# The item and its container become one (e.g. a closed box).
 		ticket.item.queue_free()
 		ticket.item = ticket.container

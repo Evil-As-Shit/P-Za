@@ -10,6 +10,9 @@ extends Resource
 ## its own (e.g. baking). The ticket moves on right away, so its next steps can be done
 ## meanwhile, but the item can't be moved until it's done.
 @export var unattended: bool = false
+## Drawn over the item while it's worked, one after another as the work fills (e.g. cut
+## lines). The last one stays when done.
+@export var work_frames: Array[Texture2D] = []
 
 @export_group("Containers")
 ## If set, the pawn fetches one of this supply from storage (e.g. &"box") and sets it out
@@ -21,6 +24,15 @@ extends Resource
 @export var container_over_texture: Texture2D
 ## Where things put in the container sit, relative to it (e.g. raised onto a box's floor).
 @export var container_contents_offset: Vector2 = Vector2.ZERO
-## If true, this step is worked at the spot holding the ticket's container, and the item
-## goes into it. When done, the container becomes the ticket's item.
+## If true, this step is worked at the spot holding the ticket's container.
+@export var at_container: bool = false
+## If true, the item goes into the container at the start of this step. Implies
+## at_container.
 @export var into_container: bool = false
+## If true, the container closes when this step is done and becomes the ticket's item.
+## Implies at_container.
+@export var closes_container: bool = false
+
+
+func is_at_container() -> bool:
+	return at_container or into_container or closes_container

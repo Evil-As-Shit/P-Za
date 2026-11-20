@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="TaskType" format=3]
+
+[ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/pizza_sheet.png" id="2_sheet"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cut1"]
+atlas = ExtResource("2_sheet")
+region = Rect2(0, 32, 32, 16)
+margin = Rect2(0, 48, 0, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cut2"]
+atlas = ExtResource("2_sheet")
+region = Rect2(32, 32, 32, 16)
+margin = Rect2(0, 48, 0, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cut3"]
+atlas = ExtResource("2_sheet")
+region = Rect2(64, 32, 32, 16)
+margin = Rect2(0, 48, 0, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cut4"]
+atlas = ExtResource("2_sheet")
+region = Rect2(96, 32, 32, 16)
+margin = Rect2(0, 48, 0, 48)
+
+[resource]
+script = ExtResource("1_task")
+id = &"cut"
+display_name = "Cut"
+base_work_time = 5.0
+work_frames = Array[Texture2D]([SubResource("AtlasTexture_cut1"), SubResource("AtlasTexture_cut2"), SubResource("AtlasTexture_cut3"), SubResource("AtlasTexture_cut4")])
+closes_container = true
