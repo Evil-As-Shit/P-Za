@@ -64,13 +64,21 @@ func get_open_jobs() -> Array[Job]:
 	return jobs
 
 
-## Call when a ticket's job finishes. Completed tickets leave the rack.
+## Call when a ticket's job finishes. After the last one the ticket is marked ready and
+## stays on the rack until send_out().
 func complete_job(job: Job) -> void:
 	var ticket: Ticket = job.ticket
 	ticket.advance()
 	if ticket.is_complete():
-		_list(ticket.section).erase(ticket)
-		ticket_completed.emit(ticket)
+		ticket.ready = true
+	changed.emit()
+	jobs_changed.emit()
+
+
+## The ready order has gone out: the ticket leaves the rack.
+func send_out(ticket: Ticket) -> void:
+	_list(ticket.section).erase(ticket)
+	ticket_completed.emit(ticket)
 	changed.emit()
 	jobs_changed.emit()
 

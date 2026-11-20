@@ -23,8 +23,9 @@ class Spot:
 @export var phone_time_max: float = 6.0
 ## Item scene spawned when a ticket's first step starts (no ingredient storage yet).
 @export var item_scene: PackedScene
-## Seconds a finished item stays visible before it's cleared (no hand-off yet).
-@export var finished_item_linger: float = 2.0
+## Seconds a finished order waits where it was handed off before it goes out (placeholder
+## until customers pick orders up).
+@export var pickup_wait: float = 5.0
 
 var _pawns: Array[Pawn] = []
 var _stations: Array[Station] = []
@@ -212,6 +213,17 @@ func _work_unattended(item: Item, task: TaskType, done_texture: Texture2D) -> vo
 	_on_rack_jobs_changed()
 
 
+## The finished order is picked up: its item leaves and frees its spot.
+func _send_out(ticket: Ticket) -> void:
+	var item: Item = ticket.item
+	ticket.item = null
+	if item != null:
+		if item.station != null:
+			item.station.take_item(item.spot)
+		item.queue_free()
+	_rack.send_out(ticket)
+
+
 func _drop_on_floor(item: Item, cell: Vector2i) -> void:
 	item.reparent(_entities, false)
 	item.global_position = _floor.cell_to_global(cell)
@@ -342,18 +354,13 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 		ticket.item.set_wrap(null, null)
 
 	var item: Item = ticket.item
-	var last_step: bool = ticket.step_index == ticket.recipe.steps.size() - 1
-	if last_step and item != null:
-		# Free the spot now; the finished item stays visible for a moment.
-		job.station.take_item(job.spot)
-		ticket.item = null
 	_release_station(job)
 	_rack.complete_job(job)
 	if item != null and task.unattended:
 		_work_unattended(item, task, ticket.recipe.get_stage_texture(ticket.step_index))
 	elif item != null and task.fetch_supply == &"":
 		item.set_texture(ticket.recipe.get_stage_texture(ticket.step_index))
-		if last_step:
-			get_tree().create_timer(finished_item_linger).timeout.connect(item.queue_free)
+	if ticket.ready:
+		get_tree().create_timer(pickup_wait).timeout.connect(_send_out.bind(ticket))
 	if not pawn.has_job():
 		_work_or_wander(pawn)

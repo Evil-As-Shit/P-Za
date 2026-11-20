@@ -11,4 +11,9 @@ var ticket: Ticket = null
 func show_ticket(p_ticket: Ticket) -> void:
 	ticket = p_ticket
 	_title.text = ticket.get_title()
-	_status.text = "In progress" if ticket.is_in_progress() else "Waiting"
+	if ticket.ready:
+		_status.text = "Ready"
+	elif ticket.is_in_progress():
+		_status.text = "In progress"
+	else:
+		_status.text = "Waiting"

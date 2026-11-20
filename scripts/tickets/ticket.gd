@@ -14,6 +14,8 @@ var current_job: Job = null
 var item: Item = null
 ## What the item goes into (e.g. an open box), once it's been set out.
 var container: Item = null
+## Every step is done and the order is waiting to go out. It stays on the rack until then.
+var ready: bool = false
 
 
 func _init(p_order_number: int, p_recipe: Recipe) -> void:

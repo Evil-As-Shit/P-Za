@@ -14,6 +14,7 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 - Pizza stages (dough ball, dough, sauce, cheese, baked) and 4 cut-line frames above them: `pizza_sheet.png`. Cut lines are drawn 16 px above where they land on the pizza.
 - Pizza box (closed, open base and lid): `box_sheet.png`
 - Box rack (2×1, one facing, split into top and bottom shelf): `box_rack_sheet.png`
+- Pickup counter (1×1, one facing): `Object_Spritesheet.png` at (128, 0)
 
 ## Priority 1: the pizza loop (next slices)
 
@@ -25,9 +26,8 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 | 4 | **Pizza box**: flat sheet | object 1×1 | Open and closed boxes are done. Boxes arrive flat and get folded (GDD). |
 | 5 | **Box folding** station; other box rack facings | object 2×1 | The box rack stores folded boxes; boxing happens on a table. Where folding happens is **TBD**. |
 | 6 | **Register** (prints tickets) | object 1×1 or 2×1 | Where orders come from. |
-| 7 | **Pickup / hand-off** counter | object 2×1 | Where finished orders go out. |
-| 8 | **Walls and door**: left wall, right wall, corner, front door | (wall guide later) | Started in `walls_temp_wip.png`. Wall height **TBD**. |
-| 9 | Kitchen floor vs. dining floor tiles | your tile layout | Your current tiles already work on the grid. |
+| 7 | **Walls and door**: left wall, right wall, corner, front door | (wall guide later) | Started in `walls_temp_wip.png`. Wall height **TBD**. |
+| 8 | Kitchen floor vs. dining floor tiles | your tile layout | Your current tiles already work on the grid. |
 
 ## Priority 2: service and customers
 

@@ -108,9 +108,11 @@ Each item below is a direction, not a final spec.
 - New tickets land in **Wait**. The player moves them to Make.
 - Pulling an in-progress ticket back to Wait stops the pawn. The work done so far is kept, and the job resumes when the ticket returns to Make.
 - Each ticket shows its order number, item and status. Order type and the ETA come later.
-- Menu items are recipes: an ordered list of task steps. Each step is one job, done by one pawn at one station. A plain pizza is stretch, sauce, cheese, bake, set out box, then cut, so a ticket can be paused between steps.
+- Menu items are recipes: an ordered list of task steps. Each step is one job, done by one pawn at one station. A plain pizza is stretch, sauce, cheese, bake, set out box, cut, then hand off, so a ticket can be paused between steps.
 - Baking runs on its own: a pawn loads the pizza into the oven and is free while it cooks. The next steps can be done meanwhile, but the pizza stays in the oven until it's done.
-- The box rack stores folded boxes. While the pizza bakes, a pawn takes a box from the rack and opens it on any empty table spot. Once baked, a pawn puts the pizza into that box and cuts it there (a cut line appears as the work goes), and the box closes. When the rack is empty, tickets wait at "set out box" (no restocking yet).
+- The assembly table is only for making pizzas. Boxing and cutting happen on a separate back-of-house boxing table.
+- The box rack stores folded boxes. While the pizza bakes, a pawn takes a box from the rack and opens it on an empty boxing table spot. Once baked, a pawn puts the pizza into that box and cuts it there (a cut line appears as the work goes), and the box closes. When the rack is empty, tickets wait at "set out box" (no restocking yet).
+- Finished boxes stack on the boxing table (up to 8). When an order is ready to go out, its whole stack is carried to the pickup counter: right away for to-go, or when the customer arrives for pickup. For now orders are one pizza: the box goes straight to the pickup counter, the ticket shows Ready, and after a short placeholder wait the order goes out and the ticket leaves the rack.
 - The pizza is a real item. It sits on a station, and pawns carry it between stations. A station holding another ticket's pizza can't be used. A pizza being carried when its ticket is pulled gets set down on the floor.
 - **Taking or serving an order is automatic.** There is no manual "Take" step, and completed orders go out on their own.
 - Order types are dine-in, to-go, pickup and delivery. Delivery uses a driver who leaves the shop and comes back later.
