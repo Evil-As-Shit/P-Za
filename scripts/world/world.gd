@@ -33,6 +33,8 @@ var _pawns: Array[Pawn] = []
 var _stations: Array[Station] = []
 ## Pawns standing by a busy item (e.g. at the oven), waiting to pick it up.
 var _waiting_for: Dictionary[Item, Pawn] = {}
+## Station shown in the station panel, or null.
+var _selected_station: Station = null
 
 @onready var _floor: ShopFloor = $ShopFloor
 @onready var _entities: Node2D = $Entities
@@ -40,6 +42,7 @@ var _waiting_for: Dictionary[Item, Pawn] = {}
 @onready var _rack: TicketRack = $TicketRack
 @onready var _rack_panel: TicketRackPanel = $Hud/TicketRackPanel
 @onready var _priority_panel: PriorityPanel = $Hud/PriorityPanel
+@onready var _station_panel: StationPanel = $Hud/StationPanel
 
 
 func _ready() -> void:
@@ -59,6 +62,8 @@ func _ready() -> void:
 	_on_rack_changed()
 	_priority_panel.priority_change_requested.connect(_on_priority_change_requested)
 	_priority_panel.show_priorities(_pawns, work_types)
+	_station_panel.role_change_requested.connect(_on_role_change_requested)
+	_station_panel.close_requested.connect(_select_station.bind(null))
 
 	for pawn: Pawn in _pawns:
 		_wait_then_wander(pawn)
@@ -71,6 +76,43 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed(&"toggle_priorities"):
 		_priority_panel.visible = not _priority_panel.visible
 		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton:
+		var click := event as InputEventMouseButton
+		if click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
+			_select_station(_station_at(get_global_mouse_position()))
+			get_viewport().set_input_as_handled()
+
+
+## The role-taking station under a point, or null. Checks a little below the point too,
+## since tabletops are drawn above their floor cells.
+func _station_at(point: Vector2) -> Station:
+	for lift: float in [0.0, 16.0]:
+		var cell: Vector2i = _floor.global_to_cell(point + Vector2(0.0, lift))
+		for station: Station in _stations:
+			if station.has_roles() and station.get_footprint_cells().has(cell):
+				return station
+	return null
+
+
+func _select_station(station: Station) -> void:
+	if _selected_station != null:
+		_selected_station.set_selected(false)
+	_selected_station = station
+	# Role labels show while a station is selected, like zones while editing them.
+	for each: Station in _stations:
+		each.show_role_label(station != null)
+	if station == null:
+		_station_panel.hide()
+		return
+	station.set_selected(true)
+	_station_panel.show_station(station)
+
+
+func _on_role_change_requested(station: Station, role: StationRole) -> void:
+	station.set_role(role)
+	if station == _selected_station:
+		_station_panel.show_station(station)
+	_on_rack_jobs_changed()
 
 
 func _setup_station(station: Station) -> void:
@@ -164,10 +206,20 @@ func _get_carried(job: Job) -> Item:
 
 
 ## Free spots where the job can be done, with the one already holding its item first.
+## Steps worked at the container go to the spot where it's set out. If it isn't ready, a
+## step that puts the item in it sets the item down on a free spot instead (so a pizza
+## doesn't wait in the oven for a box), and a later step moves it into the box.
 func _spots_for(job: Job) -> Array[Spot]:
 	var task: TaskType = job.task_type
 	var own: Item = _get_carried(job)
 	var result: Array[Spot] = []
+	if task.is_at_container():
+		var box_spot: Spot = _get_container_spot(job.ticket)
+		if box_spot != null:
+			result.append(box_spot)
+			return result
+		if not task.into_container:
+			return result
 	for station: Station in _stations:
 		if not station.can_do(task):
 			continue
@@ -175,11 +227,6 @@ func _spots_for(job: Job) -> Array[Spot]:
 			if station.is_reserved(index):
 				continue
 			var held: Item = station.get_item(index)
-			if task.is_at_container():
-				# Worked where the container was set out, and nowhere else.
-				if held != null and held == job.ticket.container:
-					result.append(Spot.new(station, index))
-				continue
 			if held != null and held != own:
 				continue
 			if held != null:
@@ -187,6 +234,16 @@ func _spots_for(job: Job) -> Array[Spot]:
 			else:
 				result.append(Spot.new(station, index))
 	return result
+
+
+## The free spot where the ticket's container sits set out and ready, or null.
+func _get_container_spot(ticket: Ticket) -> Spot:
+	var container: Item = ticket.container
+	if container == null or container.station == null:
+		return null
+	if container.station.is_reserved(container.spot):
+		return null
+	return Spot.new(container.station, container.spot)
 
 
 ## First storage station with an unclaimed unit of `kind`, or null.
@@ -372,7 +429,8 @@ func _on_pawn_work_started(job: Job, pawn: Pawn) -> void:
 		ticket.item = item
 	if item == null:
 		return
-	if job.task_type.into_container:
+	var at_box: bool = ticket.container != null and job.station.get_item(job.spot) == ticket.container
+	if job.task_type.is_at_container() and at_box:
 		ticket.container.put_in(item)
 		return
 	job.station.put_item(job.spot, item)

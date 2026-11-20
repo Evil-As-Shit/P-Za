@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StationRole" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/station_role.gd" id="1_role"]
+[ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="2_task_type"]
+[ext_resource type="Resource" path="res://resources/tasks/set_out_box.tres" id="3_set_out_box"]
+[ext_resource type="Resource" path="res://resources/tasks/unload_oven.tres" id="4_unload_oven"]
+[ext_resource type="Resource" path="res://resources/tasks/cut.tres" id="5_cut"]
+
+[resource]
+script = ExtResource("1_role")
+id = &"boxing"
+display_name = "Boxing"
+task_types = Array[ExtResource("2_task_type")]([ExtResource("3_set_out_box"), ExtResource("4_unload_oven"), ExtResource("5_cut")])

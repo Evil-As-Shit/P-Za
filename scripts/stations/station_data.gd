@@ -4,8 +4,11 @@ extends Resource
 ## Offsets are given for facing 0 and rotated in 90° steps on the map grid.
 
 @export var display_name: String
-## Task types a pawn can do here.
+## Task types a pawn can do here, for stations with a fixed purpose (e.g. an oven).
 @export var task_types: Array[TaskType] = []
+## Roles the player can assign (e.g. a table as Prep or Boxing). If set, the station's
+## role decides its task types instead of task_types.
+@export var roles: Array[StationRole] = []
 ## Size in cells at facing 0. The origin cell is the footprint's first cell.
 @export var footprint: Vector2i = Vector2i.ONE
 ## Sprite for each facing (0-3). Each texture's left edge and bottom row must line up

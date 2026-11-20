@@ -8,6 +8,8 @@ extends Node2D
 @export var cell: Vector2i = Vector2i.ZERO
 ## Quarter turns (0-3).
 @export_range(0, 3) var facing: int = 0
+## Assigned role, for stations that take one (see StationData.roles). Null means unused.
+@export var role: StationRole = null
 
 var _footprint: Array[Vector2i] = []
 var _item_positions: Array[Vector2] = []
@@ -28,6 +30,8 @@ var _art_top: float = 0.0
 @onready var _supply_on_top: Node2D = $SupplyOnTop
 ## Shown while the station works an item on its own (e.g. baking).
 @onready var _work_bar: ProgressBar = $WorkBar
+## Names the assigned role on the floor in front of the station.
+@onready var _role_label: Label = $RoleLabel
 
 
 ## Snaps the station onto the floor and lines its art up with its footprint.
@@ -65,6 +69,30 @@ func place(shop_floor: ShopFloor) -> void:
 		if art.texture != null:
 			_art_top = minf(_art_top, art.global_position.y + _opaque_top(art.texture))
 	_build_piles(shop_floor.cell_to_global(cell))
+	# On the tabletop, over the middle of the footprint.
+	_role_label.size = Vector2(48.0, 12.0)
+	_role_label.global_position = centroid + data.item_offset - Vector2(24.0, 6.0)
+	_update_role_label()
+
+
+## Assigns a role (or null for unused). Only for stations that take roles.
+func set_role(new_role: StationRole) -> void:
+	role = new_role
+	_update_role_label()
+
+
+## Highlights the station while it's selected.
+func set_selected(selected: bool) -> void:
+	modulate = Color(1.2, 1.2, 0.9) if selected else Color.WHITE
+
+
+## Shows the role name on the station (only for stations that take roles).
+func show_role_label(shown: bool) -> void:
+	_role_label.visible = shown and has_roles()
+
+
+func _update_role_label() -> void:
+	_role_label.text = role.display_name if role != null else "Unused"
 
 
 ## Places a texture so its left edge and bottom row meet the footprint's corners.
@@ -98,7 +126,20 @@ func hide_work() -> void:
 
 
 func can_do(task_type: TaskType) -> bool:
+	if has_roles():
+		return role != null and role.task_types.has(task_type)
 	return data.task_types.has(task_type)
+
+
+## True if the player can assign this station a role.
+func has_roles() -> bool:
+	return not data.roles.is_empty()
+
+
+func get_display_name() -> String:
+	if role != null:
+		return "%s (%s)" % [data.display_name, role.display_name]
+	return data.display_name
 
 
 func get_spot_count() -> int:

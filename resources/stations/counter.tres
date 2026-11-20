@@ -1,10 +1,12 @@
 [gd_resource type="Resource" script_class="StationData" format=3]
 
 [ext_resource type="Script" path="res://scripts/stations/station_data.gd" id="1_data"]
-[ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="2_task_type"]
-[ext_resource type="Resource" path="res://resources/tasks/hand_off.tres" id="3_hand_off"]
+[ext_resource type="Script" path="res://scripts/stations/station_role.gd" id="2_role"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/Object_Spritesheet.png" id="4_sheet"]
 [ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="5_spot"]
+[ext_resource type="Resource" path="res://resources/station_roles/prep.tres" id="6_prep"]
+[ext_resource type="Resource" path="res://resources/station_roles/boxing.tres" id="7_boxing"]
+[ext_resource type="Resource" path="res://resources/station_roles/pickup.tres" id="8_pickup"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_counter"]
 atlas = ExtResource("4_sheet")
@@ -17,8 +19,8 @@ item_cell = Vector2i(0, 0)
 
 [resource]
 script = ExtResource("1_data")
-display_name = "Pickup Counter"
-task_types = Array[ExtResource("2_task_type")]([ExtResource("3_hand_off")])
+display_name = "Counter"
+roles = Array[ExtResource("2_role")]([ExtResource("6_prep"), ExtResource("7_boxing"), ExtResource("8_pickup")])
 footprint = Vector2i(1, 1)
 facing_textures = Array[Texture2D]([SubResource("AtlasTexture_counter")])
 spots = Array[ExtResource("5_spot")]([SubResource("Resource_spot")])

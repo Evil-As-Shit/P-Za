@@ -103,6 +103,7 @@ Each item below is a direction, not a final spec.
   - New hires start with everything blank until the player assigns work.
   - When no manager has line of sight, pawns skip their low-priority work (and slack off).
 - Each station has one or more spots. A spot is where a pawn stands plus where its item sits, and one pawn uses it at a time. Spots rotate with the station. The long table has two.
+- **Station roles (zones, part 1):** tables and counters are general-purpose. The player clicks one to give it a role: Prep (making pizzas), Boxing (boxes, unloading, cutting), Pickup (hand-off), or unused. The role decides what work happens there. Ovens and storage keep a fixed purpose. Later zone work: storage shelves with item filters and priority (like RimWorld stockpiles), then painted front/back-of-house areas.
 - For now, each task type has a fixed base work time. Skill and mood will scale it later.
 - Pawns with no work wander and sometimes check their phone (placeholder behavior).
 
@@ -115,8 +116,7 @@ Each item below is a direction, not a final spec.
 - Each ticket shows its order number, item and status. Order type and the ETA come later.
 - Menu items are recipes: an ordered list of task steps. Each step is one job, done by one pawn at one station. A plain pizza is stretch, sauce, cheese, load oven, set out box, unload oven, cut, then hand off, so a ticket can be paused between steps.
 - Baking runs on its own: a Kitchen pawn loads the pizza and is free while it cooks. Taking it out is Oven work: once it's done, an Oven pawn takes it out and drops it into the open box. If no box is out yet, the pizza waits in the oven. Later, when it's taken out will set its doneness (under, perfect, over), modified by Oven skill.
-- The assembly table is only for making pizzas. Boxing and cutting happen on a separate back-of-house boxing table.
-- The box rack stores folded boxes. While the pizza bakes, a pawn takes a box from the rack and opens it on an empty boxing table spot. Once the pizza is in the box, a pawn cuts it there (a cut line appears as the work goes), and the box closes. When the rack is empty, tickets wait at "set out box" (no restocking yet).
+- The box rack stores folded boxes. As soon as a ticket enters Make, a pawn takes a box from the rack and opens it on an empty Boxing spot. Once the pizza is in the box, a pawn cuts it there (a cut line appears as the work goes), and the box closes. A pizza never waits in the oven for a box: if its box isn't open yet, it's set down on a free Boxing spot and moved into the box when it's cut. When the rack is empty, boxing waits (no restocking yet).
 - Finished boxes stack on the boxing table (up to 8). When an order is ready to go out, its whole stack is carried to the pickup counter: right away for to-go, or when the customer arrives for pickup. For now orders are one pizza: the box goes straight to the pickup counter, the ticket shows Ready, and after a short placeholder wait the order goes out and the ticket leaves the rack.
 - The pizza is a real item. It sits on a station, and pawns carry it between stations. A station holding another ticket's pizza can't be used. A pizza being carried when its ticket is pulled gets set down on the floor.
 - **Taking or serving an order is automatic.** There is no manual "Take" step, and completed orders go out on their own.

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StationRole" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/station_role.gd" id="1_role"]
+[ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="2_task_type"]
+[ext_resource type="Resource" path="res://resources/tasks/stretch.tres" id="3_stretch"]
+[ext_resource type="Resource" path="res://resources/tasks/sauce.tres" id="4_sauce"]
+[ext_resource type="Resource" path="res://resources/tasks/cheese.tres" id="5_cheese"]
+
+[resource]
+script = ExtResource("1_role")
+id = &"prep"
+display_name = "Prep"
+task_types = Array[ExtResource("2_task_type")]([ExtResource("3_stretch"), ExtResource("4_sauce"), ExtResource("5_cheese")])
