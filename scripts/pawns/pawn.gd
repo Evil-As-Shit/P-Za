@@ -14,6 +14,13 @@ signal work_progressed(job: Job, progress: float)
 
 enum State { IDLE, WALKING, WALKING_TO_PICKUP, WALKING_TO_JOB, WORKING }
 
+## Priorities run from 1 (done first) to this. 0 means the pawn never does that work.
+const LOWEST_PRIORITY: int = 4
+
+@export var display_name: String = "Pawn"
+## Work type -> priority (1 to LOWEST_PRIORITY). Missing or 0 means never.
+@export var priorities: Dictionary[WorkType, int] = {}
+
 @export var move_speed: float = 40.0
 ## Seconds of work done per second. Skill and mood will change this later.
 @export var work_speed: float = 1.0
@@ -117,6 +124,18 @@ func drop_job() -> Job:
 
 func has_job() -> bool:
 	return _job != null
+
+
+## 1 (first) to LOWEST_PRIORITY, or 0 if the pawn never does this work.
+func get_priority(work_type: WorkType) -> int:
+	return priorities.get(work_type, 0)
+
+
+func set_priority(work_type: WorkType, priority: int) -> void:
+	if priority <= 0:
+		priorities.erase(work_type)
+	else:
+		priorities[work_type] = mini(priority, LOWEST_PRIORITY)
 
 
 func _step_along_path(delta: float) -> void:

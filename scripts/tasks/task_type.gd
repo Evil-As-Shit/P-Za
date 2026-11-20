@@ -4,6 +4,8 @@ extends Resource
 
 @export var id: StringName
 @export var display_name: String
+## Priority grid column this task falls under. Pawns never do tasks without one.
+@export var work_type: WorkType
 ## Seconds of work at normal speed. Skill and mood will scale this later.
 @export var base_work_time: float = 5.0
 ## If true, the pawn only loads the item and the station works it for base_work_time on

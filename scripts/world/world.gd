@@ -1,6 +1,6 @@
 extends Node2D
 ## Prototype shop scene. Wires the floor, stations, ticket rack, HUD and pawns together.
-## Idle pawns take the first workable Make ticket; with nothing to do they wander.
+## Idle pawns take Make-ticket work by their priorities; with nothing to do they wander.
 
 
 ## A station spot a job could be done at.
@@ -15,6 +15,8 @@ class Spot:
 
 ## Recipe printed by the debug hotkey until customers exist.
 @export var debug_recipe: Recipe
+## Columns of the priority grid, left to right. On a priority tie, pawns pick leftmost.
+@export var work_types: Array[WorkType] = []
 @export var idle_time_min: float = 0.5
 @export var idle_time_max: float = 2.0
 ## Chance an idle pawn checks their phone instead of just standing (placeholder).
@@ -35,6 +37,7 @@ var _stations: Array[Station] = []
 @onready var _camera: ShopCamera = $ShopCamera
 @onready var _rack: TicketRack = $TicketRack
 @onready var _rack_panel: TicketRackPanel = $Hud/TicketRackPanel
+@onready var _priority_panel: PriorityPanel = $Hud/PriorityPanel
 
 
 func _ready() -> void:
@@ -52,6 +55,8 @@ func _ready() -> void:
 	_rack.ticket_completed.connect(_on_rack_ticket_completed)
 	_rack_panel.move_requested.connect(_rack.move_ticket)
 	_on_rack_changed()
+	_priority_panel.priority_change_requested.connect(_on_priority_change_requested)
+	_priority_panel.show_priorities(_pawns, work_types)
 
 	for pawn: Pawn in _pawns:
 		_wait_then_wander(pawn)
@@ -60,6 +65,9 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"debug_queue_job"):
 		_rack.print_ticket(debug_recipe)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(&"toggle_priorities"):
+		_priority_panel.visible = not _priority_panel.visible
 		get_viewport().set_input_as_handled()
 
 
@@ -80,54 +88,65 @@ func _setup_pawn(pawn: Pawn) -> void:
 	_pawns.append(pawn)
 
 
-## Gives the pawn the first open job it can reach a free spot for. Returns false if none.
-## If the job needs something brought (the ticket's item, or a supply from storage), the
-## pawn fetches it on the way.
+## Gives the pawn work by their priorities: priority 1 first, ties going to the leftmost
+## work type, and within a work type the first open job in Make-rack order. Returns false
+## if there's nothing they can do.
 func _try_assign_work(pawn: Pawn) -> bool:
 	if pawn.has_job():
 		return true
+	var jobs: Array[Job] = _rack.get_open_jobs()
+	for priority: int in range(1, Pawn.LOWEST_PRIORITY + 1):
+		for work_type: WorkType in work_types:
+			if pawn.get_priority(work_type) != priority:
+				continue
+			for job: Job in jobs:
+				if job.task_type.work_type == work_type and _try_job(pawn, job):
+					return true
+	return false
+
+
+## Assigns the job if the pawn can reach a free spot for it. If the job needs something
+## brought (the ticket's item, or a supply from storage), the pawn fetches it on the way.
+func _try_job(pawn: Pawn, job: Job) -> bool:
 	var from_cell: Vector2i = _floor.global_to_cell(pawn.global_position)
-	for job: Job in _rack.get_open_jobs():
-		var supply_station: Station = null
-		var carried: Item = _get_carried(job)
-		if carried != null and carried.busy:
+	var supply_station: Station = null
+	var carried: Item = _get_carried(job)
+	if carried != null and carried.busy:
+		return false
+	if job.task_type.fetch_supply != &"" and carried == null:
+		supply_station = _find_supply(job.task_type.fetch_supply)
+		if supply_station == null:
+			return false
+	for spot: Spot in _spots_for(job):
+		var pickup_path := PackedVector2Array()
+		var work_from: Vector2i = from_cell
+		var pickup_cell: Vector2i = from_cell
+		var needs_pickup: bool = false
+		if supply_station != null:
+			pickup_cell = supply_station.get_work_cell(0)
+			needs_pickup = true
+		elif carried != null and not _is_at(carried, spot):
+			pickup_cell = _get_pickup_cell(carried)
+			needs_pickup = true
+		if needs_pickup:
+			pickup_path = _floor.get_path_points(from_cell, pickup_cell)
+			if pickup_path.is_empty():
+				continue
+			work_from = pickup_cell
+		var work_path: PackedVector2Array = _floor.get_path_points(
+			work_from, spot.station.get_work_cell(spot.index)
+		)
+		if work_path.is_empty():
 			continue
-		if job.task_type.fetch_supply != &"" and carried == null:
-			supply_station = _find_supply(job.task_type.fetch_supply)
-			if supply_station == null:
-				continue
-		for spot: Spot in _spots_for(job):
-			var pickup_path := PackedVector2Array()
-			var work_from: Vector2i = from_cell
-			var pickup_cell: Vector2i = from_cell
-			var needs_pickup: bool = false
-			if supply_station != null:
-				pickup_cell = supply_station.get_work_cell(0)
-				needs_pickup = true
-			elif carried != null and not _is_at(carried, spot):
-				pickup_cell = _get_pickup_cell(carried)
-				needs_pickup = true
-			if needs_pickup:
-				pickup_path = _floor.get_path_points(from_cell, pickup_cell)
-				if pickup_path.is_empty():
-					continue
-				work_from = pickup_cell
-			var work_path: PackedVector2Array = _floor.get_path_points(
-				work_from, spot.station.get_work_cell(spot.index)
-			)
-			if work_path.is_empty():
-				continue
-			spot.station.reserve(spot.index)
-			job.station = spot.station
-			job.spot = spot.index
-			if supply_station != null:
-				supply_station.claim_supply()
-				job.supply_station = supply_station
-			pawn.assign_job(
-				job, pickup_path, work_path, spot.station.get_work_target(spot.index)
-			)
-			_rack.notify_job_state_changed()
-			return true
+		spot.station.reserve(spot.index)
+		job.station = spot.station
+		job.spot = spot.index
+		if supply_station != null:
+			supply_station.claim_supply()
+			job.supply_station = supply_station
+		pawn.assign_job(job, pickup_path, work_path, spot.station.get_work_target(spot.index))
+		_rack.notify_job_state_changed()
+		return true
 	return false
 
 
@@ -269,6 +288,12 @@ func _on_rack_changed() -> void:
 	_rack_panel.show_rack(
 		_rack.get_tickets(Ticket.Section.WAIT), _rack.get_tickets(Ticket.Section.MAKE)
 	)
+
+
+func _on_priority_change_requested(pawn: Pawn, work_type: WorkType, priority: int) -> void:
+	pawn.set_priority(work_type, priority)
+	_priority_panel.show_priorities(_pawns, work_types)
+	_try_assign_work(pawn)
 
 
 func _on_rack_jobs_changed() -> void:

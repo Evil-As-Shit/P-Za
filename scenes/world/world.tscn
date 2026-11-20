@@ -14,10 +14,17 @@
 [ext_resource type="Resource" path="res://resources/stations/box_rack.tres" id="12_box_rack"]
 [ext_resource type="Resource" path="res://resources/stations/boxing_table.tres" id="13_boxing"]
 [ext_resource type="Resource" path="res://resources/stations/pickup_counter.tres" id="14_pickup"]
+[ext_resource type="Script" path="res://scripts/tasks/work_type.gd" id="15_work_type"]
+[ext_resource type="Resource" path="res://resources/work_types/kitchen.tres" id="16_kitchen"]
+[ext_resource type="Resource" path="res://resources/work_types/oven.tres" id="17_oven"]
+[ext_resource type="Resource" path="res://resources/work_types/boxing.tres" id="18_boxing"]
+[ext_resource type="Resource" path="res://resources/work_types/front.tres" id="19_front"]
+[ext_resource type="PackedScene" path="res://scenes/ui/priority_panel.tscn" id="20_priority_panel"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
 debug_recipe = ExtResource("8_pizza")
+work_types = Array[ExtResource("15_work_type")]([ExtResource("16_kitchen"), ExtResource("17_oven"), ExtResource("18_boxing"), ExtResource("19_front")])
 item_scene = ExtResource("11_item")
 
 [node name="ShopFloor" parent="." instance=ExtResource("2_floor")]
@@ -47,6 +54,21 @@ data = ExtResource("14_pickup")
 cell = Vector2i(5, 9)
 
 [node name="Pawn" parent="Entities" instance=ExtResource("3_pawn")]
+display_name = "Pawn 1"
+priorities = Dictionary[ExtResource("15_work_type"), int]({
+ExtResource("16_kitchen"): 1,
+ExtResource("17_oven"): 2,
+ExtResource("18_boxing"): 3,
+ExtResource("19_front"): 3
+})
+
+[node name="Pawn2" parent="Entities" instance=ExtResource("3_pawn")]
+display_name = "Pawn 2"
+priorities = Dictionary[ExtResource("15_work_type"), int]({
+ExtResource("17_oven"): 2,
+ExtResource("18_boxing"): 1,
+ExtResource("19_front"): 1
+})
 
 [node name="ShopCamera" type="Camera2D" parent="."]
 script = ExtResource("4_camera")
@@ -57,3 +79,5 @@ script = ExtResource("7_rack")
 [node name="Hud" type="CanvasLayer" parent="."]
 
 [node name="TicketRackPanel" parent="Hud" instance=ExtResource("9_rack_panel")]
+
+[node name="PriorityPanel" parent="Hud" instance=ExtResource("20_priority_panel")]

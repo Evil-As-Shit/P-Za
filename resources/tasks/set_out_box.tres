@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="TaskType" format=3]
 
+[ext_resource type="Resource" path="res://resources/work_types/boxing.tres" id="9_work_type"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/box_sheet.png" id="2_box"]
 
@@ -17,6 +18,7 @@ margin = Rect2(0, 32, 0, 32)
 script = ExtResource("1_task")
 id = &"set_out_box"
 display_name = "Set out box"
+work_type = ExtResource("9_work_type")
 base_work_time = 5.0
 fetch_supply = &"box"
 container_under_texture = SubResource("AtlasTexture_open_back")

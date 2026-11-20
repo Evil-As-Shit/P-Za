@@ -97,7 +97,7 @@ Each item below is a direction, not a final spec.
 - Pizza boxes arrive as unfolded sheets, so staff have to make (fold) them before they can be used for boxing.
 - Driving is just another skill pawns can develop. Delivery drivers are regular in-house staff, not a separate hire.
 - Pawns claim work from the station queues according to their priorities and skill.
-- The priority grid has pawns as rows and a few broad work types as columns. Each cell is 1–4 (1 first) or blank (never).
+- The priority grid has pawns as rows and a few broad work types as columns. Each cell is 1–4 (1 first) or blank (never). Columns, left to right: Kitchen (stretch, sauce, cheese; later dough and sauce prep), Oven, Boxing (set out box, cut; later folding), Front (hand off; later cashier and service). Driving and Cleaning get columns when they exist.
   - An idle pawn takes work by its grid first: priority 1 before 2, and the leftmost column wins a tie. Within a work type, it takes the first open job in Make-rack order.
   - Pawns finish their current job before choosing again.
   - New hires start with everything blank until the player assigns work.
