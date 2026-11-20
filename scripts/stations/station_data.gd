@@ -11,6 +11,9 @@ extends Resource
 ## Sprite for each facing (0-3). Each texture's left edge and bottom row must line up
 ## with the footprint's leftmost corner and floor-level bottom corner.
 @export var facing_textures: Array[Texture2D] = []
+## Optional art drawn over the station's item (e.g. an oven's top half), per facing.
+## Lined up the same way as facing_textures, so make them the same height.
+@export var cover_textures: Array[Texture2D] = []
 ## Cell, relative to the origin at facing 0, where a pawn stands to work.
 @export var work_spot: Vector2i = Vector2i(0, 1)
 ## Footprint cell, relative to the origin at facing 0, that an item sits over.
@@ -49,6 +52,14 @@ func get_item_cell(origin: Vector2i, facing: int) -> Vector2i:
 
 
 func get_texture(facing: int) -> Texture2D:
-	if facing_textures.is_empty():
+	return _pick(facing_textures, facing)
+
+
+func get_cover_texture(facing: int) -> Texture2D:
+	return _pick(cover_textures, facing)
+
+
+static func _pick(textures: Array[Texture2D], facing: int) -> Texture2D:
+	if textures.is_empty():
 		return null
-	return facing_textures[posmod(facing, facing_textures.size())]
+	return textures[posmod(facing, textures.size())]

@@ -5,15 +5,22 @@
 [ext_resource type="Resource" path="res://resources/tasks/bake.tres" id="2_task"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/Small_Oven.png" id="3_oven"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_facing0"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_bottom0"]
 atlas = ExtResource("3_oven")
-region = Rect2(0, 64, 32, 64)
+region = Rect2(0, 96, 32, 32)
+margin = Rect2(0, 32, 0, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_top0"]
+atlas = ExtResource("3_oven")
+region = Rect2(0, 64, 32, 32)
+margin = Rect2(0, 15, 0, 32)
 
 [resource]
 script = ExtResource("1_data")
 display_name = "Small Oven"
 task_types = Array[ExtResource("2_task_type")]([ExtResource("2_task")])
 footprint = Vector2i(1, 1)
-facing_textures = Array[Texture2D]([SubResource("AtlasTexture_facing0")])
+facing_textures = Array[Texture2D]([SubResource("AtlasTexture_bottom0")])
+cover_textures = Array[Texture2D]([SubResource("AtlasTexture_top0")])
 work_spot = Vector2i(0, 1)
 item_offset = Vector2(0, -17)

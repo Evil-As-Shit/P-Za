@@ -18,6 +18,22 @@ region = Rect2(30, 88, 15, 44)
 atlas = ExtResource("1_1in7x")
 region = Rect2(45, 88, 15, 44)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_phone_d1"]
+atlas = ExtResource("1_1in7x")
+region = Rect2(60, 88, 15, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_phone_d2"]
+atlas = ExtResource("1_1in7x")
+region = Rect2(75, 88, 15, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_phone_u1"]
+atlas = ExtResource("1_1in7x")
+region = Rect2(90, 88, 15, 44)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_phone_u2"]
+atlas = ExtResource("1_1in7x")
+region = Rect2(105, 88, 15, 44)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_doc8t"]
 atlas = ExtResource("1_1in7x")
 region = Rect2(0, 0, 15, 44)
@@ -104,6 +120,28 @@ animations = [{
 }],
 "loop": 1,
 "name": &"idle_up",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_phone_d1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_phone_d2")
+}],
+"loop": 1,
+"name": &"phone_down",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_phone_u1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_phone_u2")
+}],
+"loop": 1,
+"name": &"phone_up",
 "speed": 2.0
 }, {
 "frames": [{

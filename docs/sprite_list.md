@@ -6,7 +6,7 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 
 ## Already have
 
-- Pawn walk (down-left, up-left) and idle: `pawn_sheet.png` (laid out on the 7-row guide; rows 4–7 still empty)
+- Pawn walk (down-left, up-left), idle and phone: `pawn_sheet.png` (laid out on the 7-row guide; rows 4–7 still empty)
 - Floor tiles ×3: `tile_placeholder.png`
 - Small table (1×1), long table (2×1, two facings), rotation test cube, bin: `Object_Spritesheet.png`
 - Walls (work in progress): `walls_temp_wip.png`
@@ -46,7 +46,7 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 | # | Sprite | Guide | Notes |
 |---|--------|-------|-------|
 | 19 | Pawn variety: hair and shirt variants, manager and trainee looks | pawn sheet | Palette swaps of one base are the cheapest route. |
-| 20 | Pawn **slacking on phone** idle | pawn sheet, extra rows | Manager out of sight (GDD). |
+| 20 | ~~Pawn **slacking on phone** idle~~ | done | In the idle row, frames 5–8. |
 | 21 | Mood / thought bubbles: happy, stressed, tired, angry, friend, enemy | item 16×16 | Drawn above pawns. |
 | 22 | Mess: floor dirt decals, spills, trash can, sink, mop | 1×1 decals, item 16×16 | Cleanliness and inspections. |
 | 23 | **Health inspector** | pawn sheet | |
@@ -73,7 +73,7 @@ The guides are colored backgrounds to draw over. In Aseprite, open the guide, ad
 |-----|----------|--------|
 | 1 | Walk, down-left (8 frames) | used now |
 | 2 | Walk, up-left (8 frames) | used now |
-| 3 | Idle: frames 1–2 down-left, frames 3–4 up-left | used now |
+| 3 | Idle: frames 1–2 down-left, frames 3–4 up-left. Phone: frames 5–6 down-left, frames 7–8 up-left | used now (phone not shown in game yet) |
 | 4 | Work, down-left | proposed |
 | 5 | Work, up-left | proposed |
 | 6 | Carry walk, down-left | proposed |

@@ -15,6 +15,9 @@ var _reserved: bool = false
 var _item: Item = null
 
 @onready var _sprite: Sprite2D = $Sprite
+## Items are parented here so they draw between the station art and its cover.
+@onready var _item_slot: Node2D = $ItemSlot
+@onready var _cover: Sprite2D = $Cover
 
 
 ## Snaps the station onto the floor and lines its art up with its footprint.
@@ -41,11 +44,16 @@ func place(shop_floor: ShopFloor) -> void:
 	# on that row (beside or in front of the station) draw over it.
 	global_position = Vector2(centroid.x, front_y - 1.0)
 
-	var texture: Texture2D = data.get_texture(facing)
-	_sprite.texture = texture
-	_sprite.centered = false
+	_line_up(_sprite, data.get_texture(facing), left, bottom)
+	_line_up(_cover, data.get_cover_texture(facing), left, bottom)
+
+
+## Places a texture so its left edge and bottom row meet the footprint's corners.
+static func _line_up(sprite: Sprite2D, texture: Texture2D, left: float, bottom: float) -> void:
+	sprite.texture = texture
+	sprite.centered = false
 	if texture != null:
-		_sprite.global_position = Vector2(left, bottom - texture.get_height())
+		sprite.global_position = Vector2(left, bottom - texture.get_height())
 
 
 func can_do(task_type: TaskType) -> bool:
@@ -61,7 +69,7 @@ func get_item() -> Item:
 func put_item(item: Item) -> void:
 	_item = item
 	item.station = self
-	item.reparent(self, false)
+	item.reparent(_item_slot, false)
 	item.global_position = _item_position
 
 

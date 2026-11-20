@@ -7,3 +7,8 @@ script = ExtResource("1_station")
 
 [node name="Sprite" type="Sprite2D" parent="."]
 centered = false
+
+[node name="ItemSlot" type="Node2D" parent="."]
+
+[node name="Cover" type="Sprite2D" parent="."]
+centered = false
