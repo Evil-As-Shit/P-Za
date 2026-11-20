@@ -97,7 +97,7 @@ Each item below is a direction, not a final spec.
 - Pizza boxes arrive as unfolded sheets, so staff have to make (fold) them before they can be used for boxing.
 - Driving is just another skill pawns can develop. Delivery drivers are regular in-house staff, not a separate hire.
 - Pawns claim work from the station queues according to their priorities and skill.
-- The priority grid has pawns as rows and a few broad work types as columns. Each cell is 1–4 (1 first) or blank (never). Columns, left to right: Kitchen (stretch, sauce, cheese; later dough and sauce prep), Oven, Boxing (set out box, cut; later folding), Front (hand off; later cashier and service). Driving and Cleaning get columns when they exist.
+- The priority grid has pawns as rows and a few broad work types as columns. Each cell is 1–4 (1 first) or blank (never). Columns, left to right: Kitchen (stretch, sauce, cheese, load oven; later dough and sauce prep), Oven (take pizzas out), Boxing (set out box, cut; later folding), Front (hand off; later cashier and service). Driving and Cleaning get columns when they exist.
   - An idle pawn takes work by its grid first: priority 1 before 2, and the leftmost column wins a tie. Within a work type, it takes the first open job in Make-rack order.
   - Pawns finish their current job before choosing again.
   - New hires start with everything blank until the player assigns work.
@@ -113,10 +113,10 @@ Each item below is a direction, not a final spec.
 - New tickets land in **Wait**. The player moves them to Make.
 - Pulling an in-progress ticket back to Wait stops the pawn. The work done so far is kept, and the job resumes when the ticket returns to Make.
 - Each ticket shows its order number, item and status. Order type and the ETA come later.
-- Menu items are recipes: an ordered list of task steps. Each step is one job, done by one pawn at one station. A plain pizza is stretch, sauce, cheese, bake, set out box, cut, then hand off, so a ticket can be paused between steps.
-- Baking runs on its own: a pawn loads the pizza into the oven and is free while it cooks. The next steps can be done meanwhile, but the pizza stays in the oven until it's done.
+- Menu items are recipes: an ordered list of task steps. Each step is one job, done by one pawn at one station. A plain pizza is stretch, sauce, cheese, load oven, set out box, unload oven, cut, then hand off, so a ticket can be paused between steps.
+- Baking runs on its own: a Kitchen pawn loads the pizza and is free while it cooks. Taking it out is Oven work: once it's done, an Oven pawn takes it out and drops it into the open box. If no box is out yet, the pizza waits in the oven. Later, when it's taken out will set its doneness (under, perfect, over), modified by Oven skill.
 - The assembly table is only for making pizzas. Boxing and cutting happen on a separate back-of-house boxing table.
-- The box rack stores folded boxes. While the pizza bakes, a pawn takes a box from the rack and opens it on an empty boxing table spot. Once baked, a pawn puts the pizza into that box and cuts it there (a cut line appears as the work goes), and the box closes. When the rack is empty, tickets wait at "set out box" (no restocking yet).
+- The box rack stores folded boxes. While the pizza bakes, a pawn takes a box from the rack and opens it on an empty boxing table spot. Once the pizza is in the box, a pawn cuts it there (a cut line appears as the work goes), and the box closes. When the rack is empty, tickets wait at "set out box" (no restocking yet).
 - Finished boxes stack on the boxing table (up to 8). When an order is ready to go out, its whole stack is carried to the pickup counter: right away for to-go, or when the customer arrives for pickup. For now orders are one pizza: the box goes straight to the pickup counter, the ticket shows Ready, and after a short placeholder wait the order goes out and the ticket leaves the rack.
 - The pizza is a real item. It sits on a station, and pawns carry it between stations. A station holding another ticket's pizza can't be used. A pizza being carried when its ticket is pulled gets set down on the floor.
 - **Taking or serving an order is automatic.** There is no manual "Take" step, and completed orders go out on their own.

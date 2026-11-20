@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/stations/station_data.gd" id="1_data"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="2_task_type"]
-[ext_resource type="Resource" path="res://resources/tasks/bake.tres" id="2_task"]
+[ext_resource type="Resource" path="res://resources/tasks/load_oven.tres" id="2_task"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/Small_Oven.png" id="3_oven"]
 [ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="4_spot"]
 

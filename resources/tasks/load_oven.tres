@@ -1,12 +1,12 @@
 [gd_resource type="Resource" script_class="TaskType" format=3]
 
-[ext_resource type="Resource" path="res://resources/work_types/oven.tres" id="9_work_type"]
+[ext_resource type="Resource" path="res://resources/work_types/kitchen.tres" id="9_work_type"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
 
 [resource]
 script = ExtResource("1_task")
-id = &"bake"
-display_name = "Bake"
+id = &"load_oven"
+display_name = "Load oven"
 work_type = ExtResource("9_work_type")
 base_work_time = 5.0
 unattended = true

@@ -5,7 +5,8 @@
 [ext_resource type="Resource" path="res://resources/tasks/stretch.tres" id="3_stretch"]
 [ext_resource type="Resource" path="res://resources/tasks/sauce.tres" id="4_sauce"]
 [ext_resource type="Resource" path="res://resources/tasks/cheese.tres" id="5_cheese"]
-[ext_resource type="Resource" path="res://resources/tasks/bake.tres" id="6_bake"]
+[ext_resource type="Resource" path="res://resources/tasks/load_oven.tres" id="6_bake"]
+[ext_resource type="Resource" path="res://resources/tasks/unload_oven.tres" id="13_unload_oven"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/pizza_sheet.png" id="7_sheet"]
 [ext_resource type="Resource" path="res://resources/tasks/set_out_box.tres" id="10_set_out_box"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/box_sheet.png" id="9_box_sheet"]
@@ -45,5 +46,5 @@ margin = Rect2(0, 32, 0, 32)
 [resource]
 script = ExtResource("1_recipe")
 display_name = "Pizza"
-steps = Array[ExtResource("2_task_type")]([ExtResource("3_stretch"), ExtResource("4_sauce"), ExtResource("5_cheese"), ExtResource("6_bake"), ExtResource("10_set_out_box"), ExtResource("11_cut"), ExtResource("12_hand_off")])
-stage_textures = Array[Texture2D]([SubResource("AtlasTexture_ball"), SubResource("AtlasTexture_dough"), SubResource("AtlasTexture_sauce"), SubResource("AtlasTexture_cheese"), SubResource("AtlasTexture_baked"), SubResource("AtlasTexture_baked"), SubResource("AtlasTexture_boxed"), SubResource("AtlasTexture_boxed")])
+steps = Array[ExtResource("2_task_type")]([ExtResource("3_stretch"), ExtResource("4_sauce"), ExtResource("5_cheese"), ExtResource("6_bake"), ExtResource("10_set_out_box"), ExtResource("13_unload_oven"), ExtResource("11_cut"), ExtResource("12_hand_off")])
+stage_textures = Array[Texture2D]([SubResource("AtlasTexture_ball"), SubResource("AtlasTexture_dough"), SubResource("AtlasTexture_sauce"), SubResource("AtlasTexture_cheese"), SubResource("AtlasTexture_baked"), SubResource("AtlasTexture_baked"), SubResource("AtlasTexture_baked"), SubResource("AtlasTexture_boxed"), SubResource("AtlasTexture_boxed")])
