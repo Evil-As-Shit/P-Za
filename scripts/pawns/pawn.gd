@@ -20,6 +20,7 @@ var _facing_up: bool = false
 var _facing_right: bool = false
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
+@onready var _work_bar: ProgressBar = $WorkBar
 
 
 func _ready() -> void:
@@ -58,6 +59,7 @@ func drop_job() -> Job:
 	_job = null
 	_path.clear()
 	_state = State.IDLE
+	_work_bar.hide()
 	_play_idle()
 	if job != null:
 		job.claimed_by = null
@@ -92,6 +94,8 @@ func _on_path_end() -> void:
 		_state = State.WORKING
 		_face(_work_target - global_position)
 		_play_idle()
+		_update_work_bar()
+		_work_bar.show()
 		return
 	_state = State.IDLE
 	_play_idle()
@@ -99,12 +103,19 @@ func _on_path_end() -> void:
 
 
 func _do_work(delta: float) -> void:
-	if not _job.add_work(work_speed * delta):
+	var done: bool = _job.add_work(work_speed * delta)
+	_update_work_bar()
+	if not done:
 		return
 	var job: Job = _job
 	_job = null
 	_state = State.IDLE
+	_work_bar.hide()
 	job_finished.emit(job)
+
+
+func _update_work_bar() -> void:
+	_work_bar.value = _job.work_done / _job.get_work_required()
 
 
 func _face(direction: Vector2) -> void:
