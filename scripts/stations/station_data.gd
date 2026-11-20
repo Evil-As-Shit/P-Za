@@ -33,6 +33,9 @@ extends Resource
 ## Pile positions drawn over the cover (e.g. on a top shelf), back to front.
 @export var supply_piles_on_top: Array[Vector2] = []
 @export var supply_per_pile: int = 3
+## Optional units per pile, in the same order (inside piles, then on-top piles). Overrides
+## supply_per_pile for piles it covers.
+@export var supply_pile_sizes: Array[int] = []
 ## Pixels each stacked unit sits above the one below it.
 @export var supply_pile_step: float = 3.0
 
@@ -66,7 +69,15 @@ func get_item_cell(origin: Vector2i, facing: int, spot: int) -> Vector2i:
 
 
 func get_supply_capacity() -> int:
-	return (supply_piles.size() + supply_piles_on_top.size()) * supply_per_pile
+	var total: int = 0
+	for pile: int in supply_piles.size() + supply_piles_on_top.size():
+		total += get_pile_size(pile)
+	return total
+
+
+## Units pile `pile` holds (inside piles first, then on-top piles).
+func get_pile_size(pile: int) -> int:
+	return supply_pile_sizes[pile] if pile < supply_pile_sizes.size() else supply_per_pile
 
 
 func get_texture(facing: int) -> Texture2D:

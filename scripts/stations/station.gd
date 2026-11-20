@@ -229,15 +229,19 @@ func take_supply() -> void:
 func _build_piles(origin_center: Vector2) -> void:
 	_supply_left = data.get_supply_capacity()
 	for pile_offset: Vector2 in data.supply_piles:
-		_pile_sprites.append(_make_pile(_supply_inside, origin_center + pile_offset))
+		_pile_sprites.append(
+			_make_pile(_supply_inside, origin_center + pile_offset, _pile_sprites.size())
+		)
 	for pile_offset: Vector2 in data.supply_piles_on_top:
-		_pile_sprites.append(_make_pile(_supply_on_top, origin_center + pile_offset))
+		_pile_sprites.append(
+			_make_pile(_supply_on_top, origin_center + pile_offset, _pile_sprites.size())
+		)
 	_update_piles()
 
 
-func _make_pile(parent: Node2D, base: Vector2) -> Array[Sprite2D]:
+func _make_pile(parent: Node2D, base: Vector2, index: int) -> Array[Sprite2D]:
 	var pile: Array[Sprite2D] = []
-	for level: int in data.supply_per_pile:
+	for level: int in data.get_pile_size(index):
 		var sprite := Sprite2D.new()
 		sprite.texture = data.supply_texture
 		sprite.centered = false
