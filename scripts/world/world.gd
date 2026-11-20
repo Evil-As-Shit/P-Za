@@ -46,6 +46,7 @@ var _selected_station: Station = null
 @onready var _station_panel: StationPanel = $Hud/StationPanel
 @onready var _clock: ShopClock = $ShopClock
 @onready var _clock_panel: ClockPanel = $Hud/ClockPanel
+@onready var _orders: OrderSource = $OrderSource
 
 
 func _ready() -> void:
@@ -74,6 +75,8 @@ func _ready() -> void:
 	_clock.speed_changed.connect(_clock_panel.show_speed)
 	_clock_panel.show_time(_clock.day, _clock.get_minute_of_day())
 	_clock_panel.show_speed(_clock.speed)
+	_orders.setup(_clock)
+	_orders.order_placed.connect(_rack.print_ticket)
 
 	for pawn: Pawn in _pawns:
 		_wait_then_wander(pawn)

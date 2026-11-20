@@ -114,6 +114,7 @@ Each item below is a direction, not a final spec.
 - The player arranges tickets on a rack with two sections: **Wait** and **Make**. Pawns work the Make tickets in order, so reordering tickets steers the kitchen indirectly.
 - The rack is a HUD panel with Wait and Make columns. Tickets are dragged between columns and reordered.
 - New tickets land in **Wait**. The player moves them to Make.
+- Until customers exist, orders arrive at random while the shop is open: about one every 20 clock minutes, twice as often during the lunch (12:00–13:30) and dinner (18:00–19:30) rushes, and none in the last hour (from 21:00). That's roughly 40 a day.
 - Pulling an in-progress ticket back to Wait stops the pawn. The work done so far is kept, and the job resumes when the ticket returns to Make.
 - Each ticket shows its order number, item and status. Order type and the ETA come later.
 - Menu items are recipes: an ordered list of task steps. Each step is one job, done by one pawn at one station. A plain pizza is stretch, sauce, cheese, load oven, set out box, unload oven, cut, then hand off, so a ticket can be paused between steps.

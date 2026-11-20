@@ -46,6 +46,11 @@ func _process(delta: float) -> void:
 		time_changed.emit(day, minute)
 
 
+## Shop-clock minutes that pass in `game_seconds` of game time.
+func to_clock_minutes(game_seconds: float) -> float:
+	return game_seconds * (close_hour - open_hour) * 60.0 / (day_length_minutes * 60.0)
+
+
 ## Minutes since midnight on the shop clock.
 func get_minute_of_day() -> int:
 	var open_minutes: float = (close_hour - open_hour) * 60.0

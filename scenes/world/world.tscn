@@ -21,6 +21,8 @@
 [ext_resource type="Resource" path="res://resources/walls/plain_wall.tres" id="25_wall_style"]
 [ext_resource type="Script" path="res://scripts/world/shop_clock.gd" id="26_clock"]
 [ext_resource type="PackedScene" path="res://scenes/ui/clock_panel.tscn" id="27_clock_panel"]
+[ext_resource type="Script" path="res://scripts/orders/order_source.gd" id="28_orders"]
+[ext_resource type="Script" path="res://scripts/menu/recipe.gd" id="29_recipe"]
 [ext_resource type="Script" path="res://scripts/tasks/work_type.gd" id="15_work_type"]
 [ext_resource type="Resource" path="res://resources/work_types/kitchen.tres" id="16_kitchen"]
 [ext_resource type="Resource" path="res://resources/work_types/oven.tres" id="17_oven"]
@@ -96,6 +98,10 @@ script = ExtResource("4_camera")
 
 [node name="ShopClock" type="Node" parent="."]
 script = ExtResource("26_clock")
+
+[node name="OrderSource" type="Node" parent="."]
+script = ExtResource("28_orders")
+menu = Array[ExtResource("29_recipe")]([ExtResource("8_pizza")])
 
 [node name="TicketRack" type="Node" parent="."]
 script = ExtResource("7_rack")
