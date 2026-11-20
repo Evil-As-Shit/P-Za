@@ -73,7 +73,7 @@ A cozy, 2.5D isometric pizza parlor management sim in the style of RimWorld. You
 ## Art and grid
 
 - **2D isometric** in a 2D scene (no 3D).
-- **Pixel perfect:** every placed object, tile and wall sits on whole art pixels, the camera only moves in whole pixels and zooms in whole steps, and the window scales by whole numbers. Only moving things (walking pawns) may sit between pixels.
+- **Pixel perfect:** every placed object, tile and wall sits on whole art pixels, the camera only moves in whole pixels and zooms in whole steps, and the game renders at the window's own size (a bigger window shows more of the shop rather than stretching it). Only moving things (walking pawns) may sit between pixels.
 - The floor grid is a **32×16 diamond** (`TileMapLayer`, diamond-down layout). Tile art can be a little larger than the grid. The overhang is intentional.
 - **Pawn sprite sheets** (15×44 frames). Row 1 is walk down-left, row 2 is walk up-left, and row 3 is idle (frames 1–2 down-left, frames 3–4 up-left) and looking at a phone (frames 5–6 down-left, frames 7–8 up-left). Right-facing poses are flipped in code.
 - Pawns move along the grid axes only, so they always face one of the four iso diagonals.
