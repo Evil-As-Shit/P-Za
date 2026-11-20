@@ -29,7 +29,9 @@ func set_wrap(under: Texture2D, over: Texture2D) -> void:
 	_over.texture = over
 
 
-## Flips the item's own art left-right (not its contents).
+## Item art is drawn with its front facing down-right (a box's fold and lid are at the
+## back, up-left). Mirrored, it faces down-left. Only flips the item's own art, not its
+## contents.
 func set_mirrored(mirrored: bool) -> void:
 	for sprite: Sprite2D in [_under, _sprite, _over]:
 		sprite.flip_h = mirrored

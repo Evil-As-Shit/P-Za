@@ -91,6 +91,7 @@ One cell per facing, left to right: **facing 0, 1, 2, 3**. The blue diamonds are
 - Cell widths: 1×1 = 32 px, 2×1 = 48 px, 2×2 = 64 px.
 - Symmetric objects (like the long table) can reuse facing 0's art for facing 2 and facing 1's for facing 3.
 - Mirroring facing 0 horizontally gives a rough start for facing 1.
+- **Carried items** (pizzas, boxes and so on) need only one view: draw them with their front facing **down-right**, with the back (like a box's fold or lid) up-left. The game flips them to match the pawn carrying them, and to face the pawn when set down.
 
 ### `item_16x16_guide.png`
 

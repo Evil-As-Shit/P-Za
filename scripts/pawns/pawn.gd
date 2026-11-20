@@ -89,6 +89,7 @@ func hold_item(item: Item) -> void:
 	_held_item = item
 	item.reparent(_hold_point, false)
 	item.position = Vector2.ZERO
+	_place_hold_point()
 
 
 ## Lets go of the held item and returns it. The caller moves it somewhere.
@@ -182,8 +183,11 @@ func _face(direction: Vector2) -> void:
 	_place_hold_point()
 
 
-## Holds carried items in front of the pawn, drawn behind them when facing away.
+## Holds carried items in front of the pawn, drawn behind them when facing away, and
+## turned the way the pawn faces.
 func _place_hold_point() -> void:
+	if _held_item != null:
+		_held_item.set_mirrored(not _facing_right)
 	var reach: Vector2 = hold_reach
 	if _facing_right:
 		reach.x = -reach.x

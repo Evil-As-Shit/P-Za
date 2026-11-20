@@ -110,13 +110,16 @@ func get_item(spot: int) -> Item:
 	return _items[spot]
 
 
-## Sets an item on a spot's surface. The spot must be empty.
+## Sets an item on a spot's surface, facing the spot's pawn. The spot must be empty.
 func put_item(spot: int, item: Item) -> void:
 	_items[spot] = item
 	item.station = self
 	item.spot = spot
 	item.reparent(_item_slot, false)
 	item.global_position = _item_positions[spot]
+	# Items can only face down-left or down-right, so pick the side nearer the pawn.
+	var side: Vector2i = get_pawn_side(spot)
+	item.set_mirrored(side.y > 0 or side.x < 0)
 
 
 ## Frees the spot and returns its item. The node stays where it is until the caller

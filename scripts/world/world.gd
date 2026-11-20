@@ -312,10 +312,6 @@ func _on_pawn_work_started(job: Job, pawn: Pawn) -> void:
 		ticket.container.put_in(item)
 		return
 	job.station.put_item(job.spot, item)
-	if item == ticket.container:
-		# Box art has its fold (and open lid) on the up-left side. Mirror it when the pawn
-		# stands down-left, so the fold faces away from them.
-		item.set_mirrored(job.station.get_pawn_side(job.spot).y > 0)
 
 
 func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
