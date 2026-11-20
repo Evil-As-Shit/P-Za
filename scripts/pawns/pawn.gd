@@ -163,7 +163,8 @@ func _do_work(delta: float) -> void:
 
 
 func _update_work_bar() -> void:
-	_work_bar.value = _job.work_done / _job.get_work_required()
+	var required: float = _job.get_work_required()
+	_work_bar.value = 1.0 if required <= 0.0 else _job.work_done / required
 
 
 func _face(direction: Vector2) -> void:

@@ -88,6 +88,8 @@ func _try_assign_work(pawn: Pawn) -> bool:
 	for job: Job in _rack.get_open_jobs():
 		var supply_station: Station = null
 		var carried: Item = _get_carried(job)
+		if carried != null and carried.busy:
+			continue
 		if job.task_type.fetch_supply != &"" and carried == null:
 			supply_station = _find_supply(job.task_type.fetch_supply)
 			if supply_station == null:
@@ -187,6 +189,18 @@ func _spawn_item(texture: Texture2D) -> Item:
 	_entities.add_child(item)
 	item.set_texture(texture)
 	return item
+
+
+## The station works the item on its own; when done it takes its new look and can be
+## moved again.
+func _work_unattended(item: Item, task: TaskType, done_texture: Texture2D) -> void:
+	item.busy = true
+	await get_tree().create_timer(task.base_work_time).timeout
+	if not is_instance_valid(item):
+		return
+	item.busy = false
+	item.set_texture(done_texture)
+	_on_rack_jobs_changed()
 
 
 func _drop_on_floor(item: Item, cell: Vector2i) -> void:
@@ -314,7 +328,9 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 		ticket.item = null
 	_release_station(job)
 	_rack.complete_job(job)
-	if item != null:
+	if item != null and task.unattended:
+		_work_unattended(item, task, ticket.recipe.get_stage_texture(ticket.step_index))
+	elif item != null and task.fetch_supply == &"":
 		item.set_texture(ticket.recipe.get_stage_texture(ticket.step_index))
 		if last_step:
 			get_tree().create_timer(finished_item_linger).timeout.connect(item.queue_free)

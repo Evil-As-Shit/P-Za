@@ -10,6 +10,8 @@ var station: Station = null
 var spot: int = -1
 ## Item it's inside, or null.
 var container: Item = null
+## True while a station works it on its own (e.g. baking). It can't be moved meanwhile.
+var busy: bool = false
 
 @onready var _under: Sprite2D = $Under
 @onready var _sprite: Sprite2D = $Sprite

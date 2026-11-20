@@ -21,8 +21,9 @@ func _init(p_task_type: TaskType, p_ticket: Ticket) -> void:
 	ticket = p_ticket
 
 
+## Pawn work needed. Unattended tasks need none: the pawn just loads the item.
 func get_work_required() -> float:
-	return task_type.base_work_time
+	return 0.0 if task_type.unattended else task_type.base_work_time
 
 
 func is_complete() -> bool:

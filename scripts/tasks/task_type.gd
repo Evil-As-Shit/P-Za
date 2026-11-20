@@ -6,6 +6,10 @@ extends Resource
 @export var display_name: String
 ## Seconds of work at normal speed. Skill and mood will scale this later.
 @export var base_work_time: float = 5.0
+## If true, the pawn only loads the item and the station works it for base_work_time on
+## its own (e.g. baking). The ticket moves on right away, so its next steps can be done
+## meanwhile, but the item can't be moved until it's done.
+@export var unattended: bool = false
 
 @export_group("Containers")
 ## If set, the pawn fetches one of this supply from storage (e.g. &"box") and sets it out

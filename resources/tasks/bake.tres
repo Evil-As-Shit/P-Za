@@ -7,3 +7,4 @@ script = ExtResource("1_task")
 id = &"bake"
 display_name = "Bake"
 base_work_time = 5.0
+unattended = true

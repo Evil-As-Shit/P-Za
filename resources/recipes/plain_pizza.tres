@@ -39,5 +39,5 @@ margin = Rect2(0, 32, 0, 32)
 [resource]
 script = ExtResource("1_recipe")
 display_name = "Pizza"
-steps = Array[ExtResource("2_task_type")]([ExtResource("3_stretch"), ExtResource("4_sauce"), ExtResource("5_cheese"), ExtResource("10_set_out_box"), ExtResource("6_bake"), ExtResource("8_box")])
-stage_textures = Array[Texture2D]([SubResource("AtlasTexture_ball"), SubResource("AtlasTexture_dough"), SubResource("AtlasTexture_sauce"), SubResource("AtlasTexture_cheese"), SubResource("AtlasTexture_cheese"), SubResource("AtlasTexture_baked"), SubResource("AtlasTexture_boxed")])
+steps = Array[ExtResource("2_task_type")]([ExtResource("3_stretch"), ExtResource("4_sauce"), ExtResource("5_cheese"), ExtResource("6_bake"), ExtResource("10_set_out_box"), ExtResource("8_box")])
+stage_textures = Array[Texture2D]([SubResource("AtlasTexture_ball"), SubResource("AtlasTexture_dough"), SubResource("AtlasTexture_sauce"), SubResource("AtlasTexture_cheese"), SubResource("AtlasTexture_baked"), SubResource("AtlasTexture_baked"), SubResource("AtlasTexture_boxed")])
