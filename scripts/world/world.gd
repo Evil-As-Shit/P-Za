@@ -319,8 +319,9 @@ func _on_pawn_work_progressed(job: Job, progress: float, _pawn: Pawn) -> void:
 	var frames: Array[Texture2D] = job.task_type.work_frames
 	if frames.is_empty() or job.ticket.item == null:
 		return
-	var index: int = mini(int(progress * frames.size()), frames.size() - 1)
-	job.ticket.item.set_overlay(frames[index])
+	# The work is split into one stretch with no overlay, then one per frame.
+	var index: int = mini(int(progress * (frames.size() + 1)), frames.size()) - 1
+	job.ticket.item.set_overlay(frames[index] if index >= 0 else null)
 
 
 func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:

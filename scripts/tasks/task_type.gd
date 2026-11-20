@@ -11,7 +11,7 @@ extends Resource
 ## meanwhile, but the item can't be moved until it's done.
 @export var unattended: bool = false
 ## Drawn over the item while it's worked, one after another as the work fills (e.g. cut
-## lines). The last one stays when done.
+## lines), after a first stretch with none. The last one stays when done.
 @export var work_frames: Array[Texture2D] = []
 
 @export_group("Containers")
