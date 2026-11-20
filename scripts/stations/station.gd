@@ -10,6 +10,7 @@ extends Node2D
 
 var _footprint: Array[Vector2i] = []
 var _work_target: Vector2 = Vector2.ZERO
+var _item_position: Vector2 = Vector2.ZERO
 var _reserved: bool = false
 var _item: Item = null
 
@@ -32,6 +33,9 @@ func place(shop_floor: ShopFloor) -> void:
 		centroid += center
 	centroid /= float(_footprint.size())
 	_work_target = centroid
+	_item_position = (
+		shop_floor.cell_to_global(data.get_item_cell(cell, facing)) + data.item_offset
+	)
 
 	# Y-sort origin sits just above the front-most cell center, so pawns standing
 	# on that row (beside or in front of the station) draw over it.
@@ -58,7 +62,7 @@ func put_item(item: Item) -> void:
 	_item = item
 	item.station = self
 	item.reparent(self, false)
-	item.global_position = _work_target + data.item_offset
+	item.global_position = _item_position
 
 
 ## Frees the station's item slot and returns the item. The node stays where it is

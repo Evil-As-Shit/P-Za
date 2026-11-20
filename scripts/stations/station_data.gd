@@ -13,7 +13,10 @@ extends Resource
 @export var facing_textures: Array[Texture2D] = []
 ## Cell, relative to the origin at facing 0, where a pawn stands to work.
 @export var work_spot: Vector2i = Vector2i(0, 1)
-## Where an item sits, relative to the footprint's center on the floor (e.g. the tabletop).
+## Footprint cell, relative to the origin at facing 0, that an item sits over.
+## Usually the cell in front of the work spot.
+@export var item_spot: Vector2i = Vector2i.ZERO
+## Where an item sits, relative to the item spot's floor center (e.g. up on the tabletop).
 @export var item_offset: Vector2 = Vector2.ZERO
 
 
@@ -39,6 +42,10 @@ func get_footprint_cells(origin: Vector2i, facing: int) -> Array[Vector2i]:
 
 func get_work_cell(origin: Vector2i, facing: int) -> Vector2i:
 	return origin + rotate_offset(work_spot, facing)
+
+
+func get_item_cell(origin: Vector2i, facing: int) -> Vector2i:
+	return origin + rotate_offset(item_spot, facing)
 
 
 func get_texture(facing: int) -> Texture2D:
