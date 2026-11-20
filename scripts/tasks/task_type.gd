@@ -19,6 +19,8 @@ extends Resource
 ## and over whatever goes in it.
 @export var container_under_texture: Texture2D
 @export var container_over_texture: Texture2D
+## Where things put in the container sit, relative to it (e.g. raised onto a box's floor).
+@export var container_contents_offset: Vector2 = Vector2.ZERO
 ## If true, this step is worked at the spot holding the ticket's container, and the item
 ## goes into it. When done, the container becomes the ticket's item.
 @export var into_container: bool = false

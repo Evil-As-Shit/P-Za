@@ -23,10 +23,14 @@ func set_texture(texture: Texture2D) -> void:
 	_sprite.texture = texture
 
 
-## Art drawn under and over the item's contents (e.g. an open box). Pass nulls to clear.
-func set_wrap(under: Texture2D, over: Texture2D) -> void:
+## Art drawn under and over the item's contents (e.g. an open box), and where the
+## contents sit relative to the item. Pass nulls to clear.
+func set_wrap(
+	under: Texture2D, over: Texture2D, contents_offset: Vector2 = Vector2.ZERO
+) -> void:
 	_under.texture = under
 	_over.texture = over
+	_contents.position = contents_offset
 
 
 ## Item art is drawn with its front facing down-right (a box's fold and lid are at the

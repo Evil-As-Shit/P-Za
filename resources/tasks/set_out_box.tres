@@ -21,3 +21,4 @@ base_work_time = 5.0
 fetch_supply = &"box"
 container_under_texture = SubResource("AtlasTexture_open_back")
 container_over_texture = SubResource("AtlasTexture_open_front")
+container_contents_offset = Vector2(0, -2)

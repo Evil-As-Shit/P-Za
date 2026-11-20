@@ -320,7 +320,10 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	if task.fetch_supply != &"":
 		# The container is set out: show it open.
 		ticket.container.set_texture(null)
-		ticket.container.set_wrap(task.container_under_texture, task.container_over_texture)
+		ticket.container.set_wrap(
+			task.container_under_texture, task.container_over_texture,
+			task.container_contents_offset
+		)
 	if task.into_container:
 		# The item and its container become one (e.g. a closed box).
 		ticket.item.queue_free()
