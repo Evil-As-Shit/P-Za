@@ -65,6 +65,8 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 
 The guides are colored backgrounds to draw over. In Aseprite, open the guide, add a new layer above it, draw on that layer, and **hide or delete the guide layer before exporting**. You can also bring a guide into an existing file with *Layer → New Reference Layer from File*. The `art_templates/` folder has a `.gdignore`, so Godot won't import the guides.
 
+**Pixel-perfect rule:** floor tiles are drawn centered on their cell, so keep each tile's frame an **even width and height** (the floor tile is 34×22; its bottom row is empty padding). An odd size puts the whole floor half a pixel off from everything else. Other art lines up from its corners, so any size works there.
+
 ### `pawn_sheet_guide.png` (120×308)
 
 8 columns × 7 rows of **15×44** frames, with alternating cell colors so frame edges are visible. The pink line is the ground, and the red pixel marks where the feet touch it (the pawn's position on the floor).

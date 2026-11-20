@@ -9,6 +9,9 @@ extends Camera2D
 
 var _zoom_index: int = 0
 var _dragging: bool = false
+## Panning not applied yet. The camera only moves in whole pixels so the art stays on the
+## pixel grid.
+var _pan_remainder: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
@@ -20,7 +23,7 @@ func _process(delta: float) -> void:
 	var direction: Vector2 = Input.get_vector(
 		&"camera_pan_left", &"camera_pan_right", &"camera_pan_up", &"camera_pan_down"
 	)
-	position += direction * pan_speed * delta / zoom.x
+	_pan(direction * pan_speed * delta / zoom.x)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -39,7 +42,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	var motion := event as InputEventMouseMotion
 	if motion != null and _dragging:
-		position -= motion.relative / zoom.x
+		_pan(-motion.relative / zoom.x)
+
+
+## Moves by `amount`, in whole pixels, carrying the fraction over to the next move.
+func _pan(amount: Vector2) -> void:
+	_pan_remainder += amount
+	var step: Vector2 = _pan_remainder.round()
+	position = position.round() + step
+	_pan_remainder -= step
 
 
 func _change_zoom(steps: int) -> void:
