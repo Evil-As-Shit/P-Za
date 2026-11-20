@@ -4,7 +4,8 @@ extends Resource
 ## Offsets are given for facing 0 and rotated in 90° steps on the map grid.
 
 @export var display_name: String
-@export var task_type: TaskType
+## Task types a pawn can do here.
+@export var task_types: Array[TaskType] = []
 ## Size in cells at facing 0. The origin cell is the footprint's first cell.
 @export var footprint: Vector2i = Vector2i.ONE
 ## Sprite for each facing (0-3). Each texture's left edge and bottom row must line up
@@ -12,6 +13,8 @@ extends Resource
 @export var facing_textures: Array[Texture2D] = []
 ## Cell, relative to the origin at facing 0, where a pawn stands to work.
 @export var work_spot: Vector2i = Vector2i(0, 1)
+## Where an item sits, relative to the footprint's center on the floor (e.g. the tabletop).
+@export var item_offset: Vector2 = Vector2.ZERO
 
 
 ## Rotates a map-grid offset by `facing` quarter turns.

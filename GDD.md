@@ -108,7 +108,8 @@ Each item below is a direction, not a final spec.
 - New tickets land in **Wait**. The player moves them to Make.
 - Pulling an in-progress ticket back to Wait stops the pawn. The work done so far is kept, and the job resumes when the ticket returns to Make.
 - Each ticket shows its order number, item and status. Order type and the ETA come later.
-- Menu items are recipes: an ordered list of task steps. Each step is one job, done by one pawn at one station.
+- Menu items are recipes: an ordered list of task steps. Each step is one job, done by one pawn at one station. A plain pizza is stretch, sauce, cheese, then bake, so a ticket can be paused between steps.
+- The pizza is a real item. It sits on a station, and pawns carry it between stations. A station holding another ticket's pizza can't be used. A pizza being carried when its ticket is pulled gets set down on the floor.
 - **Taking or serving an order is automatic.** There is no manual "Take" step, and completed orders go out on their own.
 - Order types are dine-in, to-go, pickup and delivery. Delivery uses a driver who leaves the shop and comes back later.
 - Dine-in seating is self-serve: customers order, sit down, and a front-of-house employee brings the food to their table.

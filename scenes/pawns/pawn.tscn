@@ -17,6 +17,9 @@ offset = Vector2(0, -20)
 sprite_frames = ExtResource("2_frames")
 animation = &"idle_down"
 
+[node name="HoldPoint" type="Marker2D" parent="."]
+position = Vector2(0, -18)
+
 [node name="WorkBar" type="ProgressBar" parent="."]
 visible = false
 z_index = 1

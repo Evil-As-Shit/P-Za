@@ -11,6 +11,7 @@ extends Node2D
 var _footprint: Array[Vector2i] = []
 var _work_target: Vector2 = Vector2.ZERO
 var _reserved: bool = false
+var _item: Item = null
 
 @onready var _sprite: Sprite2D = $Sprite
 
@@ -43,8 +44,31 @@ func place(shop_floor: ShopFloor) -> void:
 		_sprite.global_position = Vector2(left, bottom - texture.get_height())
 
 
-func get_task_type() -> TaskType:
-	return data.task_type
+func can_do(task_type: TaskType) -> bool:
+	return data.task_types.has(task_type)
+
+
+## Item sitting on the station, or null.
+func get_item() -> Item:
+	return _item
+
+
+## Sets an item on the station's surface. The station must be empty.
+func put_item(item: Item) -> void:
+	_item = item
+	item.station = self
+	item.reparent(self, false)
+	item.global_position = _work_target + data.item_offset
+
+
+## Frees the station's item slot and returns the item. The node stays where it is
+## until the caller moves it.
+func take_item() -> Item:
+	var item: Item = _item
+	_item = null
+	if item != null:
+		item.station = null
+	return item
 
 
 func is_reserved() -> bool:

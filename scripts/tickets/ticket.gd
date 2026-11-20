@@ -10,6 +10,8 @@ var section: Section = Section.WAIT
 var step_index: int = 0
 ## Job for the current step, or null once every step is done.
 var current_job: Job = null
+## The thing being made (e.g. the pizza), once its first step has started.
+var item: Item = null
 
 
 func _init(p_order_number: int, p_recipe: Recipe) -> void:

@@ -4,9 +4,13 @@ extends Node2D
 ## It doesn't choose what to do; its owner decides and calls follow_path() or assign_job().
 
 signal path_finished
+## Reached the spot to pick up the job's item. The owner should hand it over with hold_item().
+signal pickup_reached(job: Job)
+## Reached the work spot and is about to start working.
+signal work_started(job: Job)
 signal job_finished(job: Job)
 
-enum State { IDLE, WALKING, WALKING_TO_JOB, WORKING }
+enum State { IDLE, WALKING, WALKING_TO_PICKUP, WALKING_TO_JOB, WORKING }
 
 @export var move_speed: float = 40.0
 ## Seconds of work done per second. Skill and mood will change this later.
@@ -14,13 +18,16 @@ enum State { IDLE, WALKING, WALKING_TO_JOB, WORKING }
 
 var _state: State = State.IDLE
 var _path: PackedVector2Array = PackedVector2Array()
+var _work_path: PackedVector2Array = PackedVector2Array()
 var _job: Job = null
+var _held_item: Item = null
 var _work_target: Vector2 = Vector2.ZERO
 var _facing_up: bool = false
 var _facing_right: bool = false
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
 @onready var _work_bar: ProgressBar = $WorkBar
+@onready var _hold_point: Marker2D = $HoldPoint
 
 
 func _ready() -> void:
@@ -29,7 +36,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	match _state:
-		State.WALKING, State.WALKING_TO_JOB:
+		State.WALKING, State.WALKING_TO_PICKUP, State.WALKING_TO_JOB:
 			_step_along_path(delta)
 		State.WORKING:
 			_do_work(delta)
@@ -44,13 +51,35 @@ func follow_path(points: PackedVector2Array) -> void:
 	_state = State.WALKING
 
 
-## Walks the path to the job's work spot, then works until done. Emits job_finished.
-func assign_job(job: Job, path: PackedVector2Array, work_target: Vector2) -> void:
+## Walks `pickup_path` (if not empty) to fetch the job's item, then `work_path` to the
+## work spot, then works until done. Emits pickup_reached, work_started and job_finished.
+func assign_job(
+	job: Job, pickup_path: PackedVector2Array, work_path: PackedVector2Array, work_target: Vector2
+) -> void:
 	_job = job
 	_job.claimed_by = self
 	_work_target = work_target
-	_path = path
-	_state = State.WALKING_TO_JOB
+	if pickup_path.is_empty():
+		_path = work_path
+		_state = State.WALKING_TO_JOB
+	else:
+		_path = pickup_path
+		_work_path = work_path
+		_state = State.WALKING_TO_PICKUP
+
+
+## Carries `item` (floating in front of the pawn until there's a carry animation).
+func hold_item(item: Item) -> void:
+	_held_item = item
+	item.reparent(_hold_point, false)
+	item.position = Vector2.ZERO
+
+
+## Lets go of the held item and returns it. The caller moves it somewhere.
+func release_item() -> Item:
+	var item: Item = _held_item
+	_held_item = null
+	return item
 
 
 ## Stops walking to or working the current job and returns it, progress intact.
@@ -58,6 +87,7 @@ func drop_job() -> Job:
 	var job: Job = _job
 	_job = null
 	_path.clear()
+	_work_path.clear()
 	_state = State.IDLE
 	_work_bar.hide()
 	_play_idle()
@@ -90,12 +120,19 @@ func _step_along_path(delta: float) -> void:
 
 
 func _on_path_end() -> void:
+	if _state == State.WALKING_TO_PICKUP:
+		_path = _work_path
+		_work_path = PackedVector2Array()
+		_state = State.WALKING_TO_JOB
+		pickup_reached.emit(_job)
+		return
 	if _state == State.WALKING_TO_JOB:
 		_state = State.WORKING
 		_face(_work_target - global_position)
 		_play_idle()
 		_update_work_bar()
 		_work_bar.show()
+		work_started.emit(_job)
 		return
 	_state = State.IDLE
 	_play_idle()
