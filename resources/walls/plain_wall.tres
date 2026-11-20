@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="WallStyle" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/wall_style.gd" id="1_style"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/walls_sheet.png" id="2_sheet"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_back_corner"]
+atlas = ExtResource("2_sheet")
+region = Rect2(30, 9, 36, 63)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_back_left"]
+atlas = ExtResource("2_sheet")
+region = Rect2(94, 10, 20, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_back_right"]
+atlas = ExtResource("2_sheet")
+region = Rect2(174, 10, 20, 62)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_front_corner"]
+atlas = ExtResource("2_sheet")
+region = Rect2(222, 18, 36, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_front_left"]
+atlas = ExtResource("2_sheet")
+region = Rect2(93, 102, 19, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_front_right"]
+atlas = ExtResource("2_sheet")
+region = Rect2(174, 102, 19, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_front_left_cut"]
+atlas = ExtResource("2_sheet")
+region = Rect2(31, 138, 19, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_front_right_cut"]
+atlas = ExtResource("2_sheet")
+region = Rect2(238, 138, 19, 28)
+
+[resource]
+script = ExtResource("1_style")
+back_left = SubResource("AtlasTexture_back_left")
+back_left_offset = Vector2(-18, -65)
+back_right = SubResource("AtlasTexture_back_right")
+back_right_offset = Vector2(-2, -65)
+back_corner = SubResource("AtlasTexture_back_corner")
+back_corner_offset = Vector2(-18, -66)
+front_left = SubResource("AtlasTexture_front_left")
+front_left_offset = Vector2(-19, -57)
+front_right = SubResource("AtlasTexture_front_right")
+front_right_offset = Vector2(-2, -57)
+front_corner = SubResource("AtlasTexture_front_corner")
+front_corner_offset = Vector2(-18, -57)
+front_left_cut = SubResource("AtlasTexture_front_left_cut")
+front_left_cut_offset = Vector2(-18, -21)
+front_right_cut = SubResource("AtlasTexture_front_right_cut")
+front_right_cut_offset = Vector2(-2, -21)

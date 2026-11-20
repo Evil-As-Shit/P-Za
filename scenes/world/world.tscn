@@ -17,6 +17,8 @@
 [ext_resource type="Resource" path="res://resources/station_roles/boxing.tres" id="21_boxing_role"]
 [ext_resource type="Resource" path="res://resources/station_roles/pickup.tres" id="22_pickup_role"]
 [ext_resource type="PackedScene" path="res://scenes/ui/station_panel.tscn" id="23_station_panel"]
+[ext_resource type="Script" path="res://scripts/world/shop_walls.gd" id="24_walls"]
+[ext_resource type="Resource" path="res://resources/walls/plain_wall.tres" id="25_wall_style"]
 [ext_resource type="Script" path="res://scripts/tasks/work_type.gd" id="15_work_type"]
 [ext_resource type="Resource" path="res://resources/work_types/kitchen.tres" id="16_kitchen"]
 [ext_resource type="Resource" path="res://resources/work_types/oven.tres" id="17_oven"]
@@ -34,6 +36,12 @@ item_scene = ExtResource("11_item")
 
 [node name="Entities" type="Node2D" parent="."]
 y_sort_enabled = true
+
+[node name="Walls" type="Node2D" parent="Entities"]
+y_sort_enabled = true
+script = ExtResource("24_walls")
+style = ExtResource("25_wall_style")
+doors = Array[Vector3i]([Vector3i(4, 11, 2)])
 
 [node name="PrepTable" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("6_table")

@@ -38,6 +38,7 @@ var _selected_station: Station = null
 
 @onready var _floor: ShopFloor = $ShopFloor
 @onready var _entities: Node2D = $Entities
+@onready var _walls: ShopWalls = $Entities/Walls
 @onready var _camera: ShopCamera = $ShopCamera
 @onready var _rack: TicketRack = $TicketRack
 @onready var _rack_panel: TicketRackPanel = $Hud/TicketRackPanel
@@ -47,6 +48,7 @@ var _selected_station: Station = null
 
 func _ready() -> void:
 	_camera.position = _floor.cell_to_global(_floor.get_used_rect().get_center())
+	_walls.build(_floor)
 	for child: Node in _entities.get_children():
 		if child is Station:
 			_setup_station(child as Station)
@@ -75,6 +77,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed(&"toggle_priorities"):
 		_priority_panel.visible = not _priority_panel.visible
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(&"toggle_walls"):
+		_walls.set_cutaway(not _walls.cutaway)
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton:
 		var click := event as InputEventMouseButton
