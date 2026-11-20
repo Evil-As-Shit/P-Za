@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="TaskType" format=3]
-
-[ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
-
-[resource]
-script = ExtResource("1_task")
-id = &"assembly"
-display_name = "Assembly"
-base_work_time = 5.0
