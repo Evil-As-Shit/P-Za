@@ -8,4 +8,4 @@ script = ExtResource("1_task")
 id = &"hand_off"
 display_name = "Hand off"
 work_type = ExtResource("9_work_type")
-base_work_time = 1.0
+base_work_time = 1.5

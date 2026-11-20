@@ -29,6 +29,6 @@ script = ExtResource("1_task")
 id = &"cut"
 display_name = "Cut"
 work_type = ExtResource("9_work_type")
-base_work_time = 5.0
+base_work_time = 3.0
 work_frames = Array[Texture2D]([SubResource("AtlasTexture_cut1"), SubResource("AtlasTexture_cut2"), SubResource("AtlasTexture_cut3"), SubResource("AtlasTexture_cut4")])
 closes_container = true
