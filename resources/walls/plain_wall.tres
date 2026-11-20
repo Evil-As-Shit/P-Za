@@ -2,54 +2,167 @@
 
 [ext_resource type="Script" path="res://scripts/world/wall_style.gd" id="1_style"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/walls_sheet.png" id="2_sheet"]
+[ext_resource type="Script" path="res://scripts/world/wall_piece.gd" id="3_piece"]
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_back_corner"]
+[sub_resource type="AtlasTexture" id="Tex_back_left"]
 atlas = ExtResource("2_sheet")
-region = Rect2(30, 9, 36, 63)
+region = Rect2(30, 14, 18, 57)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_back_left"]
-atlas = ExtResource("2_sheet")
-region = Rect2(94, 10, 20, 62)
+[sub_resource type="Resource" id="Piece_back_left"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_back_left")
+offset = Vector2(-18, -60)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_back_right"]
+[sub_resource type="AtlasTexture" id="Tex_back_right"]
 atlas = ExtResource("2_sheet")
-region = Rect2(174, 10, 20, 62)
+region = Rect2(112, 14, 18, 57)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_front_corner"]
-atlas = ExtResource("2_sheet")
-region = Rect2(222, 18, 36, 64)
+[sub_resource type="Resource" id="Piece_back_right"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_back_right")
+offset = Vector2(0, -60)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_front_left"]
+[sub_resource type="AtlasTexture" id="Tex_back_corner"]
 atlas = ExtResource("2_sheet")
-region = Rect2(93, 102, 19, 64)
+region = Rect2(158, 14, 36, 57)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_front_right"]
-atlas = ExtResource("2_sheet")
-region = Rect2(174, 102, 19, 64)
+[sub_resource type="Resource" id="Piece_back_corner"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_back_corner")
+offset = Vector2(-18, -60)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_front_left_cut"]
+[sub_resource type="AtlasTexture" id="Tex_left_corner"]
 atlas = ExtResource("2_sheet")
-region = Rect2(31, 138, 19, 28)
+region = Rect2(222, 14, 18, 67)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_front_right_cut"]
+[sub_resource type="Resource" id="Piece_left_corner"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_left_corner")
+offset = Vector2(-18, -60)
+
+[sub_resource type="AtlasTexture" id="Tex_right_corner"]
 atlas = ExtResource("2_sheet")
-region = Rect2(238, 138, 19, 28)
+region = Rect2(240, 98, 18, 67)
+
+[sub_resource type="Resource" id="Piece_right_corner"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_right_corner")
+offset = Vector2(0, -60)
+
+[sub_resource type="AtlasTexture" id="Tex_front_left"]
+atlas = ExtResource("2_sheet")
+region = Rect2(30, 108, 18, 57)
+
+[sub_resource type="Resource" id="Piece_front_left"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_front_left")
+offset = Vector2(-18, -50)
+
+[sub_resource type="AtlasTexture" id="Tex_front_right"]
+atlas = ExtResource("2_sheet")
+region = Rect2(112, 108, 18, 57)
+
+[sub_resource type="Resource" id="Piece_front_right"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_front_right")
+offset = Vector2(0, -50)
+
+[sub_resource type="AtlasTexture" id="Tex_front_corner"]
+atlas = ExtResource("2_sheet")
+region = Rect2(158, 108, 36, 58)
+
+[sub_resource type="Resource" id="Piece_front_corner"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_front_corner")
+offset = Vector2(-18, -50)
+
+[sub_resource type="AtlasTexture" id="Tex_back_left_short"]
+atlas = ExtResource("2_sheet")
+region = Rect2(30, 214, 18, 25)
+
+[sub_resource type="Resource" id="Piece_back_left_short"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_back_left_short")
+offset = Vector2(-18, -28)
+
+[sub_resource type="AtlasTexture" id="Tex_back_right_short"]
+atlas = ExtResource("2_sheet")
+region = Rect2(112, 214, 18, 25)
+
+[sub_resource type="Resource" id="Piece_back_right_short"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_back_right_short")
+offset = Vector2(0, -28)
+
+[sub_resource type="AtlasTexture" id="Tex_back_corner_short"]
+atlas = ExtResource("2_sheet")
+region = Rect2(158, 214, 36, 25)
+
+[sub_resource type="Resource" id="Piece_back_corner_short"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_back_corner_short")
+offset = Vector2(-18, -28)
+
+[sub_resource type="AtlasTexture" id="Tex_left_corner_short"]
+atlas = ExtResource("2_sheet")
+region = Rect2(222, 214, 18, 35)
+
+[sub_resource type="Resource" id="Piece_left_corner_short"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_left_corner_short")
+offset = Vector2(-18, -28)
+
+[sub_resource type="AtlasTexture" id="Tex_right_corner_short"]
+atlas = ExtResource("2_sheet")
+region = Rect2(240, 298, 18, 35)
+
+[sub_resource type="Resource" id="Piece_right_corner_short"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_right_corner_short")
+offset = Vector2(0, -28)
+
+[sub_resource type="AtlasTexture" id="Tex_front_left_short"]
+atlas = ExtResource("2_sheet")
+region = Rect2(30, 308, 18, 25)
+
+[sub_resource type="Resource" id="Piece_front_left_short"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_front_left_short")
+offset = Vector2(-18, -18)
+
+[sub_resource type="AtlasTexture" id="Tex_front_right_short"]
+atlas = ExtResource("2_sheet")
+region = Rect2(112, 308, 18, 25)
+
+[sub_resource type="Resource" id="Piece_front_right_short"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_front_right_short")
+offset = Vector2(0, -18)
+
+[sub_resource type="AtlasTexture" id="Tex_front_corner_short"]
+atlas = ExtResource("2_sheet")
+region = Rect2(158, 308, 36, 26)
+
+[sub_resource type="Resource" id="Piece_front_corner_short"]
+script = ExtResource("3_piece")
+texture = SubResource("Tex_front_corner_short")
+offset = Vector2(-18, -18)
 
 [resource]
 script = ExtResource("1_style")
-back_left = SubResource("AtlasTexture_back_left")
-back_left_offset = Vector2(-18, -65)
-back_right = SubResource("AtlasTexture_back_right")
-back_right_offset = Vector2(-2, -65)
-back_corner = SubResource("AtlasTexture_back_corner")
-back_corner_offset = Vector2(-18, -66)
-front_left = SubResource("AtlasTexture_front_left")
-front_left_offset = Vector2(-19, -57)
-front_right = SubResource("AtlasTexture_front_right")
-front_right_offset = Vector2(-2, -57)
-front_corner = SubResource("AtlasTexture_front_corner")
-front_corner_offset = Vector2(-18, -57)
-front_left_cut = SubResource("AtlasTexture_front_left_cut")
-front_left_cut_offset = Vector2(-18, -21)
-front_right_cut = SubResource("AtlasTexture_front_right_cut")
-front_right_cut_offset = Vector2(-2, -21)
+back_left = SubResource("Piece_back_left")
+back_right = SubResource("Piece_back_right")
+back_corner = SubResource("Piece_back_corner")
+left_corner = SubResource("Piece_left_corner")
+right_corner = SubResource("Piece_right_corner")
+front_left = SubResource("Piece_front_left")
+front_right = SubResource("Piece_front_right")
+front_corner = SubResource("Piece_front_corner")
+back_left_short = SubResource("Piece_back_left_short")
+back_right_short = SubResource("Piece_back_right_short")
+back_corner_short = SubResource("Piece_back_corner_short")
+left_corner_short = SubResource("Piece_left_corner_short")
+right_corner_short = SubResource("Piece_right_corner_short")
+front_left_short = SubResource("Piece_front_left_short")
+front_right_short = SubResource("Piece_front_right_short")
+front_corner_short = SubResource("Piece_front_corner_short")

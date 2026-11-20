@@ -79,7 +79,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_priority_panel.visible = not _priority_panel.visible
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed(&"toggle_walls"):
-		_walls.set_cutaway(not _walls.cutaway)
+		_walls.cycle_view_mode()
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton:
 		var click := event as InputEventMouseButton

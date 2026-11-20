@@ -9,7 +9,7 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 - Pawn walk (down-left, up-left), idle and phone: `pawn_sheet.png` (laid out on the 7-row guide; rows 4–7 still empty)
 - Floor tiles ×3: `tile_placeholder.png`
 - Small table (1×1), long table (2×1, two facings), rotation test cube, bin: `Object_Spritesheet.png`
-- Walls: `walls_sheet.png`. Back-left, back-right, back corner, front-left, front-right, front corner, and short cutaway front-left/front-right. `walls_with_reference.png` shows each on its floor tile.
+- Walls: `walls_sheet.png`. Back-left, back-right, back corner, front-left, front-right, front corner, and capped left/right side corners, each full height and short. `walls_with_reference.png` shows each on its floor tile.
 - Small oven (1×1, one facing): `Small_Oven.png`
 - Pizza stages (dough ball, dough, sauce, cheese, baked) and 4 cut-line frames above them: `pizza_sheet.png`. Cut lines are drawn 16 px above where they land on the pizza.
 - Pizza box (closed, open base and lid): `box_sheet.png`
@@ -26,7 +26,7 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 | 4 | **Pizza box**: flat sheet | object 1×1 | Open and closed boxes are done. Boxes arrive flat and get folded (GDD). |
 | 5 | **Box folding** station; other box rack facings | object 2×1 | The box rack stores folded boxes; boxing happens on a table. Where folding happens is **TBD**. |
 | 6 | **Register** (prints tickets) | object 1×1 or 2×1 | Where orders come from. |
-| 7 | **More wall pieces**: left and right side corners (full and cutaway), doorway pieces | `walls_with_reference.png` | Side corners are where a back wall meets a front wall; separate panels overlap there now. Doors are gaps for now. |
+| 7 | **Doorway pieces** (door frames or wall end caps), full and short; optional cutaway side corners (full back wall joined to a short front wall) | `walls_with_reference.png` | Doors are gaps for now. |
 | 8 | Kitchen floor vs. dining floor tiles | your tile layout | Your current tiles already work on the grid. |
 
 ## Priority 2: service and customers

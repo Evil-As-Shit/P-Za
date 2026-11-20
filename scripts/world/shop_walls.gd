@@ -1,11 +1,13 @@
 class_name ShopWalls
 extends Node2D
 ## Walls around the edge of the shop floor. A wall stands on every edge between a floor cell
-## and empty space, except where a door is. Back walls are always full height; front walls
-## can be cut away so the room behind them can be seen. Must sit under the y-sorted
-## entities node so pawns and furniture sort against each wall piece.
+## and empty space, except where a door is. The view mode decides which walls are drawn
+## short so the rooms behind them can be seen. Must sit under the y-sorted entities node so
+## pawns and furniture sort against each wall piece.
 
 enum Side { BACK_LEFT, BACK_RIGHT, FRONT_LEFT, FRONT_RIGHT }
+## FULL: every wall full height. CUTAWAY: front walls short. DOWN: every wall short.
+enum ViewMode { FULL, CUTAWAY, DOWN }
 
 ## Step to the neighbouring cell across each side, indexed by Side (diamond-down: +x is
 ## down-right).
@@ -19,8 +21,7 @@ const FRONT_CORNER_ANCHOR := Vector2(0, 8)
 @export var style: WallStyle
 ## Edges left open as doorways, as (cell x, cell y, Side).
 @export var doors: Array[Vector3i] = []
-## Front walls are drawn short.
-@export var cutaway: bool = true
+@export var view_mode: ViewMode = ViewMode.CUTAWAY
 
 var _floor: ShopFloor = null
 
@@ -31,9 +32,14 @@ func build(shop_floor: ShopFloor) -> void:
 	_rebuild()
 
 
-func set_cutaway(on: bool) -> void:
-	cutaway = on
+func set_view_mode(mode: ViewMode) -> void:
+	view_mode = mode
 	_rebuild()
+
+
+## Full -> cutaway -> walls down -> full.
+func cycle_view_mode() -> void:
+	set_view_mode(((view_mode + 1) % ViewMode.size()) as ViewMode)
 
 
 func _rebuild() -> void:
@@ -50,34 +56,48 @@ func _rebuild() -> void:
 
 func _add_cell_walls(cell: Vector2i, sides: Array[Side]) -> void:
 	var center: Vector2 = _floor.cell_to_global(cell)
-	if sides.has(Side.BACK_LEFT) and sides.has(Side.BACK_RIGHT):
-		_add_piece(center, BACK_CORNER_ANCHOR, style.back_corner, style.back_corner_offset)
+	var back_short: bool = view_mode == ViewMode.DOWN
+	var front_short: bool = view_mode != ViewMode.FULL
+	var back_left: bool = sides.has(Side.BACK_LEFT)
+	var back_right: bool = sides.has(Side.BACK_RIGHT)
+	var front_left: bool = sides.has(Side.FRONT_LEFT)
+	var front_right: bool = sides.has(Side.FRONT_RIGHT)
+
+	if back_left and back_right:
+		_add(center, BACK_CORNER_ANCHOR, style.back_corner_short if back_short else style.back_corner)
 	else:
-		if sides.has(Side.BACK_LEFT):
-			_add_piece(center, SIDE_ANCHOR[Side.BACK_LEFT], style.back_left, style.back_left_offset)
-		if sides.has(Side.BACK_RIGHT):
-			_add_piece(center, SIDE_ANCHOR[Side.BACK_RIGHT], style.back_right, style.back_right_offset)
-	var front_both: bool = sides.has(Side.FRONT_LEFT) and sides.has(Side.FRONT_RIGHT)
-	if front_both and not cutaway:
-		_add_piece(center, FRONT_CORNER_ANCHOR, style.front_corner, style.front_corner_offset)
+		if back_left:
+			_add(center, SIDE_ANCHOR[Side.BACK_LEFT], style.back_left_short if back_short else style.back_left)
+		if back_right:
+			_add(center, SIDE_ANCHOR[Side.BACK_RIGHT], style.back_right_short if back_short else style.back_right)
+
+	if front_left and front_right:
+		_add(center, FRONT_CORNER_ANCHOR, style.front_corner_short if front_short else style.front_corner)
 		return
-	if sides.has(Side.FRONT_LEFT):
-		if cutaway:
-			_add_piece(center, SIDE_ANCHOR[Side.FRONT_LEFT], style.front_left_cut, style.front_left_cut_offset)
+	# Where a front wall meets a back wall (the room's side corners), the capped piece covers
+	# the join, as long as both walls are the same height.
+	var capped: bool = back_short == front_short
+	if front_left:
+		var piece: WallPiece
+		if back_left and capped:
+			piece = style.left_corner_short if front_short else style.left_corner
 		else:
-			_add_piece(center, SIDE_ANCHOR[Side.FRONT_LEFT], style.front_left, style.front_left_offset)
-	if sides.has(Side.FRONT_RIGHT):
-		if cutaway:
-			_add_piece(center, SIDE_ANCHOR[Side.FRONT_RIGHT], style.front_right_cut, style.front_right_cut_offset)
+			piece = style.front_left_short if front_short else style.front_left
+		_add(center, SIDE_ANCHOR[Side.FRONT_LEFT], piece)
+	if front_right:
+		var piece: WallPiece
+		if back_right and capped:
+			piece = style.right_corner_short if front_short else style.right_corner
 		else:
-			_add_piece(center, SIDE_ANCHOR[Side.FRONT_RIGHT], style.front_right, style.front_right_offset)
+			piece = style.front_right_short if front_short else style.front_right
+		_add(center, SIDE_ANCHOR[Side.FRONT_RIGHT], piece)
 
 
-func _add_piece(center: Vector2, anchor: Vector2, texture: Texture2D, top_left: Vector2) -> void:
+func _add(center: Vector2, anchor: Vector2, piece: WallPiece) -> void:
 	var sprite := Sprite2D.new()
-	sprite.texture = texture
+	sprite.texture = piece.texture
 	sprite.centered = false
-	sprite.offset = top_left - anchor
+	sprite.offset = piece.offset - anchor
 	add_child(sprite)
 	sprite.global_position = center + anchor
 

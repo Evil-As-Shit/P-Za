@@ -79,7 +79,7 @@ A cozy, 2.5D isometric pizza parlor management sim in the style of RimWorld. You
 - Placed objects (stations, furniture) can face 4 directions, with a sprite for each facing. Their footprint rotates with them.
 - The oven has a 2×2 footprint, with its art centered on the 4 tiles. There's also a small 1×1 oven.
 - Pizzas and pizza boxes are 1×1 objects. Closed boxes stack.
-- Walls are thin panels on the edges between floor cells (not whole cells). Back walls are always full height. Front walls can be cut away to short stubs so the room behind them shows, toggled with a hotkey. A doorway is a gap in a wall. For now walls trace the outline of the floor; rooms, interior walls and building come later.
+- Walls are thin panels on the edges between floor cells (not whole cells). A hotkey cycles three views: full (all walls full height), cutaway (front walls short, the default) and walls down (all walls short). A doorway is a gap in a wall. For now walls trace the outline of the floor; rooms, interior walls and building come later.
 
 ## Core loop
 
