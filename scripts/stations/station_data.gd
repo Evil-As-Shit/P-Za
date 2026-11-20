@@ -1,6 +1,6 @@
 class_name StationData
 extends Resource
-## Static description of a station type: its art, footprint and where a pawn works it.
+## Static description of a station type: its art, footprint and where pawns use it.
 ## Offsets are given for facing 0 and rotated in 90° steps on the map grid.
 
 @export var display_name: String
@@ -11,16 +11,27 @@ extends Resource
 ## Sprite for each facing (0-3). Each texture's left edge and bottom row must line up
 ## with the footprint's leftmost corner and floor-level bottom corner.
 @export var facing_textures: Array[Texture2D] = []
-## Optional art drawn over the station's item (e.g. an oven's top half), per facing.
+## Optional art drawn over the station's items (e.g. an oven's top half), per facing.
 ## Lined up the same way as facing_textures, so make them the same height.
 @export var cover_textures: Array[Texture2D] = []
-## Cell, relative to the origin at facing 0, where a pawn stands to work.
-@export var work_spot: Vector2i = Vector2i(0, 1)
-## Footprint cell, relative to the origin at facing 0, that an item sits over.
-## Usually the cell in front of the work spot.
-@export var item_spot: Vector2i = Vector2i.ZERO
-## Where an item sits, relative to the item spot's floor center (e.g. up on the tabletop).
+## Places to use the station. Each holds one item and is worked by one pawn at a time.
+@export var spots: Array[StationSpot] = []
+## Where an item sits, relative to its spot's floor center (e.g. up on the tabletop).
 @export var item_offset: Vector2 = Vector2.ZERO
+
+@export_group("Storage")
+## Kind of supply stored here (e.g. &"box"), or empty. Pawns fetch it from spot 0.
+@export var supply: StringName
+## How one stored unit looks, in the item frame layout.
+@export var supply_texture: Texture2D
+## Pile positions drawn under the cover, back to front, relative to the origin cell's
+## floor center.
+@export var supply_piles: Array[Vector2] = []
+## Pile positions drawn over the cover (e.g. on a top shelf), back to front.
+@export var supply_piles_on_top: Array[Vector2] = []
+@export var supply_per_pile: int = 3
+## Pixels each stacked unit sits above the one below it.
+@export var supply_pile_step: float = 3.0
 
 
 ## Rotates a map-grid offset by `facing` quarter turns.
@@ -43,12 +54,16 @@ func get_footprint_cells(origin: Vector2i, facing: int) -> Array[Vector2i]:
 	return cells
 
 
-func get_work_cell(origin: Vector2i, facing: int) -> Vector2i:
-	return origin + rotate_offset(work_spot, facing)
+func get_work_cell(origin: Vector2i, facing: int, spot: int) -> Vector2i:
+	return origin + rotate_offset(spots[spot].work_cell, facing)
 
 
-func get_item_cell(origin: Vector2i, facing: int) -> Vector2i:
-	return origin + rotate_offset(item_spot, facing)
+func get_item_cell(origin: Vector2i, facing: int, spot: int) -> Vector2i:
+	return origin + rotate_offset(spots[spot].item_cell, facing)
+
+
+func get_supply_capacity() -> int:
+	return (supply_piles.size() + supply_piles_on_top.size()) * supply_per_pile
 
 
 func get_texture(facing: int) -> Texture2D:

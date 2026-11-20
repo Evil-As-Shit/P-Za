@@ -12,6 +12,8 @@ var step_index: int = 0
 var current_job: Job = null
 ## The thing being made (e.g. the pizza), once its first step has started.
 var item: Item = null
+## What the item goes into (e.g. an open box), once it's been set out.
+var container: Item = null
 
 
 func _init(p_order_number: int, p_recipe: Recipe) -> void:

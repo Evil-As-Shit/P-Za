@@ -6,7 +6,15 @@ extends Resource
 @export var display_name: String
 ## Seconds of work at normal speed. Skill and mood will scale this later.
 @export var base_work_time: float = 5.0
-## Optional art drawn under and over the item while this task is worked (e.g. an open
-## box around the pizza). Same frame layout as the item's own textures.
-@export var item_under_texture: Texture2D
-@export var item_over_texture: Texture2D
+
+@export_group("Containers")
+## If set, the pawn fetches one of this supply from storage (e.g. &"box") and sets it out
+## on a free spot. It becomes the ticket's container.
+@export var fetch_supply: StringName
+## Look of the set-out container once this step is done (e.g. an open box), drawn under
+## and over whatever goes in it.
+@export var container_under_texture: Texture2D
+@export var container_over_texture: Texture2D
+## If true, this step is worked at the spot holding the ticket's container, and the item
+## goes into it. When done, the container becomes the ticket's item.
+@export var into_container: bool = false

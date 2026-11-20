@@ -1,22 +1,10 @@
 [gd_resource type="Resource" script_class="TaskType" format=3]
 
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
-[ext_resource type="Texture2D" path="res://Assets/Sprites/box_sheet.png" id="2_box"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_open_base"]
-atlas = ExtResource("2_box")
-region = Rect2(32, 32, 32, 32)
-margin = Rect2(0, 32, 0, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_open_lid"]
-atlas = ExtResource("2_box")
-region = Rect2(32, 0, 32, 32)
-margin = Rect2(0, 32, 0, 32)
 
 [resource]
 script = ExtResource("1_task")
 id = &"box"
 display_name = "Box"
 base_work_time = 5.0
-item_under_texture = SubResource("AtlasTexture_open_base")
-item_over_texture = SubResource("AtlasTexture_open_lid")
+into_container = true

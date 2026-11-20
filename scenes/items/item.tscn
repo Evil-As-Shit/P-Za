@@ -13,6 +13,8 @@ offset = Vector2(-16, -56)
 centered = false
 offset = Vector2(-16, -56)
 
+[node name="Contents" type="Node2D" parent="."]
+
 [node name="Over" type="Sprite2D" parent="."]
 centered = false
 offset = Vector2(-16, -56)

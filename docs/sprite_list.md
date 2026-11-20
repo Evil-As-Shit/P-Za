@@ -25,7 +25,7 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 | 4 | **Pizza** sliced stage | object 1×1 | The other stages are done. |
 | 5 | **Pizza box**: flat sheet | object 1×1 | Open and closed boxes are done. Boxes arrive flat and get folded (GDD). |
 | 6 | **Slicing** station | object 1×1 or 2×1 | Could reuse a table plus a cutting board item. |
-| 7 | **Box folding** station; other box rack facings | object 2×1 | Boxing uses the box rack. Folding could share it or not (**TBD**). |
+| 7 | **Box folding** station; other box rack facings | object 2×1 | The box rack stores folded boxes; boxing happens on a table. Where folding happens is **TBD**. |
 | 8 | **Register** (prints tickets) | object 1×1 or 2×1 | Where orders come from. |
 | 9 | **Pickup / hand-off** counter | object 2×1 | Where finished orders go out. |
 | 10 | **Walls and door**: left wall, right wall, corner, front door | (wall guide later) | Started in `walls_temp_wip.png`. Wall height **TBD**. |

@@ -7,8 +7,11 @@ signal completed
 
 var task_type: TaskType
 var ticket: Ticket
-## Station reserved for this job while it is claimed.
+## Station spot reserved for this job while it is claimed.
 var station: Station = null
+var spot: int = -1
+## Storage the pawn is on its way to fetch a supply from (claimed, not taken yet).
+var supply_station: Station = null
 var claimed_by: Pawn = null
 var work_done: float = 0.0
 

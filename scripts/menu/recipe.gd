@@ -6,6 +6,7 @@ extends Resource
 ## Tasks to perform, in order (e.g. stretch, sauce, cheese, bake).
 @export var steps: Array[TaskType] = []
 ## How the item looks as it's made: index 0 before any step, index i after step i.
+## Repeat the previous look for steps that don't change it (e.g. setting out a box).
 @export var stage_textures: Array[Texture2D] = []
 
 

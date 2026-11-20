@@ -6,6 +6,9 @@
 [ext_resource type="Resource" path="res://resources/tasks/sauce.tres" id="5_sauce"]
 [ext_resource type="Resource" path="res://resources/tasks/cheese.tres" id="6_cheese"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/Object_Spritesheet.png" id="3_sheet"]
+[ext_resource type="Resource" path="res://resources/tasks/set_out_box.tres" id="7_set_out_box"]
+[ext_resource type="Resource" path="res://resources/tasks/box.tres" id="8_box"]
+[ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="9_spot"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_along_x"]
 atlas = ExtResource("3_sheet")
@@ -15,11 +18,21 @@ region = Rect2(80, 0, 48, 47)
 atlas = ExtResource("3_sheet")
 region = Rect2(32, 0, 48, 47)
 
+[sub_resource type="Resource" id="Resource_spot_a"]
+script = ExtResource("9_spot")
+work_cell = Vector2i(0, 1)
+item_cell = Vector2i(0, 0)
+
+[sub_resource type="Resource" id="Resource_spot_b"]
+script = ExtResource("9_spot")
+work_cell = Vector2i(1, 1)
+item_cell = Vector2i(1, 0)
+
 [resource]
 script = ExtResource("1_data")
 display_name = "Assembly Table"
-task_types = Array[ExtResource("2_task_type")]([ExtResource("4_stretch"), ExtResource("5_sauce"), ExtResource("6_cheese")])
+task_types = Array[ExtResource("2_task_type")]([ExtResource("4_stretch"), ExtResource("5_sauce"), ExtResource("6_cheese"), ExtResource("7_set_out_box"), ExtResource("8_box")])
 footprint = Vector2i(2, 1)
 facing_textures = Array[Texture2D]([SubResource("AtlasTexture_along_x"), SubResource("AtlasTexture_along_y"), SubResource("AtlasTexture_along_x"), SubResource("AtlasTexture_along_y")])
-work_spot = Vector2i(0, 1)
+spots = Array[ExtResource("9_spot")]([SubResource("Resource_spot_a"), SubResource("Resource_spot_b")])
 item_offset = Vector2(0, -20)
