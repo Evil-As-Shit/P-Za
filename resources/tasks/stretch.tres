@@ -3,6 +3,11 @@
 [ext_resource type="Resource" path="res://resources/work_types/kitchen.tres" id="9_work_type"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
 [ext_resource type="Resource" path="res://resources/items/dough_container.tres" id="2_dough"]
+[ext_resource type="Script" path="res://scripts/tasks/behaviors/ingredient_behavior.gd" id="3_behavior"]
+
+[sub_resource type="Resource" id="Resource_behavior"]
+script = ExtResource("3_behavior")
+ingredient = ExtResource("2_dough")
 
 [resource]
 script = ExtResource("1_task")
@@ -11,4 +16,4 @@ display_name = "Stretch"
 work_type = ExtResource("9_work_type")
 work_minutes = 1.0
 ingredient_cost = 0.8
-ingredient = ExtResource("2_dough")
+behavior = SubResource("Resource_behavior")

@@ -2,6 +2,10 @@
 
 [ext_resource type="Resource" path="res://resources/work_types/oven.tres" id="9_work_type"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
+[ext_resource type="Script" path="res://scripts/tasks/behaviors/into_container_behavior.gd" id="2_behavior"]
+
+[sub_resource type="Resource" id="Resource_behavior"]
+script = ExtResource("2_behavior")
 
 [resource]
 script = ExtResource("1_task")
@@ -9,4 +13,4 @@ id = &"unload_oven"
 display_name = "Unload oven"
 work_type = ExtResource("9_work_type")
 work_minutes = 0.3
-into_container = true
+behavior = SubResource("Resource_behavior")

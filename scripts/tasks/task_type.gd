@@ -1,6 +1,10 @@
 class_name TaskType
 extends Resource
-## A kind of work pawns can do (assembly, oven, boxing...).
+## A kind of work pawns can do (stretching, baking, cutting...). What's specific to a kind
+## of task (what it fetches, where it's done, what happens to the items) is its behavior.
+
+## Used when a task has no behavior set: carry the item to a free spot and work it there.
+static var _default_behavior := TaskBehavior.new()
 
 @export var id: StringName
 @export var display_name: String
@@ -22,40 +26,14 @@ extends Resource
 ## Drawn over the item while it's worked, one after another as the work fills (e.g. cut
 ## lines), after a first stretch with none. The last one stays when done.
 @export var work_frames: Array[Texture2D] = []
+## How the task is planned and carried out. Empty means the default (see TaskBehavior).
+@export var behavior: TaskBehavior
 
-## If true, the pawn moves a finished item onto its order's stack, worked where the stack
-## stands, each item `stack_step` pixels above the one below.
-@export var onto_stack: bool = false
-@export var stack_step: float = 2.0
-## If set, the pawn takes a unit from an open container of this ingredient on a station
-## that does this task (setting a full one out from storage first if none is open), and the
-## unit becomes the ticket's item.
-@export var ingredient: IngredientContainer
 
-@export_group("Containers")
-## If set, the pawn fetches one of this supply from storage (e.g. Boxes) and sets it out
-## on a free spot. It becomes the ticket's container.
-@export var fetch_supply: StorageKind
-## Look of the set-out container once this step is done (e.g. an open box), drawn under
-## and over whatever goes in it.
-@export var container_under_texture: Texture2D
-@export var container_over_texture: Texture2D
-## Where things put in the container sit, relative to it (e.g. raised onto a box's floor).
-@export var container_contents_offset: Vector2 = Vector2.ZERO
-## If true, this step is worked at the spot holding the ticket's container.
-@export var at_container: bool = false
-## If true, the item goes into the container at the start of this step. Implies
-## at_container.
-@export var into_container: bool = false
-## If true, the container closes when this step is done and becomes the ticket's item.
-## Implies at_container.
-@export var closes_container: bool = false
+func get_behavior() -> TaskBehavior:
+	return behavior if behavior != null else _default_behavior
 
 
 ## Game seconds of work at normal speed (see work_minutes).
 func get_work_seconds() -> float:
 	return ShopClock.minutes_to_seconds(work_minutes)
-
-
-func is_at_container() -> bool:
-	return at_container or into_container or closes_container

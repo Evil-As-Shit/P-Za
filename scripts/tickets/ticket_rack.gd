@@ -69,6 +69,11 @@ func move_ticket(ticket: Ticket, section: Ticket.Section, index: int) -> void:
 	jobs_changed.emit()
 
 
+## Tickets on the rack, both sections.
+func get_ticket_count() -> int:
+	return _wait.size() + _make.size()
+
+
 func get_tickets(section: Ticket.Section) -> Array[Ticket]:
 	return _list(section).duplicate()
 

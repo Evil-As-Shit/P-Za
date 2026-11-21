@@ -87,6 +87,14 @@ func get_finished_count() -> int:
 	return count
 
 
+## What the customer pays for the whole order.
+func get_price() -> float:
+	var price: float = 0.0
+	for order_item: OrderItem in order_items:
+		price += order_item.recipe.price
+	return price
+
+
 ## Shop minutes since it printed.
 func get_age(now_minutes: int) -> int:
 	return maxi(now_minutes - printed_at, 0)

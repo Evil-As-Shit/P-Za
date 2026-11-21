@@ -12,6 +12,7 @@ var world: Node
 var clock: ShopClock
 var rack: TicketRack
 var finances: ShopFinances
+var work: WorkManager
 var frame: int = 0
 
 var _done: bool = false
@@ -19,7 +20,7 @@ var _done: bool = false
 
 func _initialize() -> void:
 	world = (load(WORLD_SCENE) as PackedScene).instantiate()
-	world.phone_chance = 0.0
+	(world.get_node("Work") as WorkManager).phone_chance = 0.0
 	root.add_child(world)
 
 
@@ -31,6 +32,7 @@ func _process(_delta: float) -> bool:
 		clock = world.get_node("ShopClock")
 		rack = world.get_node("TicketRack")
 		finances = world.get_node("ShopFinances")
+		work = world.get_node("Work")
 		_start()
 	elif frame > 2:
 		_step()

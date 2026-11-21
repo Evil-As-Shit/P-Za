@@ -29,7 +29,7 @@ func _step() -> void:
 	if not _cancelled:
 		return
 	# Give the pawns time to clear the leftovers, then check nothing is left behind.
-	if not world._shop_jobs.is_empty():
+	if not work.get_shop_jobs().is_empty():
 		return
 	for child: Node in world.get_node("Entities").get_children():
 		if child is Item:

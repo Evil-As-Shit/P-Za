@@ -19,6 +19,7 @@ Read this whole file first to get up to speed on the game, then follow these rul
 - **Keep this file current.** When the designer makes a design decision, update the relevant section here, keeping it short and high-level.
 - **Communicate briefly.** Give short, plain-language summaries. Don't add unrequested extras or expand the scope.
 - **Run the tests.** `tests/run_tests.ps1` runs every `tests/test_*.gd` headless (a full day takes seconds). Run it after gameplay changes, and add a test for each new system. Task and wait times are set in shop-clock minutes, so changing the day's length doesn't need retuning.
+- **Where things live.** `world.gd` only connects the systems. Job assignment and running is `WorkManager`; panels are `Hud`. A new kind of task gets a `TaskBehavior` subclass in `scripts/tasks/behaviors/` (what it fetches, where it's done, what happens to the items), set on its `TaskType` resource.
 
 ### Ask first
 

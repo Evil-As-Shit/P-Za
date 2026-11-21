@@ -28,6 +28,7 @@ func _init(p_ticket: Ticket, p_recipe: Recipe) -> void:
 	for index: int in recipe.steps.size():
 		if recipe.steps[index].prep:
 			var job := Job.new(recipe.steps[index], ticket, self)
+			job.recipe_step = true
 			prep_jobs.append(job)
 			_prep_indices[job] = index
 	_start_current_step()
@@ -69,6 +70,7 @@ func clear_jobs() -> void:
 func _start_current_step() -> void:
 	while step_index < recipe.steps.size() and recipe.steps[step_index].prep:
 		step_index += 1
-	current_job = null if step_index >= recipe.steps.size() else Job.new(
-		recipe.steps[step_index], ticket, self
-	)
+	current_job = null
+	if step_index < recipe.steps.size():
+		current_job = Job.new(recipe.steps[step_index], ticket, self)
+		current_job.recipe_step = true

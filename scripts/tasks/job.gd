@@ -13,6 +13,8 @@ var order_item: OrderItem
 ## For shop jobs that aren't part of an order (ticket and order_item are null): the item
 ## the job moves, e.g. leftovers to throw out.
 var target: Item = null
+## True for the steps of an order item's recipe (not stacking or hand-off).
+var recipe_step: bool = false
 ## Station spot reserved for this job while it is claimed.
 var station: Station = null
 var spot: int = -1
