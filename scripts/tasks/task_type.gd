@@ -20,6 +20,10 @@ extends Resource
 ## lines), after a first stretch with none. The last one stays when done.
 @export var work_frames: Array[Texture2D] = []
 
+## If true, the pawn moves a finished item onto its order's stack, worked where the stack
+## stands, each item `stack_step` pixels above the one below.
+@export var onto_stack: bool = false
+@export var stack_step: float = 2.0
 ## If set, the pawn takes a unit from an open container of this ingredient on a station
 ## that does this task (setting a full one out from storage first if none is open), and the
 ## unit becomes the ticket's item.

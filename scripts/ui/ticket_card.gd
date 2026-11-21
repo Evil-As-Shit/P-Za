@@ -22,4 +22,7 @@ func update_time(now_minutes: int) -> void:
 		status = "Ready"
 	elif ticket.is_in_progress():
 		status = "In progress"
+	var count: int = ticket.order_items.size()
+	if count > 1 and not ticket.ready:
+		status += " · %d/%d boxed" % [ticket.get_finished_count(), count]
 	_status.text = "%s · %d min" % [status, maxi(now_minutes - ticket.printed_at, 0)]

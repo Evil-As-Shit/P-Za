@@ -1,55 +1,47 @@
 class_name Ticket
 extends RefCounted
-## A printed order on the rack. Works through its recipe one step (job) at a time. Prep
-## steps (e.g. setting out a box) open once the steps before them are done, and are worked
-## alongside the steps after them.
+## A printed order on the rack. Each of its items (e.g. pizzas) is made in parallel. As
+## they're finished, the first one becomes the base of a stack and the others are stacked
+## on it; once all are stacked, the whole stack is handed off, and the order is ready.
 
 enum Section { WAIT, MAKE }
 
 var order_number: int
-var recipe: Recipe
 var section: Section = Section.WAIT
-## Index of the current (non-prep) step. Prep steps are skipped over.
-var step_index: int = 0
-## Job for the current step, or null once every step is done.
-var current_job: Job = null
-## Prep jobs not done yet, open or not.
-var prep_jobs: Array[Job] = []
-## Recipe position of each prep job: it opens once step_index has passed it.
-var _prep_indices: Dictionary[Job, int] = {}
-## The thing being made (e.g. the pizza), once its first step has started.
-var item: Item = null
-## What the item goes into (e.g. an open box), once it's been set out.
-var container: Item = null
-## Every step is done and the order is waiting to go out. It stays on the rack until then.
+var order_items: Array[OrderItem] = []
+## The first finished item, which the others are stacked on. Null until one is finished.
+var stack_base: OrderItem = null
+## Open jobs moving a finished item onto the stack.
+var stack_jobs: Array[Job] = []
+## Job carrying the finished stack to hand-off, once everything is stacked.
+var hand_off_job: Job = null
+## Handed off and waiting to go out. It stays on the rack until then.
 var ready: bool = false
 ## Shop time it printed (ShopClock.get_open_minutes()).
 var printed_at: int = 0
 
+var _stack_task: TaskType
+var _hand_off_task: TaskType
 
-func _init(p_order_number: int, p_recipe: Recipe) -> void:
+
+func _init(
+	p_order_number: int, recipes: Array[Recipe], stack_task: TaskType, hand_off_task: TaskType
+) -> void:
 	order_number = p_order_number
-	recipe = p_recipe
-	for index: int in recipe.steps.size():
-		if recipe.steps[index].prep:
-			var job := Job.new(recipe.steps[index], self)
-			prep_jobs.append(job)
-			_prep_indices[job] = index
-	_start_current_step()
+	_stack_task = stack_task
+	_hand_off_task = hand_off_task
+	for recipe: Recipe in recipes:
+		order_items.append(OrderItem.new(self, recipe))
 
 
-func is_complete() -> bool:
-	return step_index >= recipe.steps.size() and prep_jobs.is_empty()
-
-
-## Jobs that can be worked now: open prep jobs first, then the current step.
+## Jobs that can be worked now, item by item, then stacking, then hand-off.
 func get_active_jobs() -> Array[Job]:
 	var jobs: Array[Job] = []
-	for job: Job in prep_jobs:
-		if _prep_indices[job] < step_index:
-			jobs.append(job)
-	if current_job != null:
-		jobs.append(current_job)
+	for order_item: OrderItem in order_items:
+		jobs.append_array(order_item.get_active_jobs())
+	jobs.append_array(stack_jobs)
+	if hand_off_job != null:
+		jobs.append(hand_off_job)
 	return jobs
 
 
@@ -60,30 +52,62 @@ func is_in_progress() -> bool:
 	return false
 
 
-## Call after a job is finished: drops a prep job, or moves on to the next step.
+## Call after a job is finished: moves its item on, and the order once items are done.
 func finish_job(job: Job) -> void:
-	if prep_jobs.has(job):
-		prep_jobs.erase(job)
-		_prep_indices.erase(job)
+	if job == hand_off_job:
+		hand_off_job = null
+		ready = true
 		return
-	step_index += 1
-	_start_current_step()
+	if stack_jobs.has(job):
+		stack_jobs.erase(job)
+		job.order_item.stacked = true
+		_open_hand_off()
+		return
+	var order_item: OrderItem = job.order_item
+	order_item.finish_job(job)
+	if not order_item.is_complete():
+		return
+	if stack_base == null:
+		stack_base = order_item
+		order_item.stacked = true
+	else:
+		var stack_job := Job.new(_stack_task, self, order_item)
+		stack_jobs.append(stack_job)
+	_open_hand_off()
+
+
+## Items whose recipe is done (e.g. boxed).
+func get_finished_count() -> int:
+	var count: int = 0
+	for order_item: OrderItem in order_items:
+		if order_item.is_complete():
+			count += 1
+	return count
 
 
 func get_title() -> String:
-	return "#%d · %s" % [order_number, recipe.display_name]
+	var name: String = order_items[0].recipe.display_name if not order_items.is_empty() else "?"
+	if order_items.size() > 1:
+		return "#%d · %d %s" % [order_number, order_items.size(), name]
+	return "#%d · %s" % [order_number, name]
 
 
-## Drops all jobs so tickets and jobs (which reference each other) can be freed.
-func clear_jobs() -> void:
-	current_job = null
-	prep_jobs.clear()
-	_prep_indices.clear()
+## Drops all jobs and items so the ticket, its items and its jobs (which reference each
+## other) can be freed. Call once it's off the rack.
+func release() -> void:
+	for order_item: OrderItem in order_items:
+		order_item.clear_jobs()
+		order_item.ticket = null
+	order_items.clear()
+	stack_base = null
+	stack_jobs.clear()
+	hand_off_job = null
 
 
-func _start_current_step() -> void:
-	while step_index < recipe.steps.size() and recipe.steps[step_index].prep:
-		step_index += 1
-	current_job = null if step_index >= recipe.steps.size() else Job.new(
-		recipe.steps[step_index], self
-	)
+func _open_hand_off() -> void:
+	if hand_off_job != null or ready:
+		return
+	for order_item: OrderItem in order_items:
+		if not order_item.stacked:
+			return
+	hand_off_job = Job.new(_hand_off_task, self, stack_base)

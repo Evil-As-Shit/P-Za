@@ -1,12 +1,15 @@
 class_name Job
 extends RefCounted
-## One step of a ticket, claimed and worked by a single pawn at one station.
+## One step of an order, claimed and worked by a single pawn at one station.
 ## Progress is kept if the job is dropped and picked up again later.
 
 signal completed
 
 var task_type: TaskType
 var ticket: Ticket
+## The order item the job works on or moves (e.g. one pizza). For a hand-off, the stack's
+## base.
+var order_item: OrderItem
 ## Station spot reserved for this job while it is claimed.
 var station: Station = null
 var spot: int = -1
@@ -16,9 +19,10 @@ var claimed_by: Pawn = null
 var work_done: float = 0.0
 
 
-func _init(p_task_type: TaskType, p_ticket: Ticket) -> void:
+func _init(p_task_type: TaskType, p_ticket: Ticket, p_order_item: OrderItem) -> void:
 	task_type = p_task_type
 	ticket = p_ticket
+	order_item = p_order_item
 
 
 ## Pawn work needed. Unattended tasks need none: the pawn just loads the item.

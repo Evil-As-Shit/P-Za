@@ -36,7 +36,7 @@ var _stations: Array[Station] = []
 ## Pawns standing by a busy item (e.g. at the oven), waiting to pick it up.
 var _waiting_for: Dictionary[Item, Pawn] = {}
 ## Pawns holding a ticket's item (e.g. by the oven) while someone sets out its container.
-var _waiting_for_container: Dictionary[Ticket, Pawn] = {}
+var _waiting_for_container: Dictionary[OrderItem, Pawn] = {}
 ## Station shown in the station panel, or null.
 var _selected_station: Station = null
 
@@ -89,7 +89,7 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"debug_queue_job"):
-		_print_ticket(debug_recipe)
+		_print_ticket([debug_recipe] as Array[Recipe])
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed(&"toggle_priorities"):
 		_priority_panel.visible = not _priority_panel.visible
@@ -101,13 +101,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		_clock.toggle_pause()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed(&"speed_1"):
-		_clock.set_speed(1)
+		_clock.set_speed(_clock.speeds[1])
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed(&"speed_2"):
-		_clock.set_speed(2)
+		_clock.set_speed(_clock.speeds[2])
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed(&"speed_3"):
-		_clock.set_speed(3)
+		_clock.set_speed(_clock.speeds[3])
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton:
 		var click := event as InputEventMouseButton
@@ -299,12 +299,13 @@ func _is_setting_out(ingredient: IngredientContainer) -> bool:
 	return false
 
 
-## The ticket item this job moves to its spot: the container for set-out steps,
-## otherwise the item being made. Null if it doesn't exist yet.
+## The item this job moves to its spot: the container for set-out steps, otherwise the
+## order item's thing being made (for a hand-off, the stack's base, carrying the stack).
+## Null if it doesn't exist yet.
 func _get_carried(job: Job) -> Item:
 	if job.task_type.fetch_supply != &"":
-		return job.ticket.container
-	return job.ticket.item
+		return job.order_item.container
+	return job.order_item.item
 
 
 ## Free spots where the job can be done, with the one already holding its item first.
@@ -315,8 +316,14 @@ func _spots_for(job: Job) -> Array[Spot]:
 	var task: TaskType = job.task_type
 	var own: Item = _get_carried(job)
 	var result: Array[Spot] = []
+	if task.onto_stack:
+		# Worked where the order's stack stands.
+		var base: Item = job.ticket.stack_base.item
+		if base.station != null and not base.station.is_reserved(base.spot):
+			result.append(Spot.new(base.station, base.spot))
+		return result
 	if task.is_at_container():
-		var box_spot: Spot = _get_container_spot(job.ticket)
+		var box_spot: Spot = _get_container_spot(job.order_item)
 		if box_spot != null:
 			result.append(box_spot)
 			return result
@@ -343,23 +350,25 @@ func _spots_for(job: Job) -> Array[Spot]:
 	return result
 
 
-## Tickets whose item sits set down on a spot, waiting for its container (e.g. a pizza out
-## of the oven before its box was opened).
+## Order items whose item sits set down on a spot, waiting for its container (e.g. a pizza
+## out of the oven before its box was opened).
 func _count_waiting_for_container() -> int:
 	var count: int = 0
 	for ticket: Ticket in _rack.get_tickets(Ticket.Section.MAKE):
-		if (
-			ticket.container == null and ticket.item != null and ticket.item.station != null
-			and ticket.current_job != null and ticket.current_job.task_type.is_at_container()
-			and not ticket.current_job.task_type.into_container
-		):
-			count += 1
+		for order_item: OrderItem in ticket.order_items:
+			var job: Job = order_item.current_job
+			if (
+				order_item.container == null and order_item.item != null
+				and order_item.item.station != null and job != null
+				and job.task_type.is_at_container() and not job.task_type.into_container
+			):
+				count += 1
 	return count
 
 
-## The free spot where the ticket's container sits set out and ready, or null.
-func _get_container_spot(ticket: Ticket) -> Spot:
-	var container: Item = ticket.container
+## The free spot where the order item's container sits set out and ready, or null.
+func _get_container_spot(order_item: OrderItem) -> Spot:
+	var container: Item = order_item.container
 	if container == null or container.station == null:
 		return null
 	if container.station.is_reserved(container.spot):
@@ -440,14 +449,15 @@ func _work_unattended(item: Item, task: TaskType, done_texture: Texture2D) -> vo
 	_on_rack_jobs_changed()
 
 
-## The finished order is picked up: its item leaves and frees its spot.
+## The finished order is picked up: its stack leaves and frees its spot.
 func _send_out(ticket: Ticket) -> void:
-	var item: Item = ticket.item
-	ticket.item = null
-	if item != null:
-		if item.station != null:
-			item.station.take_item(item.spot)
-		item.queue_free()
+	var stack: Item = ticket.stack_base.item if ticket.stack_base != null else null
+	for order_item: OrderItem in ticket.order_items:
+		order_item.item = null
+	if stack != null:
+		if stack.station != null:
+			stack.station.take_item(stack.spot)
+		stack.queue_free()
 	_rack.send_out(ticket)
 
 
@@ -492,8 +502,8 @@ func _wait_then_wander(pawn: Pawn) -> void:
 	get_tree().create_timer(wait).timeout.connect(_send_to_random_cell.bind(pawn))
 
 
-func _print_ticket(recipe: Recipe) -> void:
-	var ticket: Ticket = _rack.print_ticket(recipe)
+func _print_ticket(recipes: Array[Recipe]) -> void:
+	var ticket: Ticket = _rack.print_ticket(recipes)
 	if auto_make:
 		_rack.move_ticket(
 			ticket, Ticket.Section.MAKE, _rack.get_tickets(Ticket.Section.MAKE).size()
@@ -531,9 +541,9 @@ func _on_rack_job_withdrawn(job: Job) -> void:
 	var waited_for: Item = _waiting_for.find_key(pawn)
 	if waited_for != null:
 		_waiting_for.erase(waited_for)
-	var waited_ticket: Ticket = _waiting_for_container.find_key(pawn)
-	if waited_ticket != null:
-		_waiting_for_container.erase(waited_ticket)
+	var waited_item: OrderItem = _waiting_for_container.find_key(pawn)
+	if waited_item != null:
+		_waiting_for_container.erase(waited_item)
 	pawn.drop_job()
 	var held: Item = pawn.release_item()
 	if held != null:
@@ -577,7 +587,7 @@ func _on_pawn_stop_reached(job: Job, pawn: Pawn) -> void:
 			var container: Item = stop.container
 			if container.get_units().size() == 1 and _detour_to_store_empty(job, pawn):
 				# The last unit: carry the container off with it, and take it out there.
-				job.ticket.item = container.get_units().back()
+				job.order_item.item = container.get_units().back()
 				container.unclaim_unit()
 				container.station.take_item(container.spot)
 				pawn.hold_item(container)
@@ -586,7 +596,7 @@ func _on_pawn_stop_reached(job: Job, pawn: Pawn) -> void:
 				_take_unit(job, container, pawn)
 		JobStop.Action.STORE_EMPTY:
 			var container: Item = pawn.release_item()
-			var unit: Item = job.ticket.item
+			var unit: Item = job.order_item.item
 			container.take_out(unit)
 			pawn.hold_item(unit)
 			container.queue_free()
@@ -595,14 +605,14 @@ func _on_pawn_stop_reached(job: Job, pawn: Pawn) -> void:
 
 
 ## Takes a claimed unit of stock from storage and carries it: a full ingredient container
-## for ingredient steps, otherwise the ticket's container (e.g. a box).
+## for ingredient steps, otherwise the order item's container (e.g. a box).
 func _take_supply(job: Job, station: Station, pawn: Pawn) -> void:
 	station.take_supply()
 	if job.task_type.ingredient != null:
 		pawn.hold_item(_spawn_ingredient_container(job.task_type.ingredient))
 		return
-	job.ticket.container = _spawn_item(station.get_storage_layout().textures[0])
-	pawn.hold_item(job.ticket.container)
+	job.order_item.container = _spawn_item(station.get_storage_layout().textures[0])
+	pawn.hold_item(job.order_item.container)
 
 
 ## Adds a stop at storage for empties before the pawn goes on to work, if there's room
@@ -625,10 +635,10 @@ func _detour_to_store_empty(job: Job, pawn: Pawn) -> bool:
 	return true
 
 
-## Takes a claimed unit out of an ingredient container; it becomes the ticket's item.
+## Takes a claimed unit out of an ingredient container; it becomes the order item's item.
 func _take_unit(job: Job, container: Item, pawn: Pawn) -> void:
 	var unit: Item = container.take_unit()
-	job.ticket.item = unit
+	job.order_item.item = unit
 	pawn.hold_item(unit)
 
 
@@ -653,10 +663,10 @@ func _pick_up(job: Job, pawn: Pawn) -> void:
 ## take the item straight to it instead.
 ## If someone is setting the container out right now, the pawn waits holding the item.
 func _redirect_to_container(job: Job, pawn: Pawn) -> void:
-	var box_spot: Spot = _get_container_spot(job.ticket)
+	var box_spot: Spot = _get_container_spot(job.order_item)
 	if box_spot == null:
-		if _is_container_on_its_way(job.ticket):
-			_waiting_for_container[job.ticket] = pawn
+		if _is_container_on_its_way(job.order_item):
+			_waiting_for_container[job.order_item] = pawn
 			pawn.wait_at_stop(pawn.global_position + Vector2(0.0, -1.0))
 		return
 	if box_spot.station == job.station and box_spot.index == job.spot:
@@ -675,20 +685,20 @@ func _redirect_to_container(job: Job, pawn: Pawn) -> void:
 	_on_rack_jobs_changed()
 
 
-## True if a pawn is fetching or opening the ticket's container.
-func _is_container_on_its_way(ticket: Ticket) -> bool:
-	for job: Job in ticket.prep_jobs:
+## True if a pawn is fetching or opening the order item's container.
+func _is_container_on_its_way(order_item: OrderItem) -> bool:
+	for job: Job in order_item.prep_jobs:
 		if job.task_type.fetch_supply != &"" and job.claimed_by != null:
 			return true
 	return false
 
 
 ## The container is set out: a pawn holding its item by the oven takes it there.
-func _on_container_ready(ticket: Ticket) -> void:
-	var pawn: Pawn = _waiting_for_container.get(ticket)
+func _on_container_ready(order_item: OrderItem) -> void:
+	var pawn: Pawn = _waiting_for_container.get(order_item)
 	if pawn == null:
 		return
-	_waiting_for_container.erase(ticket)
+	_waiting_for_container.erase(order_item)
 	var job: Job = pawn.get_job()
 	if job != null:
 		_redirect_to_container(job, pawn)
@@ -696,56 +706,69 @@ func _on_container_ready(ticket: Ticket) -> void:
 
 
 func _on_pawn_work_started(job: Job, pawn: Pawn) -> void:
-	var ticket: Ticket = job.ticket
+	var order_item: OrderItem = job.order_item
 	var item: Item = pawn.release_item()
-	if item == null and ticket.item == null and job.task_type.fetch_supply == &"":
-		item = _spawn_item(ticket.recipe.get_stage_texture(ticket.step_index))
-		ticket.item = item
+	if item == null and order_item.item == null and job.task_type.fetch_supply == &"":
+		item = _spawn_item(order_item.recipe.get_stage_texture(order_item.step_index))
+		order_item.item = item
 	if item == null:
 		return
-	var at_box: bool = ticket.container != null and job.station.get_item(job.spot) == ticket.container
+	if job.task_type.onto_stack:
+		# On top of the order's stack.
+		var stack: Item = job.ticket.stack_base.item
+		stack.put_in(
+			item, Vector2(0.0, -job.task_type.stack_step * (stack.get_units().size() + 1))
+		)
+		return
+	var container: Item = order_item.container
+	var at_box: bool = container != null and job.station.get_item(job.spot) == container
 	if job.task_type.is_at_container() and at_box:
-		ticket.container.put_in(item)
+		container.put_in(item)
 		return
 	job.station.put_item(job.spot, item)
 
 
 func _on_pawn_work_progressed(job: Job, progress: float, _pawn: Pawn) -> void:
 	var frames: Array[Texture2D] = job.task_type.work_frames
-	if frames.is_empty() or job.ticket.item == null:
+	if frames.is_empty() or job.order_item.item == null:
 		return
 	# The work is split into one stretch with no overlay, then one per frame.
 	var index: int = mini(int(progress * (frames.size() + 1)), frames.size()) - 1
-	job.ticket.item.set_overlay(frames[index] if index >= 0 else null)
+	job.order_item.item.set_overlay(frames[index] if index >= 0 else null)
 
 
 func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	var ticket: Ticket = job.ticket
+	var order_item: OrderItem = job.order_item
 	var task: TaskType = job.task_type
+	# Stacking and hand-off move finished items; the rest are recipe steps.
+	var recipe_step: bool = not task.onto_stack and job != ticket.hand_off_job
 	if task.fetch_supply != &"":
 		# The container is set out: show it open.
-		ticket.container.set_texture(null)
-		ticket.container.set_wrap(
+		order_item.container.set_texture(null)
+		order_item.container.set_wrap(
 			task.container_under_texture, task.container_over_texture,
 			task.container_contents_offset
 		)
 	if task.closes_container:
 		# The item and its container become one (e.g. a closed box).
-		ticket.container.take_out(ticket.item)
-		ticket.item.queue_free()
-		ticket.item = ticket.container
-		ticket.container = null
-		ticket.item.set_wrap(null, null)
+		order_item.container.take_out(order_item.item)
+		order_item.item.queue_free()
+		order_item.item = order_item.container
+		order_item.container = null
+		order_item.item.set_wrap(null, null)
 
-	var item: Item = ticket.item
+	var item: Item = order_item.item
 	_release_station(job)
 	_rack.complete_job(job)
 	if task.fetch_supply != &"":
-		_on_container_ready(ticket)
-	if item != null and task.unattended:
-		_work_unattended(item, task, ticket.recipe.get_stage_texture(ticket.step_index))
-	elif item != null and task.fetch_supply == &"":
-		item.set_texture(ticket.recipe.get_stage_texture(ticket.step_index))
+		_on_container_ready(order_item)
+	if recipe_step and item != null and task.unattended:
+		_work_unattended(
+			item, task, order_item.recipe.get_stage_texture(order_item.step_index)
+		)
+	elif recipe_step and item != null and task.fetch_supply == &"":
+		item.set_texture(order_item.recipe.get_stage_texture(order_item.step_index))
 	if ticket.ready:
 		get_tree().create_timer(pickup_wait).timeout.connect(_send_out.bind(ticket))
 	if not pawn.has_job():

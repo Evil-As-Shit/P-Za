@@ -13,7 +13,7 @@ signal speed_changed(speed: int)
 @export_range(0, 23) var open_hour: int = 10
 @export_range(1, 24) var close_hour: int = 22
 ## Game speeds the player can pick. 0 is paused.
-@export var speeds: Array[int] = [0, 1, 2, 3]
+@export var speeds: Array[int] = [0, 1, 3, 6]
 
 var day: int = 1
 var speed: int = 1

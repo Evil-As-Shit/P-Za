@@ -55,13 +55,14 @@ func set_wrap(
 
 
 ## Item art is drawn with its front facing down-right (a box's fold and lid are at the
-## back, up-left). Mirrored, it faces down-left. Only flips the item's own art, not its
-## contents' own art, though they move to stay in the same place inside it.
+## back, up-left). Mirrored, it faces down-left. Its contents turn with it (e.g. boxes in a
+## stack) and move to stay in the same place inside it.
 func set_mirrored(mirrored: bool) -> void:
 	_mirrored = mirrored
 	for sprite: Sprite2D in [_under, _sprite, _overlay, _over, _lid]:
 		sprite.flip_h = mirrored
 	for item: Item in _content_offsets:
+		item.set_mirrored(mirrored)
 		_place_content(item)
 
 
@@ -71,6 +72,7 @@ func put_in(item: Item, offset: Vector2 = Vector2.ZERO) -> void:
 	item.container = self
 	item.reparent(_contents, false)
 	_content_offsets[item] = offset
+	item.set_mirrored(_mirrored)
 	_place_content(item)
 
 

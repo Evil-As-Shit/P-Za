@@ -33,6 +33,8 @@
 [ext_resource type="Resource" path="res://resources/station_roles/dough_storage.tres" id="31_dough_storage"]
 [ext_resource type="Resource" path="res://resources/station_roles/empty_dough_storage.tres" id="32_empty_dough"]
 [ext_resource type="Resource" path="res://resources/stations/small_table.tres" id="33_small_table"]
+[ext_resource type="Resource" path="res://resources/tasks/stack_box.tres" id="34_stack_box"]
+[ext_resource type="Resource" path="res://resources/tasks/hand_off.tres" id="35_hand_off"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -145,6 +147,8 @@ menu = Array[ExtResource("29_recipe")]([ExtResource("8_pizza")])
 
 [node name="TicketRack" type="Node" parent="."]
 script = ExtResource("7_rack")
+stack_task = ExtResource("34_stack_box")
+hand_off_task = ExtResource("35_hand_off")
 
 [node name="Hud" type="CanvasLayer" parent="."]
 

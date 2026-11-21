@@ -11,6 +11,11 @@ signal jobs_changed
 signal job_withdrawn(job: Job)
 signal ticket_completed(ticket: Ticket)
 
+## Moving a finished item onto its order's stack.
+@export var stack_task: TaskType
+## Carrying an order's finished stack to hand it off.
+@export var hand_off_task: TaskType
+
 var _wait: Array[Ticket] = []
 var _make: Array[Ticket] = []
 var _next_order_number: int = 1
@@ -20,13 +25,14 @@ var now_minutes: int = 0
 
 
 func _exit_tree() -> void:
-	# Ticket and Job reference each other; break the cycle so unfinished tickets are freed.
+	# Tickets, their items and jobs reference each other; break the cycles so they're freed.
 	for ticket: Ticket in _wait + _make:
-		ticket.clear_jobs()
+		ticket.release()
 
 
-func print_ticket(recipe: Recipe) -> Ticket:
-	var ticket := Ticket.new(_next_order_number, recipe)
+## Prints an order for `recipes` (one entry per item, e.g. three pizzas) into Wait.
+func print_ticket(recipes: Array[Recipe]) -> Ticket:
+	var ticket := Ticket.new(_next_order_number, recipes, stack_task, hand_off_task)
 	ticket.printed_at = now_minutes
 	_next_order_number += 1
 	_wait.append(ticket)
@@ -71,13 +77,10 @@ func get_open_jobs() -> Array[Job]:
 	return jobs
 
 
-## Call when a ticket's job finishes. After the last one the ticket is marked ready and
-## stays on the rack until send_out().
+## Call when a ticket's job finishes. After the hand-off the ticket is ready and stays on
+## the rack until send_out().
 func complete_job(job: Job) -> void:
-	var ticket: Ticket = job.ticket
-	ticket.finish_job(job)
-	if ticket.is_complete():
-		ticket.ready = true
+	job.ticket.finish_job(job)
 	changed.emit()
 	jobs_changed.emit()
 
@@ -86,6 +89,7 @@ func complete_job(job: Job) -> void:
 func send_out(ticket: Ticket) -> void:
 	_list(ticket.section).erase(ticket)
 	ticket_completed.emit(ticket)
+	ticket.release()
 	changed.emit()
 	jobs_changed.emit()
 
