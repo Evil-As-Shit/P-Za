@@ -34,6 +34,11 @@ func set_cell_blocked(cell: Vector2i, blocked: bool) -> void:
 		_astar.set_point_solid(cell, blocked or get_cell_source_id(cell) == -1)
 
 
+## True if the cell is part of the floor (painted), blocked or not.
+func has_floor(cell: Vector2i) -> bool:
+	return get_cell_source_id(cell) != -1
+
+
 func is_walkable(cell: Vector2i) -> bool:
 	return _astar.is_in_boundsv(cell) and not _astar.is_point_solid(cell)
 

@@ -15,7 +15,14 @@ var busy: bool = false
 ## Set if this is an ingredient container (e.g. a dough tub); its contents are the units.
 var ingredient: IngredientContainer = null
 
+## Turned versions of item art (e.g. a box with its lid on the other edge).
+@export var rotated_art: RotatedArt
+
 var _mirrored: bool = false
+## True while shown with its turned art (see RotatedArt).
+var _turned: bool = false
+## Each sprite's art as drawn (before turning).
+var _art: Dictionary[Sprite2D, Texture2D] = {}
 ## Where each item inside sits, as if not mirrored.
 var _content_offsets: Dictionary[Item, Vector2] = {}
 ## Units promised to pawns on their way to take one.
@@ -31,17 +38,17 @@ var _units_claimed: int = 0
 
 
 func set_texture(texture: Texture2D) -> void:
-	_sprite.texture = texture
+	_set_art(_sprite, texture)
 
 
 ## Drawn over everything, contents included. Pass null to take it off.
 func set_lid(texture: Texture2D) -> void:
-	_lid.texture = texture
+	_set_art(_lid, texture)
 
 
 ## Marks drawn over the item (e.g. cut lines). Pass null to clear.
 func set_overlay(texture: Texture2D) -> void:
-	_overlay.texture = texture
+	_set_art(_overlay, texture)
 
 
 ## Art drawn under and over the item's contents (e.g. an open box), and where the
@@ -49,21 +56,60 @@ func set_overlay(texture: Texture2D) -> void:
 func set_wrap(
 	under: Texture2D, over: Texture2D, contents_offset: Vector2 = Vector2.ZERO
 ) -> void:
-	_under.texture = under
-	_over.texture = over
+	_set_art(_under, under)
+	_set_art(_over, over)
 	_contents.position = contents_offset
 
 
-## Item art is drawn with its front facing down-right (a box's fold and lid are at the
-## back, up-left). Mirrored, it faces down-left. Its contents turn with it (e.g. boxes in a
-## stack) and move to stay in the same place inside it.
+## Turns the item to face a pawn standing at `side` (a grid step from the item's cell), so
+## its back (e.g. a box's lid) is away from them. Art is drawn facing a pawn down-right;
+## for a pawn down-left it's mirrored. For a pawn behind it, its turned art is used (mirrored
+## for up-right) if it has any; otherwise it's just mirrored as before.
+func face_toward(side: Vector2i) -> void:
+	var behind: bool = side.x < 0 or side.y < 0
+	if behind and _has_turned_art():
+		set_view(true, side.y != 0)
+	else:
+		set_view(false, side.y > 0 or side.x < 0)
+
+
+## Mirrors the item, with its art as drawn (e.g. while carried).
 func set_mirrored(mirrored: bool) -> void:
+	set_view(false, mirrored)
+
+
+## Shows the item with its turned art or not, mirrored or not. Its contents turn with it
+## (e.g. boxes in a stack) and move to stay in the same place inside it.
+func set_view(turned: bool, mirrored: bool) -> void:
+	_turned = turned
 	_mirrored = mirrored
 	for sprite: Sprite2D in [_under, _sprite, _overlay, _over, _lid]:
 		sprite.flip_h = mirrored
+		_show_art(sprite)
 	for item: Item in _content_offsets:
-		item.set_mirrored(mirrored)
+		item.set_view(turned, mirrored)
 		_place_content(item)
+
+
+func _set_art(sprite: Sprite2D, texture: Texture2D) -> void:
+	_art[sprite] = texture
+	_show_art(sprite)
+
+
+func _show_art(sprite: Sprite2D) -> void:
+	var texture: Texture2D = _art.get(sprite)
+	if _turned and rotated_art != null:
+		texture = rotated_art.get_turned(texture)
+	sprite.texture = texture
+
+
+func _has_turned_art() -> bool:
+	if rotated_art == null:
+		return false
+	for texture: Texture2D in _art.values():
+		if rotated_art.has_turned(texture):
+			return true
+	return false
 
 
 ## Puts `item` inside this one, between its under and over art, at `offset`. Items put in
@@ -72,7 +118,7 @@ func put_in(item: Item, offset: Vector2 = Vector2.ZERO) -> void:
 	item.container = self
 	item.reparent(_contents, false)
 	_content_offsets[item] = offset
-	item.set_mirrored(_mirrored)
+	item.set_view(_turned, _mirrored)
 	_place_content(item)
 
 

@@ -2,25 +2,16 @@
 
 [ext_resource type="Resource" path="res://resources/work_types/boxing.tres" id="9_work_type"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
-[ext_resource type="Texture2D" path="res://Assets/Sprites/box_sheet.png" id="2_box"]
+[ext_resource type="Texture2D" path="res://resources/items/box/open_back.tres" id="2_open_back"]
+[ext_resource type="Texture2D" path="res://resources/items/box/open_front.tres" id="5_open_front"]
 [ext_resource type="Resource" path="res://resources/storage_kinds/box.tres" id="3_box_kind"]
 [ext_resource type="Script" path="res://scripts/tasks/behaviors/set_out_container_behavior.gd" id="4_behavior"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_open_back"]
-atlas = ExtResource("2_box")
-region = Rect2(32, 0, 32, 32)
-margin = Rect2(0, 32, 0, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_open_front"]
-atlas = ExtResource("2_box")
-region = Rect2(32, 32, 32, 32)
-margin = Rect2(0, 32, 0, 32)
 
 [sub_resource type="Resource" id="Resource_behavior"]
 script = ExtResource("4_behavior")
 supply = ExtResource("3_box_kind")
-open_under_texture = SubResource("AtlasTexture_open_back")
-open_over_texture = SubResource("AtlasTexture_open_front")
+open_under_texture = ExtResource("2_open_back")
+open_over_texture = ExtResource("5_open_front")
 contents_offset = Vector2(0, -1)
 
 [resource]

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RotatedArt" format=3]
+
+[ext_resource type="Script" path="res://scripts/items/rotated_art.gd" id="1_rotated"]
+[ext_resource type="Texture2D" path="res://resources/items/box/closed.tres" id="2_closed"]
+[ext_resource type="Texture2D" path="res://resources/items/box/closed_rotated.tres" id="3_closed_rotated"]
+[ext_resource type="Texture2D" path="res://resources/items/box/open_back.tres" id="4_open_back"]
+[ext_resource type="Texture2D" path="res://resources/items/box/open_back_rotated.tres" id="5_open_back_rotated"]
+[ext_resource type="Texture2D" path="res://resources/items/box/open_front.tres" id="6_open_front"]
+[ext_resource type="Texture2D" path="res://resources/items/box/open_front_rotated.tres" id="7_open_front_rotated"]
+
+[resource]
+script = ExtResource("1_rotated")
+pairs = Dictionary[Texture2D, Texture2D]({
+ExtResource("2_closed"): ExtResource("3_closed_rotated"),
+ExtResource("4_open_back"): ExtResource("5_open_back_rotated"),
+ExtResource("6_open_front"): ExtResource("7_open_front_rotated")
+})

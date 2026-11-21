@@ -1,0 +1,110 @@
+extends "res://tests/test_base.gd"
+## Build mode: placing a new station, refusing spots that don't fit, moving and selling idle
+## stations, refusing to move a busy one, and work carrying on with the new layout.
+
+const OVEN := preload("res://resources/stations/small_oven.tres")
+
+var _build: BuildMode
+var _floor: ShopFloor
+var _ticket: Ticket
+var _busy_checked: bool = false
+
+
+func _start() -> void:
+	stop_random_orders()
+	_build = world.get_node("BuildMode")
+	_floor = world.get_node("ShopFloor")
+	# Pawns start on random cells, and a pawn standing where we build blocks it. Line them
+	# up along the back wall, out of the way.
+	var pawns: Array[Pawn] = work.get_pawns()
+	for i: int in pawns.size():
+		pawns[i].global_position = _floor.cell_to_global(Vector2i(i, 0))
+	world._set_build_mode(true)
+	var station_count: int = world._stations.size()
+
+	# Facings: art for one front view gives its mirror image too.
+	var expected: Dictionary = {
+		"res://resources/stations/small_oven.tres": [0, 3],
+		"res://resources/stations/box_rack.tres": [0, 3],
+		"res://resources/stations/counter.tres": [0, 1, 2, 3],
+	}
+	for path: String in expected:
+		var facings: Array[int] = (load(path) as StationData).get_facings()
+		if facings != Array(expected[path], TYPE_INT, &"", null):
+			fail("%s can face %s, expected %s" % [path.get_file(), facings, expected[path]])
+			return
+
+	# On top of the prep table: doesn't fit.
+	_build.choose(OVEN)
+	_build.hover(Vector2i(5, 5))
+	if _build.fits() or _build.confirm():
+		fail("an oven fit on top of the prep table")
+		return
+	# Free floor in a corner: fits, and the tool stays ready for another.
+	_build.hover(Vector2i(10, 9))
+	if not _build.confirm():
+		fail("an oven didn't fit on free floor at (10, 9)")
+		return
+	if world._stations.size() != station_count + 1 or _floor.is_walkable(Vector2i(10, 9)):
+		fail("the new oven wasn't set up")
+		return
+	if not _build.has_ghost():
+		fail("no ghost ready to place another oven")
+		return
+	_build.cancel()
+
+	# Move the garbage can (idle) to the other side of the shop.
+	var can: Station = world.get_node("Entities/GarbageCan")
+	if not _build.pick_up(can):
+		fail("couldn't pick up the idle garbage can")
+		return
+	_build.hover(Vector2i(2, 9))
+	if not _build.confirm():
+		fail("the garbage can didn't fit at (2, 9)")
+		return
+	if can.cell != Vector2i(2, 9) or not _floor.is_walkable(Vector2i(10, 5)) \
+			or _floor.is_walkable(Vector2i(2, 9)) or not world._stations.has(can):
+		fail("the garbage can didn't move properly")
+		return
+
+	# Sell the oven we built: it's gone and its cell is free again.
+	var built: Station = null
+	for station: Station in world._stations:
+		if station.cell == Vector2i(10, 9):
+			built = station
+	if built == null or not _build.pick_up(built) or not _build.sell():
+		fail("couldn't pick up and sell the new oven")
+		return
+	if world._stations.has(built) or work.get_stations().has(built) \
+			or not _floor.is_walkable(Vector2i(10, 9)):
+		fail("the sold oven is still in use or still blocks its cell")
+		return
+	if _build.sell():
+		fail("sold something with nothing picked up")
+		return
+
+	world._set_build_mode(false)
+	clock.set_speed(6)
+	_ticket = order_pizzas(1)
+	rack.ticket_completed.connect(_on_completed)
+
+
+func _step() -> void:
+	# While the pizza is on the prep table, the table can't be picked up.
+	if _busy_checked:
+		return
+	var prep: Station = world.get_node("Entities/PrepTable")
+	if prep.is_idle():
+		return
+	_busy_checked = true
+	if _build.pick_up(prep):
+		fail("picked up a prep table that was in use")
+
+
+func _on_completed(ticket: Ticket) -> void:
+	if ticket != _ticket:
+		return
+	if not _busy_checked:
+		fail("never saw the prep table in use")
+		return
+	pass_test("placed and sold an oven, moved the garbage can, and an order still went out")

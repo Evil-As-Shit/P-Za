@@ -48,6 +48,11 @@ func add_station(station: Station) -> void:
 	_stations.append(station)
 
 
+## Stops using the station (e.g. while it's picked up to move). It must be idle.
+func remove_station(station: Station) -> void:
+	_stations.erase(station)
+
+
 ## Takes the pawn on as staff; they start by idling.
 func add_pawn(pawn: Pawn) -> void:
 	pawn.path_finished.connect(_on_pawn_path_finished.bind(pawn))
@@ -320,7 +325,10 @@ func _on_pawn_stop_reached(job: Job, pawn: Pawn) -> void:
 			if item.busy:
 				# Not ready yet (e.g. still baking): stand by until the station is done.
 				_waiting_for[item] = pawn
-				pawn.wait_at_stop(item.get_outermost().global_position)
+				var look_at: Vector2 = item.get_outermost().global_position
+				if stop.station != null and stop.spot >= 0:
+					look_at = stop.station.get_work_target(stop.spot)
+				pawn.wait_at_stop(look_at)
 				return
 			_pick_up(job, pawn)
 		JobStop.Action.TAKE_SUPPLY:

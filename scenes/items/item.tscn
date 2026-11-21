@@ -1,9 +1,11 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/items/item.gd" id="1_item"]
+[ext_resource type="Resource" path="res://resources/items/rotated_art.tres" id="2_rotated"]
 
 [node name="Item" type="Node2D"]
 script = ExtResource("1_item")
+rotated_art = ExtResource("2_rotated")
 
 [node name="Under" type="Sprite2D" parent="."]
 centered = false

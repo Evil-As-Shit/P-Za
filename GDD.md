@@ -163,6 +163,7 @@ Each item below is a direction, not a final spec.
 - Ingredients arrive in regular recurring deliveries, with an emergency option at a premium. Fresh ingredients spoil, so cold storage matters.
 - Kitchens get dirty. Poor cleanliness leads to health inspector penalties.
 - Equipment can be upgraded for capacity and reliability. The player lays out and arranges the kitchen, and pawn movement is affected by the layout.
+- **Build mode (B):** pick a station type (table, small table, counter, oven, rack, garbage can) and place it; a ghost shows green where it fits and red where it doesn't. R turns a station to each facing it has art for. A facing without its own art uses its mirror image's art flipped (working side down-left ↔ down-right, up-left ↔ up-right), lighting included, so one front view gives two facings; back views need their own art. Clicking a station that nothing is using picks it up to move it (stored stock comes along) or sell it (Delete, or the Sell button; anything stored on it goes too). A spot doesn't fit if it's off the floor or on another station, its work spots are blocked, it covers another station's work spot, or it would cut anything off. For now building is free, works any time, and selling pays nothing back. Walls come later.
 
 ### Progression and failure
 - Progression comes from upgrades: expanding the floorplan, and buying newer, better (and more expensive) appliances.

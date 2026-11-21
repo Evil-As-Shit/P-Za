@@ -25,6 +25,7 @@ var _selected_station: Station = null
 @onready var _orders: OrderSource = $OrderSource
 @onready var _finances: ShopFinances = $ShopFinances
 @onready var _hud: Hud = $Hud
+@onready var _build: BuildMode = $BuildMode
 
 
 func _ready() -> void:
@@ -57,9 +58,27 @@ func _ready() -> void:
 	_hud.station_close_requested.connect(_select_station.bind(null))
 	_hud.report_closed.connect(_on_report_closed)
 
+	_build.setup(_floor, _entities, _stations, _work.get_pawns())
+	_build.station_built.connect(_on_station_built)
+	_build.move_started.connect(_on_station_move_started)
+	_build.move_finished.connect(_on_station_built)
+	_hud.setup_build(_build.catalog)
+	_hud.build_choice_requested.connect(_build.choose)
+	_hud.build_close_requested.connect(_set_build_mode.bind(false))
+	_hud.sell_requested.connect(_build.sell)
+	_build.holding_changed.connect(_hud.set_can_sell)
+	_build.station_sold.connect(_work.assign_all.unbind(1))
+
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed(&"debug_queue_job"):
+	if _build.active and _build.handle_input(event):
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed(&"toggle_build"):
+		_set_build_mode(not _build.active)
+	elif _build.active and event.is_action_pressed(&"ui_cancel"):
+		_set_build_mode(false)
+	elif event.is_action_pressed(&"debug_queue_job"):
 		_print_ticket([debug_recipe] as Array[Recipe])
 	elif event.is_action_pressed(&"toggle_priorities"):
 		_hud.toggle_priorities()
@@ -73,7 +92,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_clock.set_speed(_clock.speeds[2])
 	elif event.is_action_pressed(&"speed_3"):
 		_clock.set_speed(_clock.speeds[3])
-	elif event is InputEventMouseButton and (event as InputEventMouseButton).pressed \
+	elif not _build.active and event is InputEventMouseButton \
+			and (event as InputEventMouseButton).pressed \
 			and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
 		_select_station(_station_at(get_global_mouse_position()))
 	else:
@@ -90,6 +110,26 @@ func _setup_station(station: Station) -> void:
 
 
 #region Stations
+
+func _set_build_mode(on: bool) -> void:
+	_select_station(null)
+	_build.set_active(on)
+	_hud.show_build(on)
+
+
+## A station was built, or put down after a move: it's in use again.
+func _on_station_built(station: Station) -> void:
+	_setup_station(station)
+	_work.assign_all()
+
+
+## A station was picked up to move: nobody uses it until it's put down.
+func _on_station_move_started(station: Station) -> void:
+	for cell: Vector2i in station.get_footprint_cells():
+		_floor.set_cell_blocked(cell, false)
+	_stations.erase(station)
+	_work.remove_station(station)
+
 
 ## The role-taking station under a point, or null. Checks a little below the point too,
 ## since tabletops are drawn above their floor cells.

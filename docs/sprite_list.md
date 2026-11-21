@@ -12,10 +12,12 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 - Walls: `walls_sheet.png`. Back-left, back-right, back corner, front-left, front-right, front corner, and capped left/right side corners, each full height and short. `walls_with_reference.png` shows each on its floor tile.
 - Small oven (1×1, one facing): `Small_Oven.png`
 - Pizza stages (dough ball, dough, sauce, cheese, baked) and 4 cut-line frames above them: `pizza_sheet.png`. Cut lines are drawn 16 px above where they land on the pizza.
-- Pizza box (closed, open base and lid): `box_sheet.png`
+- Pizza box: `box_sheet.png`, on a 32×16 grid. Left column: closed box (row 1), open box back with lid on the back-left edge (rows 2–3), its front edge (row 4). Right column, turned a quarter: closed box (row 1), front edge with the lid standing on the front-right edge (rows 2–3, drawn over the pizza), open box back (row 4). Items worked from in front use the left column (mirrored for a pawn down-left); from behind, the right column (mirrored for a pawn up-right), so the lid always faces away from the pawn. The pieces are `resources/items/box/*.tres`, paired in `resources/items/rotated_art.tres`.
+- Work-spot marker (pink iso circle): `work_spot_sheet.png`, drawn on the 3×3 guide with the station in the middle cell and the circle on the pawn's side (frames: down-left, up-left, up-right, down-right). Shown on the floor where pawns stand at a selected station.
 - Dough container (lid, inside/back, front edge; 32×16 cells stacked in that order, same anchor): `dough_container.png`. Holds 6 dough balls.
 - Box rack (2×1, one facing, split into top and bottom shelf): `box_rack_sheet.png`
-- Pickup counter (1×1, one facing): `Object_Spritesheet.png` at (128, 0)
+- Pickup counter (1×1, one facing): `Object_Spritesheet.png` at (128, 0). In game the counter currently uses the numbered rotation-test cubes on row 2 (four facings, "1|2" to "4|1") to check rotation.
+- Facings: a station's facings 0 (working side down-left) and 3 (down-right) are mirror images, as are 1 and 2 (the back views). Drawing one front view gives both front facings by flipping; draw a back view to allow the back facings.
 
 ## Priority 1: the pizza loop (next slices)
 
@@ -84,12 +86,12 @@ The guides are colored backgrounds to draw over. In Aseprite, open the guide, ad
 
 Right-facing poses are flipped in code, so only draw left-facing poses. Rows 4–7 get wired up once you've drawn them. Frame counts per row are up to you.
 
-### `object_1x1_guide.png`, `object_2x1_guide.png`, `object_2x2_guide.png`
+### `object_1x1_guide.png`, `object_2x1_guide.png`, `object_2x2_guide.png`, `object_3x3_guide.png`
 
 One cell per facing, left to right: **facing 0, 1, 2, 3**. The blue diamonds are the object's floor footprint, and the darker diamond is its origin cell (the cell you set in the inspector). Draw the object so its base or legs sit on the footprint.
 
 - The game lines each sprite up by its **left edge** and **bottom row**. Keep those the same as the guide. The height is free, so tall objects can use more rows, and you can crop empty rows off the top.
-- Cell widths: 1×1 = 32 px, 2×1 = 48 px, 2×2 = 64 px.
+- Cell widths: 1×1 = 32 px, 2×1 = 48 px, 2×2 = 64 px, 3×3 = 96 px (the 3×3 sheet is 384×96, with 48 px above the footprint).
 - Symmetric objects (like the long table) can reuse facing 0's art for facing 2 and facing 1's for facing 3.
 - Mirroring facing 0 horizontally gives a rough start for facing 1.
 - **Carried items** (pizzas, boxes and so on) need only one view: draw them with their front facing **down-right**, with the back (like a box's fold or lid) up-left. The game flips them to match the pawn carrying them, and to face the pawn when set down.

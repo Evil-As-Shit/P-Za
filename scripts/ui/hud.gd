@@ -8,6 +8,9 @@ signal priority_change_requested(pawn: Pawn, work_type: WorkType, priority: int)
 signal role_change_requested(station: Station, role: StationRole)
 signal station_close_requested
 signal report_closed
+signal build_choice_requested(data: StationData)
+signal build_close_requested
+signal sell_requested
 
 var _rack: TicketRack
 var _pawns: Array[Pawn] = []
@@ -18,6 +21,7 @@ var _work_types: Array[WorkType] = []
 @onready var _station_panel: StationPanel = $StationPanel
 @onready var _clock_panel: ClockPanel = $ClockPanel
 @onready var _day_report_panel: DayReportPanel = $DayReportPanel
+@onready var _build_panel: BuildPanel = $BuildPanel
 
 
 func setup(
@@ -87,3 +91,19 @@ func show_report(report: DayReport) -> void:
 
 func hide_report() -> void:
 	_day_report_panel.hide()
+
+
+## Fills the build menu with the stations the player can build.
+func setup_build(catalog: Array[StationData]) -> void:
+	_build_panel.show_catalog(catalog)
+	_build_panel.station_chosen.connect(build_choice_requested.emit)
+	_build_panel.close_requested.connect(build_close_requested.emit)
+	_build_panel.sell_requested.connect(sell_requested.emit)
+
+
+func show_build(shown: bool) -> void:
+	_build_panel.visible = shown
+
+
+func set_can_sell(can_sell: bool) -> void:
+	_build_panel.set_can_sell(can_sell)
