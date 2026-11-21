@@ -41,6 +41,9 @@ var _reserved: Array[bool] = []
 var _stock: int = 0
 var _stock_claimed: int = 0
 var _room_claimed: int = 0
+## How much is left in each partly used unit in stock (e.g. a dough container put back
+## with 4 balls); the rest of the stock is full. Taken out first.
+var _partial: Array[int] = []
 ## One array of unit nodes per pile, bottom to top. Inside piles first, then on-top piles.
 var _pile_units: Array[Array] = []
 var _origin_center: Vector2 = Vector2.ZERO
@@ -128,7 +131,7 @@ func place(shop_floor: ShopFloor) -> void:
 
 	var mirrored: bool = data.is_mirrored(facing)
 	_art_corner = corner
-	_line_up(_sprite, data.get_texture(facing), left, bottom, mirrored)
+	_line_up(_sprite, data.get_texture(facing, _is_in_use()), left, bottom, mirrored)
 	_line_up(_cover, data.get_cover_texture(facing, _working.has(true)), left, bottom, mirrored)
 	if _canvas != null:
 		_fit_canvas()
@@ -318,9 +321,11 @@ func _make_canvas() -> void:
 ## strips run to the canvas edges, catching anything that overhangs the footprint.
 func _fit_canvas() -> void:
 	var art_size := Vector2.ZERO
-	for art: Sprite2D in [_sprite, _cover]:
-		if art.texture != null:
-			art_size = art_size.max(art.texture.get_size())
+	for texture: Texture2D in [
+		data.get_texture(facing), data.get_texture(facing, true), _cover.texture
+	]:
+		if texture != null:
+			art_size = art_size.max(texture.get_size())
 	_canvas_origin = Vector2(
 		floorf(_art_corner.x) - CANVAS_MARGIN,
 		floorf(_art_corner.y - art_size.y) - CANVAS_HEADROOM
@@ -395,6 +400,7 @@ func get_item(spot: int) -> Item:
 ## Sets an item on a spot's surface, facing the spot's pawn. The spot must be empty.
 func put_item(spot: int, item: Item) -> void:
 	_items[spot] = item
+	_update_in_use_art()
 	item.station = self
 	item.spot = spot
 	item.reparent(_item_slot, false)
@@ -410,6 +416,7 @@ func take_item(spot: int) -> Item:
 	if item != null:
 		item.station = null
 		item.spot = -1
+	_update_in_use_art()
 	return item
 
 
@@ -420,10 +427,25 @@ func is_reserved(spot: int) -> bool:
 ## Claims a spot for one pawn's job. Call release() when the job ends or is dropped.
 func reserve(spot: int) -> void:
 	_reserved[spot] = true
+	_update_in_use_art()
 
 
 func release(spot: int) -> void:
 	_reserved[spot] = false
+	_update_in_use_art()
+
+
+## In use: a spot is reserved by a pawn or holds something (see StationData.in_use_textures).
+func _is_in_use() -> bool:
+	return _reserved.has(true) or has_items()
+
+
+func _update_in_use_art() -> void:
+	if _floor == null:
+		return
+	var texture: Texture2D = data.get_texture(facing, _is_in_use())
+	if _sprite.texture != texture:
+		_line_up(_sprite, texture, _art_corner.x, _art_corner.y, data.is_mirrored(facing))
 
 
 func get_footprint_cells() -> Array[Vector2i]:
@@ -474,15 +496,19 @@ func unclaim_supply() -> void:
 	_stock_claimed -= 1
 
 
-## Removes a claimed unit from stock. Placeholder until deliveries: storage that starts
-## full refills the moment it runs out.
-func take_supply() -> void:
+## Removes a claimed unit from stock and returns how much is left in it: -1 for a full one,
+## or the count put back with it (see add_stock()). Partly used ones go out first.
+## Placeholder until deliveries: storage that starts full refills the moment it runs out.
+func take_supply() -> int:
 	_stock_claimed -= 1
 	_stock -= 1
+	var left: int = _partial.pop_back() if not _partial.is_empty() else -1
 	var layout: StorageLayout = get_storage_layout()
 	if _stock == 0 and layout != null and layout.starts_full:
 		_stock = _get_capacity()
+		_partial.clear()
 	_update_piles()
+	return left
 
 
 func _get_capacity() -> int:
@@ -509,15 +535,24 @@ func unclaim_room() -> void:
 	_room_claimed -= 1
 
 
-## Stores a unit in a claimed place. Placeholder until a cleaning station: storage that
-## clears when full does so the moment it fills.
-func add_stock() -> void:
+## Stores a unit in a claimed place. `left` is how much is still in it, for a partly used
+## one (e.g. a dough container with 4 of its 6 balls); -1 for a full one. Placeholder until
+## a cleaning station: storage that clears when full does so the moment it fills.
+func add_stock(left: int = -1) -> void:
 	_room_claimed -= 1
 	_stock += 1
+	if left >= 0:
+		_partial.append(left)
 	var layout: StorageLayout = get_storage_layout()
 	if layout != null and layout.clears_when_full and _stock >= _get_capacity():
 		_stock = 0
+		_partial.clear()
 	_update_piles()
+
+
+## How much is left in each partly used unit in stock (see add_stock()).
+func get_partial_stock() -> Array[int]:
+	return _partial.duplicate()
 
 
 ## Lays out the piles for the stored kind. With `keep_stock` (after a move) the stock and
@@ -552,8 +587,11 @@ func _build_piles(keep_stock: bool = false) -> void:
 			))
 	if keep_stock:
 		_stock = mini(kept, _get_capacity())
-	elif layout.starts_full:
-		_stock = _get_capacity()
+		_partial.resize(mini(_partial.size(), _stock))
+	else:
+		_partial.clear()
+		if layout.starts_full:
+			_stock = _get_capacity()
 	_update_piles()
 
 

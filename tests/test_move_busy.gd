@@ -48,7 +48,7 @@ func _step() -> void:
 	match _phase:
 		0:
 			# A prep table with a pizza on it and a pawn working there.
-			for path: String in ["Entities/PrepTable", "Entities/PrepTable2"]:
+			for path: String in ["Entities/PrepTable"]:
 				var prep: Station = world.get_node(path)
 				if prep.has_items() and _pawn_working_at(prep) != null:
 					_pick_up(prep)

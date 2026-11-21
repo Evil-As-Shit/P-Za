@@ -40,16 +40,24 @@ func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 	return false
 
 
-func on_supply_taken(_job: Job, _station: Station, pawn: Pawn, work: WorkManager) -> void:
-	pawn.hold_item(_spawn_container(work))
+func on_supply_taken(job: Job, _station: Station, pawn: Pawn, work: WorkManager) -> void:
+	pawn.hold_item(spawn_container(ingredient, work, job.taken_left))
 
 
 func on_stop_reached(job: Job, stop: JobStop, pawn: Pawn, work: WorkManager) -> void:
 	match stop.action:
 		JobStop.Action.SET_OUT:
 			# Lid off, onto the spot, and the first unit out.
-			var container: Item = pawn.release_item()
 			stop.station.release(stop.spot)
+			var held: Item = pawn.get_held_item()
+			if held.get_units().size() == 1 and _detour_to_store_empty(job, pawn, work):
+				# A partly used one with just one unit left (see Station.take_supply()):
+				# it'd be empty once set out, so it's carried off with its unit instead.
+				held.set_lid(null)
+				job.order_item.item = held.get_units().back()
+				work.assign_all()
+				return
+			var container: Item = pawn.release_item()
 			container.set_lid(null)
 			stop.station.put_item(stop.spot, container)
 			container.claim_unit()
@@ -104,14 +112,16 @@ func _is_setting_out(work: WorkManager) -> bool:
 	return false
 
 
-## A full container, lid on.
-func _spawn_container(work: WorkManager) -> Item:
+## A container of `kind`, lid on, with `left` units in it (-1 for full). Units are taken
+## from the front, so a partly used one keeps the ones at the back.
+static func spawn_container(kind: IngredientContainer, work: WorkManager, left: int = -1) -> Item:
 	var container: Item = work.spawn_item(null)
-	container.ingredient = ingredient
-	container.set_wrap(ingredient.back_texture, ingredient.front_texture)
-	container.set_lid(ingredient.lid_texture)
-	for offset: Vector2 in ingredient.unit_offsets:
-		container.put_in(work.spawn_item(ingredient.unit_texture), offset)
+	container.ingredient = kind
+	container.set_wrap(kind.back_texture, kind.front_texture)
+	container.set_lid(kind.lid_texture)
+	var count: int = kind.unit_offsets.size() if left < 0 else mini(left, kind.unit_offsets.size())
+	for i: int in count:
+		container.put_in(work.spawn_item(kind.unit_texture), kind.unit_offsets[i])
 	return container
 
 

@@ -56,6 +56,8 @@
 [ext_resource type="Resource" path="res://resources/station_roles/flat_box_storage.tres" id="54_flats"]
 [ext_resource type="Resource" path="res://resources/tasks/fold_box.tres" id="55_fold_box"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="56_task_type"]
+[ext_resource type="Resource" path="res://resources/stations/pizza_prep_table.tres" id="57_prep_table"]
+[ext_resource type="Resource" path="res://resources/tasks/put_away_dough.tres" id="58_put_away_dough"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -73,13 +75,8 @@ style = ExtResource("25_wall_style")
 doors = Array[Vector3i]([Vector3i(4, 11, 2)])
 
 [node name="PrepTable" parent="Entities" instance=ExtResource("5_station")]
-data = ExtResource("6_table")
+data = ExtResource("57_prep_table")
 cell = Vector2i(5, 5)
-role = ExtResource("13_prep")
-
-[node name="PrepTable2" parent="Entities" instance=ExtResource("5_station")]
-data = ExtResource("6_table")
-cell = Vector2i(5, 7)
 role = ExtResource("13_prep")
 
 [node name="SmallOven" parent="Entities" instance=ExtResource("5_station")]
@@ -173,12 +170,12 @@ work_types = Array[ExtResource("15_work_type")]([ExtResource("16_kitchen"), ExtR
 item_scene = ExtResource("11_item")
 throw_out_task = ExtResource("44_throw_out")
 take_order_task = ExtResource("52_take_order")
-restock_tasks = Array[ExtResource("56_task_type")]([ExtResource("55_fold_box")])
+restock_tasks = Array[ExtResource("56_task_type")]([ExtResource("55_fold_box"), ExtResource("58_put_away_dough")])
 
 [node name="BuildMode" type="Node" parent="."]
 script = ExtResource("47_build")
 station_scene = ExtResource("5_station")
-catalog = Array[ExtResource("48_station_data")]([ExtResource("6_table"), ExtResource("33_small_table"), ExtResource("14_counter"), ExtResource("51_register"), ExtResource("10_oven"), ExtResource("50_pizza_oven"), ExtResource("12_box_rack"), ExtResource("53_pallet"), ExtResource("43_garbage_can")])
+catalog = Array[ExtResource("48_station_data")]([ExtResource("57_prep_table"), ExtResource("6_table"),ExtResource("33_small_table"), ExtResource("14_counter"), ExtResource("51_register"), ExtResource("10_oven"), ExtResource("50_pizza_oven"), ExtResource("12_box_rack"), ExtResource("53_pallet"), ExtResource("43_garbage_can")])
 
 [node name="ShopCamera" type="Camera2D" parent="."]
 script = ExtResource("4_camera")

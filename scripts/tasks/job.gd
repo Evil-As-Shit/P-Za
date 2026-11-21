@@ -22,6 +22,9 @@ var placed_at: int = 0
 var destination: Station = null
 ## Shop minutes of work on top of the task's own (e.g. folding a flat box first).
 var extra_minutes: float = 0.0
+## How much was left in the unit last taken from storage (e.g. dough balls in a container
+## put back partly used), or -1 for a full one. See Station.take_supply().
+var taken_left: int = -1
 ## True for the steps of an order item's recipe (not stacking or hand-off).
 var recipe_step: bool = false
 ## Station spot reserved for this job while it is claimed.

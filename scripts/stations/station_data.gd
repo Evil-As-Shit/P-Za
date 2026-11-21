@@ -20,6 +20,9 @@ extends Resource
 ## and floor-level bottom corner. The working side faces down-left at facing 0, up-left at
 ## 1, up-right at 2 and down-right at 3.
 @export var facing_textures: Array[Texture2D] = []
+## Optional art shown instead while the station is in use (a spot is reserved by a pawn or
+## holds something), e.g. a prep table with its lids up. Laid out like facing_textures.
+@export var in_use_textures: Array[Texture2D] = []
 ## Optional art drawn over the station's items (e.g. an oven's top half), per facing, laid
 ## out like facing_textures. Make each the same height as its facing texture.
 @export var cover_textures: Array[Texture2D] = []
@@ -105,7 +108,11 @@ func is_mirrored(facing: int) -> bool:
 	return get_art_facing(facing) != facing
 
 
-func get_texture(facing: int) -> Texture2D:
+func get_texture(facing: int, in_use: bool = false) -> Texture2D:
+	if in_use:
+		var in_use_art: Texture2D = _pick(in_use_textures, get_art_facing(facing))
+		if in_use_art != null:
+			return in_use_art
 	return _pick(facing_textures, get_art_facing(facing))
 
 

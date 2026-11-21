@@ -449,7 +449,7 @@ func _on_pawn_stop_reached(job: Job, pawn: Pawn) -> void:
 				return
 			_pick_up(job, pawn)
 		JobStop.Action.TAKE_SUPPLY:
-			stop.station.take_supply()
+			job.taken_left = stop.station.take_supply()
 			behavior.on_supply_taken(job, stop.station, pawn, self)
 		_:
 			behavior.on_stop_reached(job, stop, pawn, self)
@@ -554,6 +554,15 @@ func _release(job: Job) -> void:
 	for stop: JobStop in job.stops:
 		stop.release()
 	job.stops.clear()
+
+
+## Items lying on the floor (set down by an interrupted job, or dropped).
+func get_floor_items() -> Array[Item]:
+	var items: Array[Item] = []
+	for child: Node in _entities.get_children():
+		if child is Item:
+			items.append(child as Item)
+	return items
 
 
 ## Sets an item down on the floor at `cell` (e.g. one a pawn can't take where it goes).

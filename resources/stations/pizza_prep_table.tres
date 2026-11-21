@@ -1,0 +1,65 @@
+[gd_resource type="Resource" script_class="StationData" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/station_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/stations/station_role.gd" id="2_role"]
+[ext_resource type="Resource" path="res://resources/station_roles/prep.tres" id="3_prep"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/placeholder/prep_table_sheet.png" id="4_sheet"]
+[ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="5_spot"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_closed0"]
+atlas = ExtResource("4_sheet")
+region = Rect2(0, 96, 80, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_closed1"]
+atlas = ExtResource("4_sheet")
+region = Rect2(80, 96, 80, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_closed2"]
+atlas = ExtResource("4_sheet")
+region = Rect2(160, 96, 80, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_closed3"]
+atlas = ExtResource("4_sheet")
+region = Rect2(240, 96, 80, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_open0"]
+atlas = ExtResource("4_sheet")
+region = Rect2(0, 0, 80, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_open1"]
+atlas = ExtResource("4_sheet")
+region = Rect2(80, 0, 80, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_open2"]
+atlas = ExtResource("4_sheet")
+region = Rect2(160, 0, 80, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_open3"]
+atlas = ExtResource("4_sheet")
+region = Rect2(240, 0, 80, 96)
+
+[sub_resource type="Resource" id="Resource_spot_a"]
+script = ExtResource("5_spot")
+work_cell = Vector2i(0, 2)
+item_cell = Vector2i(0, 1)
+
+[sub_resource type="Resource" id="Resource_spot_b"]
+script = ExtResource("5_spot")
+work_cell = Vector2i(1, 2)
+item_cell = Vector2i(1, 1)
+
+[sub_resource type="Resource" id="Resource_spot_c"]
+script = ExtResource("5_spot")
+work_cell = Vector2i(2, 2)
+item_cell = Vector2i(2, 1)
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Prep Table"
+roles = Array[ExtResource("2_role")]([ExtResource("3_prep")])
+default_role = ExtResource("3_prep")
+footprint = Vector2i(3, 2)
+facing_textures = Array[Texture2D]([SubResource("AtlasTexture_closed0"), SubResource("AtlasTexture_closed1"), SubResource("AtlasTexture_closed2"), SubResource("AtlasTexture_closed3")])
+in_use_textures = Array[Texture2D]([SubResource("AtlasTexture_open0"), SubResource("AtlasTexture_open1"), SubResource("AtlasTexture_open2"), SubResource("AtlasTexture_open3")])
+spots = Array[ExtResource("5_spot")]([SubResource("Resource_spot_a"), SubResource("Resource_spot_b"), SubResource("Resource_spot_c")])
+item_offset = Vector2(0, -16)

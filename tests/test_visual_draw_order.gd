@@ -12,8 +12,8 @@ extends SceneTree
 ## gaps or doubled pixels where its strips meet.
 ##
 ## Stations: the template test boxes in tests/draw_order/ (1x1, low and tall 2x1 at both
-## facings, 2x2, 3x3), and the real long table, register, box rack (full, both facings) and
-## pizza oven (both facings).
+## facings, 2x2, 3x3), and the real long table, register, prep table (3x2, lids open with
+## boxes on it, both facings), box rack (full, both facings) and pizza oven (both facings).
 
 const STATION_SCENE := preload("res://scenes/stations/station.tscn")
 const FLOOR_SCENE := preload("res://scenes/world/shop_floor.tscn")
@@ -75,6 +75,8 @@ func _run() -> void:
 		["long table", load("res://resources/stations/long_table.tres"), 0],
 		["long table", load("res://resources/stations/long_table.tres"), 1],
 		["register", load("res://resources/stations/register.tres"), 0],
+		["prep table", load("res://resources/stations/pizza_prep_table.tres"), 0],
+		["prep table", load("res://resources/stations/pizza_prep_table.tres"), 1],
 		["box rack", load("res://resources/stations/box_rack.tres"), 3],
 		["box rack", load("res://resources/stations/box_rack.tres"), 0],
 		["pizza oven", load("res://resources/stations/pizza_oven.tres"), 0],
@@ -108,7 +110,7 @@ func _check_station(label: String, data: StationData, facing: int, background: I
 	if label == "box rack":
 		station._stock = station._get_capacity()
 		station._update_piles()
-	if label == "long table":
+	if label == "long table" or label == "prep table":
 		for spot: int in station.get_spot_count():
 			var box: Item = ITEM_SCENE.instantiate()
 			_entities.add_child(box)
