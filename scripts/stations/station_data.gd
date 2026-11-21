@@ -9,6 +9,8 @@ extends Resource
 ## Roles the player can assign (e.g. a table as Prep or Boxing). If set, the station's
 ## role decides its task types instead of task_types.
 @export var roles: Array[StationRole] = []
+## Role a newly built one starts with (e.g. a pallet storing flat boxes). Null means unused.
+@export var default_role: StationRole = null
 ## Facing a newly built one starts at. Stations with art for only one facing always use it.
 @export_range(0, 3) var default_facing: int = 0
 ## Size in cells at facing 0. The origin cell is the footprint's first cell.

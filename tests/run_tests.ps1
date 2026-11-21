@@ -1,5 +1,6 @@
 # Runs every tests/test_*.gd headless and reports which pass. A test fails if it says so,
 # exits with an error, or prints any engine error (script errors, leaks at exit).
+# Tests named test_visual_*.gd check rendered pixels, so they run with a window instead.
 #
 # Usage (from the project folder):
 #   .\tests\run_tests.ps1                  # all tests
@@ -18,7 +19,11 @@ $tests = Get-ChildItem (Join-Path $PSScriptRoot "test_*.gd") | Where-Object { $_
 
 foreach ($test in $tests) {
     $start = Get-Date
-    $output = & $godot --headless --path $project --fixed-fps 60 --script "res://tests/$($test.Name)" 2>&1 | Out-String
+    $godotArgs = @("--path", $project, "--fixed-fps", "60", "--script", "res://tests/$($test.Name)")
+    if ($test.BaseName -notlike "test_visual_*") {
+        $godotArgs = @("--headless") + $godotArgs
+    }
+    $output = & $godot $godotArgs 2>&1 | Out-String
     $code = $LASTEXITCODE
     $seconds = [int]((Get-Date) - $start).TotalSeconds
     $errors = $output -split "`n" | Where-Object { $_ -match "SCRIPT ERROR|^ERROR:|leaked" }

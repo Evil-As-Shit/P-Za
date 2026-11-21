@@ -5,7 +5,6 @@
 [ext_resource type="Resource" path="res://resources/tasks/set_out_box.tres" id="3_set_out_box"]
 [ext_resource type="Resource" path="res://resources/tasks/unload_oven.tres" id="4_unload_oven"]
 [ext_resource type="Resource" path="res://resources/tasks/cut.tres" id="5_cut"]
-
 [resource]
 script = ExtResource("1_role")
 id = &"boxing"

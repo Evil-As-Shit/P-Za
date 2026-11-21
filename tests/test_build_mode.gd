@@ -1,6 +1,7 @@
 extends "res://tests/test_base.gd"
 ## Build mode: placing a new station, refusing spots that don't fit, moving and selling idle
-## stations, refusing to move a busy one, and work carrying on with the new layout.
+## stations, refusing to sell one with something on it, and work carrying on with the new
+## layout. (Moving busy stations mid-order: test_move_busy.)
 
 const OVEN := preload("res://resources/stations/small_oven.tres")
 
@@ -91,15 +92,25 @@ func _start() -> void:
 
 
 func _step() -> void:
-	# While the pizza is on the prep table, the table can't be picked up.
+	# With the pizza on the prep table, the table can be picked up but not sold; let go,
+	# it goes back where it was with the pizza on it.
 	if _busy_checked:
 		return
 	var prep: Station = world.get_node("Entities/PrepTable")
-	if prep.is_idle():
+	if not prep.has_items():
 		return
 	_busy_checked = true
-	if _build.pick_up(prep):
-		fail("picked up a prep table that was in use")
+	world._set_build_mode(true)
+	if not _build.pick_up(prep):
+		fail("couldn't pick up the prep table with a pizza on it")
+		return
+	if _build.sell():
+		fail("sold a prep table with a pizza on it")
+		return
+	_build.cancel()
+	world._set_build_mode(false)
+	if not prep.has_items() or not world._stations.has(prep):
+		fail("the prep table didn't go back to work with its pizza")
 
 
 func _on_completed(ticket: Ticket) -> void:
@@ -108,4 +119,4 @@ func _on_completed(ticket: Ticket) -> void:
 	if not _busy_checked:
 		fail("never saw the prep table in use")
 		return
-	pass_test("placed and sold an oven, moved the garbage can, and an order still went out")
+	pass_test("placed and sold an oven, moved the garbage can, kept a busy table, and an order still went out")

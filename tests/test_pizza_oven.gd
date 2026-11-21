@@ -61,7 +61,7 @@ func _step() -> void:
 	if _oven == null:
 		return
 	var lit: Texture2D = PIZZA_OVEN.get_cover_texture(_oven.facing, true)
-	var cover: Sprite2D = _oven.get_node("Cover")
+	var cover: Sprite2D = _oven._cover
 	if _oven._working.has(true):
 		if cover.texture != lit:
 			fail("the oven was baking but its cover wasn't lit")

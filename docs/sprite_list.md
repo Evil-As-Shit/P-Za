@@ -21,14 +21,15 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 
 ## Placeholders (generated, to be redrawn)
 
-Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette and grid as the art above. The oven and register are used in game; the rest aren't wired up yet.
+Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette and grid as the art above. The oven, register, flat boxes and pallet are used in game; the rest aren't wired up yet.
 
 - `oven_2x2_sheet.png`: 2×2 oven, 64×80 per facing (0–3 left to right). Row 1 closed, row 2 baking (glowing window). Used by the Pizza Oven station.
 - `register_sheet.png`: register and ticket printer on the pickup-counter base, 32×48 per facing. Used by the Register station.
 - `chair_sheet.png`: wooden chair, 32×48 per facing. Facing is the way the sitter faces.
 - `fridge_sheet.png`: reach-in fridge, 32×64 per facing (on the 1×1 guide).
 - `dough_mixer_sheet.png`: floor mixer, 32×48 per facing.
-- `box_flat_sheet.png`: 32×16 cells like `box_sheet.png`. A single flat box, then a strapped bundle of flats.
+- `box_flat_sheet.png`: 32×16 cells like `box_sheet.png`. A single flat box (used: stacked on the pallet, carried while folding), then a strapped bundle of flats (unused).
+- `pallet_sheet.png`: wooden pallet, 1×1, 32×48 per facing. Used by the Box Pallet station, which holds flat boxes next to the boxing tables.
 - `ingredient_icons.png`: on the 16×16 item guide. Dough, sauce, cheese, pepperoni, mushroom, olives.
 
 ## Priority 1: the pizza loop (next slices)
@@ -38,8 +39,8 @@ Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette 
 | 1 | Pawn **work** animation (down-left, up-left) | pawn rows 4–5 | Pawns currently stand idle while working. |
 | 2 | Pawn **carry** walk (down-left, up-left) | pawn rows 6–7 | For carrying pizzas and boxes between stations. |
 | 3 | **Oven** | object 2×2 | Drawn in the middle of its 4 tiles, leaving room to spare around it. Open and closed or "baking" states are nice to have. |
-| 4 | **Pizza box**: flat sheet | object 1×1 | Open and closed boxes are done. Boxes arrive flat and get folded (GDD). |
-| 5 | **Box folding** station; other box rack facings | object 2×1 | The box rack stores folded boxes; boxing happens on a table. Where folding happens is **TBD**. |
+| 4 | **Pizza box**: flat sheet | object 1×1 | Placeholder in use (`box_flat_sheet.png`). Pawns fold flats at the box pallet; a folding animation would help. |
+| 5 | **Box pallet** (real art); other box rack facings | object 1×1, 2×1 | Folding happens standing at the box pallet, next to the boxing tables; the pallet uses a placeholder. |
 | 6 | **Register** (prints tickets) | object 1×1 or 2×1 | Where orders come from. |
 | 7 | **Doorway pieces** (door frames or wall end caps), full and short; optional cutaway side corners (full back wall joined to a short front wall) | `walls_with_reference.png` | Doors are gaps for now. |
 | 8 | Kitchen floor vs. dining floor tiles | your tile layout | Your current tiles already work on the grid. |
@@ -105,6 +106,7 @@ One cell per facing, left to right: **facing 0, 1, 2, 3**. The blue diamonds are
 - The game lines each sprite up by its **left edge** and **bottom row**. Keep those the same as the guide. The height is free, so tall objects can use more rows, and you can crop empty rows off the top.
 - Cell widths: 1×1 = 32 px, 2×1 = 48 px, 2×2 = 64 px, 3×3 = 96 px (the 3×3 sheet is 384×96, with 48 px above the footprint).
 - Symmetric objects (like the long table) can reuse facing 0's art for facing 2 and facing 1's for facing 3.
+- Objects bigger than one cell are drawn in 16 px wide strips, each sorted at the floor cell under it, so pawns walking around them go in front of or behind the right part. Nothing to do when drawing: stay inside the guide's width, and keep things stacked on top within 48 px above the art. `tests/test_visual_draw_order.gd` checks this with plain test boxes on each guide (`tests/draw_order/`).
 - Mirroring facing 0 horizontally gives a rough start for facing 1.
 - **Carried items** (pizzas, boxes and so on) need only one view: draw them with their front facing **down-right**, with the back (like a box's fold or lid) up-left. The game flips them to match the pawn carrying them, and to face the pawn when set down.
 

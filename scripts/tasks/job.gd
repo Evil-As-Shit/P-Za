@@ -17,6 +17,11 @@ var target: Item = null
 ## recipe per item, and the shop time they ordered (ShopClock.get_open_minutes()).
 var recipes: Array[Recipe] = []
 var placed_at: int = 0
+## For jobs that put something away (e.g. a folded box): the storage it goes to. Its room
+## is claimed until it's stored.
+var destination: Station = null
+## Shop minutes of work on top of the task's own (e.g. folding a flat box first).
+var extra_minutes: float = 0.0
 ## True for the steps of an order item's recipe (not stacking or hand-off).
 var recipe_step: bool = false
 ## Station spot reserved for this job while it is claimed.
@@ -26,6 +31,9 @@ var spot: int = -1
 var stops: Array[JobStop] = []
 var claimed_by: Pawn = null
 var work_done: float = 0.0
+## For a job done in parts by one pawn (e.g. fold a box, then put it away): the part under
+## way, from 0. See TaskBehavior.continue_job().
+var part: int = 0
 
 
 func _init(p_task_type: TaskType, p_ticket: Ticket, p_order_item: OrderItem) -> void:
@@ -36,7 +44,9 @@ func _init(p_task_type: TaskType, p_ticket: Ticket, p_order_item: OrderItem) -> 
 
 ## Pawn work needed. Unattended tasks need none: the pawn just loads the item.
 func get_work_required() -> float:
-	return 0.0 if task_type.unattended else task_type.get_work_seconds()
+	if task_type.unattended:
+		return 0.0
+	return task_type.get_behavior().get_work_seconds(self) + ShopClock.minutes_to_seconds(extra_minutes)
 
 
 func is_complete() -> bool:

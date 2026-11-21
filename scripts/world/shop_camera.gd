@@ -50,10 +50,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		_pan(-motion.relative / zoom.x)
 
 
-## Moves by `amount`, in whole pixels, carrying the fraction over to the next move.
+## Moves by `amount`, in whole pixels, carrying the fraction over to the next move. Only
+## the whole part moves (not rounding): a leftover of exactly half a pixel would otherwise
+## round one way, leave -0.5, round back, and shake the camera every frame.
 func _pan(amount: Vector2) -> void:
 	_pan_remainder += amount
-	var step: Vector2 = _pan_remainder.round()
+	var step := Vector2(int(_pan_remainder.x), int(_pan_remainder.y))
 	position = position.round() + step
 	_pan_remainder -= step
 

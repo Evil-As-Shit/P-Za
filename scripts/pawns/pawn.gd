@@ -32,6 +32,18 @@ const LOWEST_PRIORITY: int = 4
 ## How far in front of the pawn a carried item is held, for a down-left facing.
 @export var hold_reach: Vector2 = Vector2(-5.0, 3.0)
 
+@export_group("Avoidance")
+## Walking pawns closer than this to another pawn (on the floor, in pixels along the grid)
+## step aside and slow down, so they pass instead of walking through each other.
+@export var avoid_radius: float = 20.0
+## How far they step aside, in screen pixels.
+@export var sidestep: float = 7.0
+## How fast they step aside and back, in pixels per second.
+@export var sidestep_speed: float = 40.0
+## Walking speed multiplier while passing close to someone.
+@export_range(0.1, 1.0) var crowded_speed: float = 0.6
+@export_group("")
+
 var _state: State = State.IDLE
 var _path: PackedVector2Array = PackedVector2Array()
 ## Paths still to walk after the current one: to each remaining stop, then to work.
@@ -44,6 +56,12 @@ var _on_phone: bool = false
 var _work_target: Vector2 = Vector2.ZERO
 var _facing_up: bool = false
 var _facing_right: bool = false
+## Where the pawn is drawn relative to where it really is, while stepping aside for
+## someone. Only the look moves; paths, cells and jobs use the real position.
+var _sidestep_offset: Vector2 = Vector2.ZERO
+## Walking speed multiplier right now (crowded_speed while passing someone).
+var _speed_factor: float = 1.0
+var _work_bar_base: Vector2 = Vector2.ZERO
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
 @onready var _work_bar: ProgressBar = $WorkBar
@@ -51,16 +69,72 @@ var _facing_right: bool = false
 
 
 func _ready() -> void:
+	add_to_group(&"pawns")
+	_work_bar_base = _work_bar.position
 	_play_idle()
 	_place_hold_point()
 
 
 func _process(delta: float) -> void:
+	_avoid_others(delta)
 	match _state:
 		State.WALKING, State.WALKING_TO_STOP, State.WALKING_TO_JOB:
 			_step_along_path(delta)
 		State.WORKING:
 			_do_work(delta)
+
+
+## The offset the pawn is drawn at while stepping aside (zero when not).
+func get_sidestep_offset() -> Vector2:
+	return _sidestep_offset
+
+
+func is_walking() -> bool:
+	return _state == State.WALKING or _state == State.WALKING_TO_STOP or _state == State.WALKING_TO_JOB
+
+
+## While walking near another pawn: steps aside, away from them (to the right when meeting
+## head-on, so two pawns pass each other), and slows down. Eases back once clear.
+func _avoid_others(delta: float) -> void:
+	var target := Vector2.ZERO
+	_speed_factor = 1.0
+	if is_walking() and not _path.is_empty():
+		var nearest: Pawn = null
+		var nearest_distance: float = avoid_radius
+		for node: Node in get_tree().get_nodes_in_group(&"pawns"):
+			var other := node as Pawn
+			if other == self or other == null:
+				continue
+			var distance: float = _to_floor(other.global_position - global_position).length()
+			if distance < nearest_distance:
+				nearest = other
+				nearest_distance = distance
+		var heading: Vector2 = _to_floor(_path[0] - global_position)
+		if nearest != null and heading.length() > 0.01:
+			_speed_factor = crowded_speed
+			heading = heading.normalized()
+			var right := Vector2(-heading.y, heading.x)
+			var to_other: Vector2 = _to_floor(nearest.global_position - global_position)
+			var side: float = 1.0
+			if absf(right.dot(to_other)) > 1.0:
+				side = -signf(right.dot(to_other))
+			target = _to_screen(right * side).normalized() * sidestep
+	var offset: Vector2 = _sidestep_offset.move_toward(target, sidestep_speed * delta)
+	if offset == _sidestep_offset:
+		return
+	_sidestep_offset = offset
+	_sprite.position = _sidestep_offset
+	_work_bar.position = _work_bar_base + _sidestep_offset
+	_place_hold_point()
+
+
+## Screen offset to floor distances (the floor's iso grid is squashed to half height).
+static func _to_floor(screen: Vector2) -> Vector2:
+	return Vector2(screen.x, screen.y * 2.0)
+
+
+static func _to_screen(floor_offset: Vector2) -> Vector2:
+	return Vector2(floor_offset.x, floor_offset.y / 2.0)
 
 
 ## Walks through each point in order (global positions). Emits path_finished at the end.
@@ -154,6 +228,11 @@ func get_job() -> Job:
 	return _job
 
 
+## The item the pawn is carrying, or null.
+func get_held_item() -> Item:
+	return _held_item
+
+
 ## Lets go of the held item and returns it. The caller moves it somewhere.
 func release_item() -> Item:
 	var item: Item = _held_item
@@ -197,7 +276,7 @@ func _step_along_path(delta: float) -> void:
 		return
 
 	var to_target: Vector2 = _path[0] - global_position
-	var step: float = move_speed * delta
+	var step: float = move_speed * _speed_factor * delta
 	if to_target.length() <= step:
 		global_position = _path[0]
 		_path.remove_at(0)
@@ -267,7 +346,7 @@ func _place_hold_point() -> void:
 		reach.x = -reach.x
 	if _facing_up:
 		reach.y = -reach.y
-	_hold_point.position = reach + Vector2(0.0, -hold_height)
+	_hold_point.position = reach + Vector2(0.0, -hold_height) + _sidestep_offset
 	move_child(_hold_point, 0 if _facing_up else _sprite.get_index() + 1)
 
 

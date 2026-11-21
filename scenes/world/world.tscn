@@ -52,6 +52,10 @@
 [ext_resource type="Resource" path="res://resources/stations/pizza_oven.tres" id="50_pizza_oven"]
 [ext_resource type="Resource" path="res://resources/stations/register.tres" id="51_register"]
 [ext_resource type="Resource" path="res://resources/tasks/take_order.tres" id="52_take_order"]
+[ext_resource type="Resource" path="res://resources/stations/box_pallet.tres" id="53_pallet"]
+[ext_resource type="Resource" path="res://resources/station_roles/flat_box_storage.tres" id="54_flats"]
+[ext_resource type="Resource" path="res://resources/tasks/fold_box.tres" id="55_fold_box"]
+[ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="56_task_type"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -92,7 +96,7 @@ cell = Vector2i(10, 5)
 
 [node name="BoxRack" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("12_box_rack")
-cell = Vector2i(8, 8)
+cell = Vector2i(10, 2)
 facing = 3
 role = ExtResource("30_box_storage")
 
@@ -116,6 +120,11 @@ role = ExtResource("21_boxing_role")
 data = ExtResource("6_table")
 cell = Vector2i(8, 2)
 role = ExtResource("21_boxing_role")
+
+[node name="BoxPallet" parent="Entities" instance=ExtResource("5_station")]
+data = ExtResource("53_pallet")
+cell = Vector2i(7, 2)
+role = ExtResource("54_flats")
 
 [node name="PickupCounter" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("14_counter")
@@ -164,11 +173,12 @@ work_types = Array[ExtResource("15_work_type")]([ExtResource("16_kitchen"), ExtR
 item_scene = ExtResource("11_item")
 throw_out_task = ExtResource("44_throw_out")
 take_order_task = ExtResource("52_take_order")
+restock_tasks = Array[ExtResource("56_task_type")]([ExtResource("55_fold_box")])
 
 [node name="BuildMode" type="Node" parent="."]
 script = ExtResource("47_build")
 station_scene = ExtResource("5_station")
-catalog = Array[ExtResource("48_station_data")]([ExtResource("6_table"), ExtResource("33_small_table"), ExtResource("14_counter"), ExtResource("51_register"), ExtResource("10_oven"), ExtResource("50_pizza_oven"), ExtResource("12_box_rack"), ExtResource("43_garbage_can")])
+catalog = Array[ExtResource("48_station_data")]([ExtResource("6_table"), ExtResource("33_small_table"), ExtResource("14_counter"), ExtResource("51_register"), ExtResource("10_oven"), ExtResource("50_pizza_oven"), ExtResource("12_box_rack"), ExtResource("53_pallet"), ExtResource("43_garbage_can")])
 
 [node name="ShopCamera" type="Camera2D" parent="."]
 script = ExtResource("4_camera")

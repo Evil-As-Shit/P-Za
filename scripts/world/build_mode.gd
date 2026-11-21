@@ -3,8 +3,8 @@ extends Node
 ## Lets the player place new stations and move existing ones. While active, a chosen
 ## station follows the mouse as a ghost, green where it fits and red where it doesn't. A
 ## click places it (and keeps the tool for another), R turns it, right-click or Esc lets go.
-## Clicking an idle station picks it up to move, or to sell with Delete. Building is free
-## for now, and selling pays nothing back.
+## Clicking a station picks it up to move (with what's on it, even if it's in use), or to
+## sell with Delete. Building is free for now, and selling pays nothing back.
 
 ## A new station was placed. The owner sets it up (blocks its cells, puts it to work).
 signal station_built(station: Station)
@@ -14,8 +14,9 @@ signal move_started(station: Station)
 signal move_finished(station: Station)
 ## A picked-up station was sold. It's gone; anything stored on it goes with it.
 signal station_sold(station: Station)
-## A station was picked up or let go, so selling became possible or not.
-signal holding_changed(holding_existing: bool)
+## A station was picked up or let go, so selling became possible or not (a station with
+## something on its spots can be moved but not sold).
+signal holding_changed(can_sell: bool)
 
 @export var station_scene: PackedScene
 ## Stations the player can build, in menu order.
@@ -58,15 +59,17 @@ func choose(data: StationData) -> void:
 	var station := station_scene.instantiate() as Station
 	station.data = data
 	station.facing = data.default_facing
+	station.role = data.default_role
 	_entities.add_child(station)
 	_ghost = station
 	_moving = false
 	hover(_mouse_cell())
 
 
-## Picks an existing station up to move it. Returns false if it's busy.
+## Picks an existing station up to move it, with whatever is on it. Pawns using it stop
+## until it's put down (see WorkManager.remove_station()). Returns false if there's none.
 func pick_up(station: Station) -> bool:
-	if not station.is_idle():
+	if station == null:
 		return false
 	cancel()
 	_ghost = station
@@ -74,15 +77,16 @@ func pick_up(station: Station) -> bool:
 	_move_from_cell = station.cell
 	_move_from_facing = station.facing
 	move_started.emit(station)
-	holding_changed.emit(true)
+	holding_changed.emit(not station.has_items())
 	hover(station.cell)
 	return true
 
 
 ## Sells the picked-up station. Building is free for now, so selling pays nothing back.
-## Returns false if no existing station is picked up.
+## Returns false if no existing station is picked up, or if something sits on it (orders
+## would lose what they're made in, e.g. an open pizza box).
 func sell() -> bool:
-	if _ghost == null or not _moving:
+	if _ghost == null or not _moving or _ghost.has_items():
 		return false
 	var station: Station = _ghost
 	_ghost = null

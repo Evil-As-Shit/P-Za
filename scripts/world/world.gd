@@ -125,7 +125,8 @@ func _on_station_built(station: Station) -> void:
 	_work.assign_all()
 
 
-## A station was picked up to move: nobody uses it until it's put down.
+## A station was picked up to move: nobody uses it until it's put down, and pawns using it
+## stop (what's on it comes along).
 func _on_station_move_started(station: Station) -> void:
 	for cell: Vector2i in station.get_footprint_cells():
 		_floor.set_cell_blocked(cell, false)

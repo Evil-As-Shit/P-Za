@@ -22,6 +22,9 @@ signal waiting_orders_changed(count: int)
 @export var throw_out_task: TaskType
 ## Taking a customer's order at the register.
 @export var take_order_task: TaskType
+## Restocking tasks (e.g. folding boxes): a job opens for one whenever its behavior says
+## it's needed. Pawns only take them when they have nothing else to do.
+@export var restock_tasks: Array[TaskType] = []
 @export var idle_time_min: float = 0.5
 @export var idle_time_max: float = 2.0
 ## Chance an idle pawn checks their phone instead of just standing (placeholder).
@@ -54,9 +57,40 @@ func add_station(station: Station) -> void:
 	_stations.append(station)
 
 
-## Stops using the station (e.g. while it's picked up to move). It must be idle.
+## Stops using the station (e.g. while it's picked up to move): no new jobs go to it or take
+## things off it, and pawns whose jobs involve it stop (see interrupt_jobs_at()).
 func remove_station(station: Station) -> void:
 	_stations.erase(station)
+	interrupt_jobs_at(station)
+
+
+## Stops every pawn whose job involves the station: working at it, or on the way to take
+## something from it or bring something to it. They set down what they carry; the jobs
+## keep their progress and are offered again (see withdraw_job()).
+func interrupt_jobs_at(station: Station) -> void:
+	for pawn: Pawn in _pawns:
+		var job: Job = pawn.get_job()
+		if job != null and _involves(job, station):
+			withdraw_job(job)
+
+
+func _involves(job: Job, station: Station) -> bool:
+	if job.station == station or job.destination == station:
+		return true
+	for stop: JobStop in job.stops:
+		if stop.station == station:
+			return true
+		if stop.container != null and is_instance_valid(stop.container) \
+				and stop.container.get_outermost().station == station:
+			return true
+	var carried: Item = job.task_type.get_behavior().get_carried(job)
+	return carried != null and is_instance_valid(carried) and carried.get_outermost().station == station
+
+
+## True if pawns can use the item: it isn't on a station that's out of use (e.g. picked up).
+func is_available(item: Item) -> bool:
+	var station: Station = item.get_outermost().station
+	return station == null or _stations.has(station)
 
 
 ## Takes the pawn on as staff; they start by idling.
@@ -80,6 +114,12 @@ func get_stations() -> Array[Station]:
 
 func get_shop_jobs() -> Array[Job]:
 	return _shop_jobs
+
+
+## Tracks a job outside any order (e.g. a restock job once it's claimed) until it's done.
+func add_shop_job(job: Job) -> void:
+	if not _shop_jobs.has(job):
+		_shop_jobs.append(job)
 
 
 func get_make_tickets() -> Array[Ticket]:
@@ -107,6 +147,21 @@ func try_assign(pawn: Pawn, max_priority: int = Pawn.LOWEST_PRIORITY) -> bool:
 	for job: Job in _shop_jobs:
 		if job.claimed_by == null:
 			jobs.append(job)
+	if _try_jobs(pawn, jobs, max_priority):
+		return true
+	# Restocking (e.g. folding boxes) is filler: only for a pawn with nothing else to do at
+	# any priority, so it never holds up orders.
+	if max_priority < Pawn.LOWEST_PRIORITY:
+		return false
+	var restock: Array[Job] = []
+	for task: TaskType in restock_tasks:
+		if task.get_behavior().is_needed(self):
+			restock.append(Job.new(task, null, null))
+	return _try_jobs(pawn, restock, max_priority)
+
+
+## Starts the first of `jobs` the pawn can do, by their priorities (see try_assign()).
+func _try_jobs(pawn: Pawn, jobs: Array[Job], max_priority: int) -> bool:
 	for priority: int in range(1, max_priority + 1):
 		for work_type: WorkType in work_types:
 			if pawn.get_priority(work_type) != priority:
@@ -120,6 +175,14 @@ func try_assign(pawn: Pawn, max_priority: int = Pawn.LOWEST_PRIORITY) -> bool:
 ## Gives the pawn the job if they can walk to each stop and then the spot. Claims what the
 ## stops need and reserves the spot.
 func start_job(pawn: Pawn, job: Job, spot: WorkSpot, stops: Array[JobStop]) -> bool:
+	# Nothing goes to a station that's out of use (e.g. picked up to move).
+	if not _stations.has(spot.station):
+		return false
+	for stop: JobStop in stops:
+		if stop.station != null and not _stations.has(stop.station):
+			return false
+		if stop.container != null and not is_available(stop.container):
+			return false
 	var from_cell: Vector2i = get_cell(pawn)
 	var stop_paths: Array[PackedVector2Array] = []
 	for stop: JobStop in stops:
@@ -171,10 +234,16 @@ func withdraw_job(job: Job) -> void:
 	pawn.drop_job()
 	var held: Item = pawn.release_item()
 	if held != null:
-		_drop_on_floor(held, get_cell(pawn))
+		drop_on_floor(held, get_cell(pawn))
 	_release(job)
+	job.task_type.get_behavior().on_withdrawn(job, self)
 	_rack.notify_job_state_changed()
 	_work_or_wander(pawn)
+
+
+## Drops a shop job that won't be done (e.g. restocking interrupted halfway).
+func cancel_shop_job(job: Job) -> void:
+	_shop_jobs.erase(job)
 
 #endregion
 
@@ -203,7 +272,7 @@ func get_free_spots(task: TaskType, own: Item) -> Array[WorkSpot]:
 ## The free spot where the order item's container sits set out and ready, or null.
 func get_container_spot(order_item: OrderItem) -> WorkSpot:
 	var container: Item = order_item.container
-	if container == null or container.station == null:
+	if container == null or container.station == null or not _stations.has(container.station):
 		return null
 	if container.station.is_reserved(container.spot):
 		return null
@@ -340,11 +409,20 @@ func throw_out_leftovers(ticket: Ticket) -> void:
 			if not leftovers.has(outer):
 				leftovers.append(outer)
 	for child: Node in _entities.get_children():
-		if child is Item and not leftovers.has(child):
+		if child is Item and not leftovers.has(child) and not _is_shop_job_target(child as Item):
 			leftovers.append(child as Item)
 	for item: Item in leftovers:
 		throw_out(item)
 	assign_all()
+
+
+## True if a shop job is already moving the item (e.g. a folded box set down on its way to
+## storage), so it isn't a leftover.
+func _is_shop_job_target(item: Item) -> bool:
+	for job: Job in _shop_jobs:
+		if job.target == item and job.task_type != throw_out_task:
+			return true
+	return false
 
 #endregion
 
@@ -410,6 +488,9 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	var task: TaskType = job.task_type
 	var behavior: TaskBehavior = task.get_behavior()
 	behavior.on_finished(job, pawn, self)
+	if behavior.continue_job(job, pawn, self):
+		# The same pawn goes on to the job's next part.
+		return
 	if task.ingredient_cost != 0.0:
 		ingredients_used.emit(task.ingredient_cost)
 	_release(job)
@@ -444,12 +525,14 @@ func _work_unattended(item: Item, task: TaskType, done_texture: Texture2D) -> vo
 	var station: Station = item.station
 	var spot: int = item.spot
 	var tween: Tween = create_tween()
-	tween.tween_method(
-		func(progress: float) -> void: station.show_work(spot, progress),
-		0.0, 1.0, task.get_work_seconds()
-	)
+	# The station may be moved meanwhile (the item goes with it), or sold.
+	var show_progress := func(progress: float) -> void:
+		if is_instance_valid(station):
+			station.show_work(spot, progress)
+	tween.tween_method(show_progress, 0.0, 1.0, task.get_work_seconds())
 	await tween.finished
-	station.hide_work(spot)
+	if is_instance_valid(station):
+		station.hide_work(spot)
 	if not is_instance_valid(item):
 		return
 	item.busy = false
@@ -473,7 +556,8 @@ func _release(job: Job) -> void:
 	job.stops.clear()
 
 
-func _drop_on_floor(item: Item, cell: Vector2i) -> void:
+## Sets an item down on the floor at `cell` (e.g. one a pawn can't take where it goes).
+func drop_on_floor(item: Item, cell: Vector2i) -> void:
 	item.reparent(_entities, false)
 	item.global_position = _floor.cell_to_global(cell)
 

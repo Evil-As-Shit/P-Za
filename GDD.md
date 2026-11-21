@@ -99,7 +99,7 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 - **Priority grid:** pawns are rows, broad work types are columns, and each cell is 1–4 (1 first) or blank (never). Columns, left to right:
   - **Kitchen:** stretch, sauce, cheese, load oven, throw out leftovers (later dough and sauce prep).
   - **Oven:** take pizzas out.
-  - **Boxing:** set out a box, cut, stack boxes (later folding).
+  - **Boxing:** set out a box, cut, stack boxes, fold boxes.
   - **Front:** take orders at the register, carry finished orders to pickup (later service).
   - Driving and Cleaning get columns when they exist.
 - An idle pawn takes work by its grid: priority 1 before 2, and the leftmost column wins a tie. Within a work type, it takes the first open job in Make-rack order. Pawns finish their current job before choosing again.
@@ -113,10 +113,10 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 - Each station has one or more **spots**. A spot is where a pawn stands plus where its item sits, and one pawn uses it at a time. Clicking a station shows its work spots on the floor.
 - **Roles (zones, part 1):** tables, counters and racks are general-purpose. The player clicks one to give it a role, either work or storage:
   - Work: Prep (making pizzas), Boxing (boxes, unloading, cutting), Pickup (hand-off).
-  - Storage: Boxes, Dough (full dough containers), Empty Dough (empty containers).
+  - Storage: Boxes (folded), Flat Boxes, Dough (full dough containers), Empty Dough (empty containers). A box pallet holds Flat Boxes from the start.
   - Or unused. A station either works or stores. Ovens and the garbage can keep a fixed purpose.
 - Each station type sets how each stored kind stacks on it (racks have shelf positions; tables stack on each spot).
-- For now, Boxes and Dough storage start full and refill the moment they run out (until deliveries exist), and Empty Dough storage clears the moment it fills (until there's a cleaning station).
+- For now, Flat Boxes and Dough storage start full and refill the moment they run out (until deliveries exist); Boxes storage starts empty and is filled only by folding, and Empty Dough storage clears the moment it fills (until there's a cleaning station).
 - Later zone work: storage priority (like RimWorld stockpiles), then painted front/back-of-house areas.
 
 ### Orders and the ticket rack
@@ -137,7 +137,7 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 - The pizza is a real item. It sits on a station and pawns carry it between stations. A spot holding another ticket's pizza can't be used.
 - **Dough:** dough balls come in lidded containers of 6, stacked in Dough storage. To stretch, a pawn takes a ball from the open container on a Prep spot. If none is open, they first fetch a full one and set it out on a Prep spot (lid off), where it takes up that spot until it's empty. Only one container is set out at a time. The pawn who takes the last ball carries the empty to Empty Dough storage (later, to a cleaning station).
 - **Oven:** baking runs on its own; a Kitchen pawn loads the pizza and is free while it cooks. Once it's done, an Oven pawn takes it out and drops it into its open box. Later, when it's taken out will set its doneness (under, perfect, over), modified by Oven skill.
-- **Boxes:** pizza boxes arrive as flat sheets that staff fold before use (later). The box rack stores folded boxes. Once the pizza is in the oven, a pawn takes a box from the rack and opens it on an empty Boxing spot. Once the pizza is in the box, a pawn cuts it there (cut lines appear as the work goes) and the box closes.
+- **Boxes:** pizza boxes arrive flat, stacked on a pallet next to the boxing tables. When a Boxing pawn has nothing else to do at any priority, they stand at the pallet, fold a box in hand and carry it to Boxes storage (the box rack), all as one Fold box job, until the rack is full. Only one pawn folds at a time. Folding never uses a Boxing spot, so it can't hold up orders. Once the pizza is in the oven, a pawn takes a folded box from the rack and opens it on an empty Boxing spot. If there are no folded boxes, they take a flat one from the pallet and fold it there on the spot, which takes longer. Once the pizza is in the box, a pawn cuts it there (cut lines appear as the work goes) and the box closes.
 - A pizza never waits in the oven for a box: if its box isn't open yet, it's set on a free Boxing spot and moved into the box when it's cut. That only happens while a spot would still be free for its box (and the boxes of any other waiting pizzas); otherwise it stays in the oven, so unboxed pizzas can't fill every spot.
 - **Stacking and hand-off:** finished boxes stack on the boxing table (up to 8). The order's first closed box stays where it was cut as the stack's base, and a Boxing pawn moves each later box onto it. When the last box joins, a Front pawn carries the whole stack to the pickup counter (later: right away for to-go, or when the customer arrives for pickup). The ticket shows Ready, and after a short wait (placeholder) the order goes out and leaves the rack.
 
@@ -179,7 +179,7 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 ### Building the shop
 
 - **Build mode (B):** pick a station type (table, small table, counter, oven, rack, garbage can) and place it. A ghost shows green where it fits and red where it doesn't, along with its work spots. R turns it to each facing it has art for.
-- Clicking a station that nothing is using picks it up to move it (stored stock comes along). Delete or the Sell button sells it (anything stored on it goes too).
+- Clicking a station picks it up to move it, even while it's in use: what's on it (pizzas, boxes, stacks, a pizza baking) and its stored stock come along. While it's picked up nobody uses it: pawns working at it or on their way to it stop, setting down anything they carry, and pick their jobs back up (progress kept) once it's put down. Delete or the Sell button sells it (anything stored on it goes too), but only once nothing sits on its spots.
 - A placement doesn't fit if it's off the floor or on another station, its work spots are blocked, it covers another station's work spot, a pawn is standing there, or it would cut anything off.
 - For now, building is free, works any time, and selling pays nothing back. Walls and floor building come later.
 - Pawn movement depends on the layout, so arranging the kitchen well is part of the game.
@@ -202,7 +202,6 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 ## Not yet decided
 
 Anything not covered here is undecided, so ask the designer instead of assuming. Known open questions:
-- Where and how boxes are folded (a folding station, or at the rack).
 - What the cleaning station looks like and who uses it.
 - How customers appear in the shop (the register and order taking are in; customers are still invisible).
 - Balance: prices, costs, wages, bills and demand are placeholders.

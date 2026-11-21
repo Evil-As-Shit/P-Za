@@ -1,4 +1,4 @@
-class_name Station
+﻿class_name Station
 extends Node2D
 ## A piece of kitchen equipment placed on the floor grid. Each of its spots holds one
 ## item and is worked by one pawn at a time. Storage stations also hold a supply stock.
@@ -11,6 +11,18 @@ const WORK_SPOT_FRAME := Vector2i(96, 96)
 const WORK_SPOT_CENTER := Vector2(48, 72)
 ## Frame for each pawn side: down-left, up-left, up-right, down-right.
 const WORK_SPOT_SIDES: Array[Vector2i] = [Vector2i(0, 1), Vector2i(-1, 0), Vector2i(0, -1), Vector2i(1, 0)]
+
+## Draw order. The station's layers draw in node order: the art, stock inside it, items,
+## its cover, then stock on top. A one-cell station draws them all at one depth, one pixel
+## above its cell's center, so a pawn on that row (beside or in front of it) draws over it.
+## A multi-cell station draws its layers into its own canvas instead, and shows that picture
+## in 16 px wide strips, each sorted one pixel above the front-most cell under it. Pawns and
+## other stations then sort against each part of it, wherever they stand around it.
+const STRIP_WIDTH: int = 16
+const SORT_OFFSET: float = -1.0
+## Room in the canvas above and beside the art, for things stacked on the station.
+const CANVAS_HEADROOM: int = 48
+const CANVAS_MARGIN: int = 16
 
 @export var data: StationData
 ## Origin cell on the floor grid.
@@ -45,13 +57,22 @@ var _art_corner := Vector2.ZERO
 ## worked on the station's own (e.g. baking).
 var _work_bars: Array[ProgressBar] = []
 var _working: Array[bool] = []
+## A multi-cell station's own canvas, which its layers draw into (see STRIP_WIDTH), and
+## where the canvas's top-left corner is on the floor. Null for a one-cell station.
+var _canvas: SubViewport = null
+var _canvas_origin := Vector2.ZERO
 
-@onready var _sprite: Sprite2D = $Sprite
-@onready var _supply_inside: Node2D = $SupplyInside
+## All the station's art and what's on it, in draw order. Positions are floor positions,
+## also inside the canvas.
+@onready var _layers: Node2D = $Layers
+@onready var _sprite: Sprite2D = $Layers/Sprite
+@onready var _supply_inside: Node2D = $Layers/SupplyInside
 ## Items are parented here so they draw between the station art and its cover.
-@onready var _item_slot: Node2D = $ItemSlot
-@onready var _cover: Sprite2D = $Cover
-@onready var _supply_on_top: Node2D = $SupplyOnTop
+@onready var _item_slot: Node2D = $Layers/ItemSlot
+@onready var _cover: Sprite2D = $Layers/Cover
+@onready var _supply_on_top: Node2D = $Layers/SupplyOnTop
+## A multi-cell station's canvas, shown in strips.
+@onready var _strips: Node2D = $Strips
 ## Shown while the station works an item on its own (e.g. baking).
 @onready var _work_bar: ProgressBar = $WorkBar
 ## Names the assigned role on the floor in front of the station.
@@ -81,6 +102,11 @@ func place(shop_floor: ShopFloor) -> void:
 		)
 	_items.resize(data.spots.size())
 	_reserved.resize(data.spots.size())
+	# What's on it comes along (it may have been turned, too).
+	for spot: int in data.spots.size():
+		if _items[spot] != null:
+			_items[spot].global_position = _item_positions[spot]
+			_items[spot].face_toward(get_pawn_side(spot))
 	_working.resize(data.spots.size())
 	if _work_bars.is_empty():
 		_work_bars.append(_work_bar)
@@ -93,14 +119,19 @@ func place(shop_floor: ShopFloor) -> void:
 		for bar: ProgressBar in _work_bars:
 			bar.size.x = 12.0
 
-	# Y-sort origin sits just above the front-most cell center, so pawns standing
-	# on that row (beside or in front of the station) draw over it.
-	global_position = Vector2(centroid.x, front_y - 1.0)
+	# The footprint's middle, at the front (its parts sort on their own, see SORT_OFFSET).
+	global_position = Vector2(centroid.x, front_y + SORT_OFFSET)
+	if _footprint.size() == 1:
+		_layers.global_position = global_position
+	elif _canvas == null:
+		_make_canvas()
 
 	var mirrored: bool = data.is_mirrored(facing)
 	_art_corner = corner
 	_line_up(_sprite, data.get_texture(facing), left, bottom, mirrored)
 	_line_up(_cover, data.get_cover_texture(facing, _working.has(true)), left, bottom, mirrored)
+	if _canvas != null:
+		_fit_canvas()
 	_art_top = bottom
 	for art: Sprite2D in [_sprite, _cover]:
 		if art.texture != null:
@@ -170,7 +201,7 @@ func _place_work_spot_markers() -> void:
 		_work_spot_markers.append(marker)
 
 
-## True if nothing is on it or on its way to or from it, so it can be moved.
+## True if nothing is on it or on its way to or from it.
 func is_idle() -> bool:
 	if _stock_claimed > 0 or _room_claimed > 0:
 		return false
@@ -269,6 +300,72 @@ func _update_cover() -> void:
 	)
 
 
+## Moves the layers into a canvas of their own (see STRIP_WIDTH).
+func _make_canvas() -> void:
+	_canvas = SubViewport.new()
+	_canvas.name = "Canvas"
+	_canvas.transparent_bg = true
+	_canvas.disable_3d = true
+	_canvas.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+	_canvas.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	add_child(_canvas)
+	_layers.reparent(_canvas, false)
+	_layers.position = Vector2.ZERO
+
+
+## Sizes the canvas around the art (with room for what's stacked on it) and cuts it into
+## strips, each sorted one pixel above the front-most footprint cell under it. The outer
+## strips run to the canvas edges, catching anything that overhangs the footprint.
+func _fit_canvas() -> void:
+	var art_size := Vector2.ZERO
+	for art: Sprite2D in [_sprite, _cover]:
+		if art.texture != null:
+			art_size = art_size.max(art.texture.get_size())
+	_canvas_origin = Vector2(
+		floorf(_art_corner.x) - CANVAS_MARGIN,
+		floorf(_art_corner.y - art_size.y) - CANVAS_HEADROOM
+	)
+	var canvas_size := Vector2i(
+		int(art_size.x) + 2 * CANVAS_MARGIN, int(art_size.y) + CANVAS_HEADROOM
+	)
+	_canvas.size = canvas_size
+	_canvas.canvas_transform = Transform2D(0.0, -_canvas_origin)
+
+	for strip: Node in _strips.get_children():
+		_strips.remove_child(strip)
+		strip.queue_free()
+	var centers: Array[Vector2] = []
+	var left: float = INF
+	var right: float = -INF
+	for footprint_cell: Vector2i in _footprint:
+		var center: Vector2 = _floor.cell_to_global(footprint_cell)
+		centers.append(center)
+		left = minf(left, center.x - STRIP_WIDTH)
+		right = maxf(right, center.x + STRIP_WIDTH)
+	var count: int = int(round((right - left) / STRIP_WIDTH))
+	for index: int in count:
+		var from_x: float = left + index * STRIP_WIDTH
+		var to_x: float = from_x + STRIP_WIDTH
+		var front_y: float = -INF
+		for center: Vector2 in centers:
+			if center.x - STRIP_WIDTH < to_x and center.x + STRIP_WIDTH > from_x:
+				front_y = maxf(front_y, center.y)
+		if index == 0:
+			from_x = _canvas_origin.x
+		if index == count - 1:
+			to_x = _canvas_origin.x + canvas_size.x
+		var sort_y: float = front_y + SORT_OFFSET
+		var strip := Sprite2D.new()
+		strip.texture = _canvas.get_texture()
+		strip.centered = false
+		strip.region_enabled = true
+		strip.region_rect = Rect2(from_x - _canvas_origin.x, 0.0, to_x - from_x, canvas_size.y)
+		strip.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		_strips.add_child(strip)
+		strip.global_position = Vector2(from_x, sort_y)
+		strip.offset = Vector2(0.0, _canvas_origin.y - sort_y)
+
+
 func can_do(task_type: TaskType) -> bool:
 	if has_roles():
 		return role != null and role.task_types.has(task_type)
@@ -335,6 +432,11 @@ func get_footprint_cells() -> Array[Vector2i]:
 
 func get_work_cell(spot: int) -> Vector2i:
 	return data.get_work_cell(cell, facing, spot)
+
+
+## True if anything sits on its spots (stored stock doesn't count).
+func has_items() -> bool:
+	return _items.any(func(item: Item) -> bool: return item != null)
 
 
 ## Grid step from a spot's item cell to where its pawn stands.
@@ -418,9 +520,9 @@ func add_stock() -> void:
 	_update_piles()
 
 
-## Lays out the piles for the stored kind. With `keep_stock` (after a move) the stock stays;
-## otherwise it starts full or empty (see StorageLayout.starts_full) until there are
-## deliveries.
+## Lays out the piles for the stored kind. With `keep_stock` (after a move) the stock and
+## any places still promised to pawns stay; otherwise it starts full or empty (see
+## StorageLayout.starts_full) until there are deliveries.
 func _build_piles(keep_stock: bool = false) -> void:
 	for pile: Array in _pile_units:
 		for unit: Node2D in pile:
@@ -428,8 +530,9 @@ func _build_piles(keep_stock: bool = false) -> void:
 	_pile_units.clear()
 	var kept: int = _stock
 	_stock = 0
-	_stock_claimed = 0
-	_room_claimed = 0
+	if not keep_stock:
+		_stock_claimed = 0
+		_room_claimed = 0
 	var layout: StorageLayout = get_storage_layout()
 	if layout == null:
 		return

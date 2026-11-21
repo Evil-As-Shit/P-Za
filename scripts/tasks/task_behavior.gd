@@ -18,9 +18,16 @@ func get_spots(job: Job, work: WorkManager) -> Array[WorkSpot]:
 	return work.get_free_spots(job.task_type, get_carried(job))
 
 
+## For restocking tasks (see WorkManager.restock_tasks): true while a job should be open.
+func is_needed(_work: WorkManager) -> bool:
+	return false
+
+
 ## Gives the pawn the job if there's a spot they can reach (with any stops on the way).
 func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 	var carried: Item = get_carried(job)
+	if carried != null and not work.is_available(carried):
+		return false
 	for spot: WorkSpot in get_spots(job, work):
 		var stops: Array[JobStop] = []
 		if carried != null and not work.is_item_at(carried, spot):
@@ -61,9 +68,28 @@ func on_work_started(job: Job, pawn: Pawn, work: WorkManager) -> void:
 		job.station.put_item(job.spot, item)
 
 
+## Game seconds of pawn work for the job's current part (see Job.part).
+func get_work_seconds(job: Job) -> float:
+	return job.task_type.get_work_seconds()
+
+
 ## The work is done; the job is still holding its spot and the ticket hasn't moved on.
 func on_finished(_job: Job, _pawn: Pawn, _work: WorkManager) -> void:
 	pass
+
+
+## The job was taken off its pawn before it was done (see WorkManager.withdraw_job()): the
+## spot and stops are let go, and anything carried was set down. Hands back anything else
+## the behavior claimed.
+func on_withdrawn(_job: Job, _work: WorkManager) -> void:
+	pass
+
+
+## Right after on_finished(): for a job done in parts, gives the same pawn the next part
+## (e.g. carry what they just folded to storage) and returns true, so the job isn't done
+## yet. Returns false when the job is done.
+func continue_job(_job: Job, _pawn: Pawn, _work: WorkManager) -> bool:
+	return false
 
 
 ## After the job let go of its spot and the ticket moved on.

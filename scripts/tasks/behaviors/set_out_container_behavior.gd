@@ -1,10 +1,14 @@
 class_name SetOutContainerBehavior
 extends TaskBehavior
 ## Fetches one unit from storage (e.g. a folded box) and sets it out, open, on a free spot.
-## It becomes the order item's container, which later steps work at.
+## It becomes the order item's container, which later steps work at. If there's none, it
+## can make one from a fallback supply instead (e.g. fold a flat box), which takes longer.
 
 ## What's fetched from storage.
 @export var supply: StorageKind
+## Used when `supply` runs out (e.g. flat boxes), taking `fallback_extra_minutes` more work.
+@export var fallback_supply: StorageKind
+@export var fallback_extra_minutes: float = 0.0
 ## Look of the container once it's set out, drawn under and over whatever goes in it.
 @export var open_under_texture: Texture2D
 @export var open_over_texture: Texture2D
@@ -28,11 +32,17 @@ func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 	if get_carried(job) != null:
 		return super(pawn, job, work)
 	var storage: Station = work.find_supply(supply)
+	var extra: float = 0.0
+	if storage == null and fallback_supply != null:
+		storage = work.find_supply(fallback_supply)
+		extra = fallback_extra_minutes
 	if storage == null:
 		return false
+	job.extra_minutes = extra
 	for spot: WorkSpot in get_spots(job, work):
 		if work.start_job(pawn, job, spot, [JobStop.take_supply(storage)] as Array[JobStop]):
 			return true
+	job.extra_minutes = 0.0
 	return false
 
 
