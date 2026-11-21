@@ -9,6 +9,10 @@ extends Node
 signal order_ready(ticket: Ticket)
 ## A finished step used up ingredients (or a box) costing this much.
 signal ingredients_used(cost: float)
+## A pawn took a customer's order at the register: its ticket should print now.
+signal order_taken(recipes: Array[Recipe], placed_at: int)
+## The number of customers waiting at the register changed.
+signal waiting_orders_changed(count: int)
 
 ## Columns of the priority grid, left to right. On a priority tie, pawns pick leftmost.
 @export var work_types: Array[WorkType] = []
@@ -16,6 +20,8 @@ signal ingredients_used(cost: float)
 @export var item_scene: PackedScene
 ## Taking leftovers to the garbage.
 @export var throw_out_task: TaskType
+## Taking a customer's order at the register.
+@export var take_order_task: TaskType
 @export var idle_time_min: float = 0.5
 @export var idle_time_max: float = 2.0
 ## Chance an idle pawn checks their phone instead of just standing (placeholder).
@@ -274,6 +280,39 @@ func on_container_ready(order_item: OrderItem) -> void:
 #endregion
 
 
+#region Register
+
+## A customer orders `recipes` at shop time `placed_at`: they wait at the register until a
+## pawn takes the order (see order_taken).
+func take_order(recipes: Array[Recipe], placed_at: int) -> void:
+	var job := Job.new(take_order_task, null, null)
+	job.recipes = recipes
+	job.placed_at = placed_at
+	_shop_jobs.append(job)
+	waiting_orders_changed.emit(get_waiting_orders().size())
+	assign_all()
+
+
+## Orders waiting at the register to be taken, oldest first.
+func get_waiting_orders() -> Array[Job]:
+	var waiting: Array[Job] = []
+	for job: Job in _shop_jobs:
+		if not job.recipes.is_empty():
+			waiting.append(job)
+	return waiting
+
+
+## The customer gave up before their order was taken: it's dropped, and a pawn taking it
+## stops.
+func drop_order(job: Job) -> void:
+	_shop_jobs.erase(job)
+	if job.claimed_by != null:
+		withdraw_job(job)
+	waiting_orders_changed.emit(get_waiting_orders().size())
+
+#endregion
+
+
 #region Leftovers
 
 ## Adds a job to take `item` to the garbage, unless there is one already.
@@ -378,6 +417,9 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 		_rack.complete_job(job)
 	else:
 		_shop_jobs.erase(job)
+		if not job.recipes.is_empty():
+			waiting_orders_changed.emit(get_waiting_orders().size())
+			order_taken.emit(job.recipes, job.placed_at)
 		assign_all()
 	behavior.after_finished(job, self)
 	# A recipe step changes how the item looks (a baking pizza changes once it's done).
@@ -407,7 +449,7 @@ func _work_unattended(item: Item, task: TaskType, done_texture: Texture2D) -> vo
 		0.0, 1.0, task.get_work_seconds()
 	)
 	await tween.finished
-	station.hide_work()
+	station.hide_work(spot)
 	if not is_instance_valid(item):
 		return
 	item.busy = false

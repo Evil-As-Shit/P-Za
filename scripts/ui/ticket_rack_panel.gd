@@ -6,6 +6,7 @@ signal move_requested(ticket: Ticket, section: Ticket.Section, index: int)
 
 @onready var _wait_column: TicketColumn = %WaitColumn
 @onready var _make_column: TicketColumn = %MakeColumn
+@onready var _register_label: Label = %RegisterLabel
 
 
 func _ready() -> void:
@@ -19,6 +20,12 @@ func show_rack(
 ) -> void:
 	_wait_column.show_tickets(wait_tickets, now_minutes)
 	_make_column.show_tickets(make_tickets, now_minutes)
+
+
+## Shows how many customers are waiting at the register for their order to be taken.
+func show_waiting_orders(count: int) -> void:
+	_register_label.visible = count > 0
+	_register_label.text = "%d waiting at the register" % count
 
 
 func update_times(now_minutes: int) -> void:

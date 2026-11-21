@@ -59,6 +59,10 @@ func refresh_rack() -> void:
 	)
 
 
+func show_waiting_orders(count: int) -> void:
+	_rack_panel.show_waiting_orders(count)
+
+
 ## Updates how long each ticket has waited (and its lateness color).
 func update_ticket_times() -> void:
 	_rack_panel.update_times(_rack.now_minutes)

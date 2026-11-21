@@ -21,6 +21,9 @@ extends Resource
 ## Optional art drawn over the station's items (e.g. an oven's top half), per facing, laid
 ## out like facing_textures. Make each the same height as its facing texture.
 @export var cover_textures: Array[Texture2D] = []
+## Optional cover art shown instead while the station works an item on its own (e.g. an
+## oven's lit window while baking), laid out like cover_textures.
+@export var working_cover_textures: Array[Texture2D] = []
 ## If true, a facing with no art uses its mirror image's art flipped: facings 0 and 3 are
 ## mirror images (working side down-left / down-right), and so are 1 and 2. The lighting
 ## flips too.
@@ -104,7 +107,11 @@ func get_texture(facing: int) -> Texture2D:
 	return _pick(facing_textures, get_art_facing(facing))
 
 
-func get_cover_texture(facing: int) -> Texture2D:
+func get_cover_texture(facing: int, working: bool = false) -> Texture2D:
+	if working:
+		var working_cover: Texture2D = _pick(working_cover_textures, get_art_facing(facing))
+		if working_cover != null:
+			return working_cover
 	return _pick(cover_textures, get_art_facing(facing))
 
 

@@ -100,7 +100,7 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
   - **Kitchen:** stretch, sauce, cheese, load oven, throw out leftovers (later dough and sauce prep).
   - **Oven:** take pizzas out.
   - **Boxing:** set out a box, cut, stack boxes (later folding).
-  - **Front:** carry finished orders to pickup (later cashier and service).
+  - **Front:** take orders at the register, carry finished orders to pickup (later service).
   - Driving and Cleaning get columns when they exist.
 - An idle pawn takes work by its grid: priority 1 before 2, and the leftmost column wins a tie. Within a work type, it takes the first open job in Make-rack order. Pawns finish their current job before choosing again.
 - New hires start with everything blank until the player assigns work. Training is a separate checkbox (see Staff).
@@ -121,13 +121,13 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 
 ### Orders and the ticket rack
 
-- Orders print as physical tickets from the register. Order types are dine-in, to-go, pickup and delivery (only plain pickup-style orders exist for now).
+- Orders print as physical tickets from the register. A customer's order waits at the register until a Front pawn takes it (a short "Take order" task), then its ticket prints. With no register, or nobody on Front, customers pile up at the register; the ticket rack shows how many are waiting. Order types are dine-in, to-go, pickup and delivery (only plain pickup-style orders exist for now).
 - The **ticket rack** is a HUD panel with **Wait** and **Make** columns. Pawns work the Make tickets in order, so dragging and reordering tickets steers the kitchen indirectly.
 - New tickets land in Wait and the player moves them to Make. For now, new tickets go straight to the bottom of Make; the player can still drag them back to Wait.
 - Pulling an in-progress ticket back to Wait stops its pawns. Work done so far is kept and resumes when the ticket returns to Make. A pizza being carried at that moment is set down on the floor.
 - Each ticket shows its order number, items (e.g. "3 Pizza"), status, how many pizzas are boxed, and the shop minutes since it printed (closed hours don't count). Order type and the ETA come later.
-- **Patience:** customers wait 45 shop minutes from when the ticket prints. The ticket turns yellow at half that and red in the last fifth. If the order isn't at the pickup counter by then, the customer leaves: the ticket is cancelled, the sale is lost, and anything made for it (pizzas, boxes, a dropped dough container) is thrown out by a Kitchen pawn at the garbage can.
-- Taking and serving orders is automatic: there's no manual "Take" step, and completed orders go out on their own.
+- **Patience:** customers wait 45 shop minutes from when they order, including any time waiting at the register (a ticket's age counts from then). The ticket turns yellow at half that and red in the last fifth. A customer whose order was never taken leaves and the sale is lost. If the order isn't at the pickup counter by then, the customer leaves: the ticket is cancelled, the sale is lost, and anything made for it (pizzas, boxes, a dropped dough container) is thrown out by a Kitchen pawn at the garbage can.
+- The player never takes or serves orders by hand: pawns take them at the register, and completed orders go out on their own.
 - **Demand (for now):** until customers exist, orders arrive at random while the shop is open: about one every 12 shop minutes, twice as often during the lunch (12:00–13:30) and dinner (18:00–19:30) rushes, and none in the last hour (from 21:00). About 60% are one pizza, 30% two or three, and 10% four to eight (party orders), so roughly 70 orders and 150 pizzas a day. The starting staff keep up between rushes and fall behind during them.
 
 ### Making a pizza
@@ -204,5 +204,5 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 Anything not covered here is undecided, so ask the designer instead of assuming. Known open questions:
 - Where and how boxes are folded (a folding station, or at the rack).
 - What the cleaning station looks like and who uses it.
-- How the register, order taking and customers appear in the shop.
+- How customers appear in the shop (the register and order taking are in; customers are still invisible).
 - Balance: prices, costs, wages, bills and demand are placeholders.

@@ -1,6 +1,6 @@
 extends Node2D
-## The shop. Sets up the floor, stations and staff, and connects the systems: orders print
-## tickets, the WorkManager has pawns work them, finished orders are paid for, late ones are
+## The shop. Sets up the floor, stations and staff, and connects the systems: orders are
+## taken at the register and print tickets, the WorkManager has pawns work them, finished orders are paid for, late ones are
 ## cancelled, and each day closes with a report. Also handles the player's input.
 
 ## Recipe printed by the debug hotkey (J).
@@ -50,13 +50,15 @@ func _ready() -> void:
 	_clock.time_changed.connect(_on_time_changed)
 	_clock.day_started.connect(_on_day_started)
 	_orders.setup(_clock)
-	_orders.order_placed.connect(_print_ticket)
+	_orders.order_placed.connect(_on_order_placed)
+	_work.order_taken.connect(_print_ticket)
 
 	_hud.setup(_clock, _rack, _finances, _work.get_pawns(), _work.work_types)
 	_hud.priority_change_requested.connect(_on_priority_change_requested)
 	_hud.role_change_requested.connect(_on_role_change_requested)
 	_hud.station_close_requested.connect(_select_station.bind(null))
 	_hud.report_closed.connect(_on_report_closed)
+	_work.waiting_orders_changed.connect(_hud.show_waiting_orders)
 
 	_build.setup(_floor, _entities, _stations, _work.get_pawns())
 	_build.station_built.connect(_on_station_built)
@@ -171,8 +173,15 @@ func _on_priority_change_requested(pawn: Pawn, work_type: WorkType, priority: in
 
 #region Orders
 
-func _print_ticket(recipes: Array[Recipe]) -> void:
-	var ticket: Ticket = _rack.print_ticket(recipes)
+## A customer orders: they wait at the register until a Front pawn takes the order.
+func _on_order_placed(recipes: Array[Recipe]) -> void:
+	_work.take_order(recipes, _rack.now_minutes)
+
+
+## Prints the order's ticket. `placed_at` is when the customer ordered (-1 for now). The
+## debug hotkey prints straight here, skipping the register.
+func _print_ticket(recipes: Array[Recipe], placed_at: int = -1) -> void:
+	var ticket: Ticket = _rack.print_ticket(recipes, placed_at)
 	if auto_make:
 		_rack.move_ticket(ticket, Ticket.Section.MAKE, _rack.get_tickets(Ticket.Section.MAKE).size())
 
@@ -214,6 +223,14 @@ func _on_ticket_cancelled(ticket: Ticket) -> void:
 func _on_time_changed(_day: int, _minute: int) -> void:
 	_rack.now_minutes = _clock.get_open_minutes()
 	_rack.cancel_overdue()
+	# Customers still waiting at the register give up after the same patience.
+	for job: Job in _work.get_waiting_orders():
+		if _rack.now_minutes - job.placed_at >= _rack.patience_minutes:
+			var price: float = 0.0
+			for recipe: Recipe in job.recipes:
+				price += recipe.price
+			_work.drop_order(job)
+			_finances.record_missed(price)
 	_hud.update_ticket_times()
 
 
@@ -227,7 +244,8 @@ func _on_day_started(day: int) -> void:
 	var wages: float = 0.0
 	for pawn: Pawn in pawns:
 		wages += pawn.hourly_wage * hours
-	var report: DayReport = _finances.close_day(day - 1, wages, pawns.size(), hours, _rack.get_ticket_count())
+	var open_orders: int = _rack.get_ticket_count() + _work.get_waiting_orders().size()
+	var report: DayReport = _finances.close_day(day - 1, wages, pawns.size(), hours, open_orders)
 	if _clock.speed > 0:
 		_clock.toggle_pause()
 	_hud.show_report(report)

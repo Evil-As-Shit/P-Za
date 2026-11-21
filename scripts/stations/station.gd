@@ -37,8 +37,14 @@ var _placed: bool = false
 var _floor: ShopFloor = null
 ## One marker per spot, on the floor where its pawn stands.
 var _work_spot_markers: Array[Sprite2D] = []
-## Top edge of the station's art, for placing the work bar above it.
+## Top edge of the station's art, for placing the work bars above it.
 var _art_top: float = 0.0
+## Bottom-left corner the art is lined up on (see _line_up()).
+var _art_corner := Vector2.ZERO
+## One work bar per spot (the scene's WorkBar is spot 0's), and which spots are being
+## worked on the station's own (e.g. baking).
+var _work_bars: Array[ProgressBar] = []
+var _working: Array[bool] = []
 
 @onready var _sprite: Sprite2D = $Sprite
 @onready var _supply_inside: Node2D = $SupplyInside
@@ -75,14 +81,26 @@ func place(shop_floor: ShopFloor) -> void:
 		)
 	_items.resize(data.spots.size())
 	_reserved.resize(data.spots.size())
+	_working.resize(data.spots.size())
+	if _work_bars.is_empty():
+		_work_bars.append(_work_bar)
+	while _work_bars.size() < data.spots.size():
+		var bar: ProgressBar = _work_bar.duplicate()
+		add_child(bar)
+		_work_bars.append(bar)
+	# Neighbouring spots are 16 px apart, as wide as a bar: narrow them so there's a gap.
+	if _work_bars.size() > 1:
+		for bar: ProgressBar in _work_bars:
+			bar.size.x = 12.0
 
 	# Y-sort origin sits just above the front-most cell center, so pawns standing
 	# on that row (beside or in front of the station) draw over it.
 	global_position = Vector2(centroid.x, front_y - 1.0)
 
 	var mirrored: bool = data.is_mirrored(facing)
+	_art_corner = corner
 	_line_up(_sprite, data.get_texture(facing), left, bottom, mirrored)
-	_line_up(_cover, data.get_cover_texture(facing), left, bottom, mirrored)
+	_line_up(_cover, data.get_cover_texture(facing, _working.has(true)), left, bottom, mirrored)
 	_art_top = bottom
 	for art: Sprite2D in [_sprite, _cover]:
 		if art.texture != null:
@@ -223,17 +241,32 @@ static func _opaque_top(texture: Texture2D) -> float:
 	return top + float(used.position.y) if used.size.y > 0 else top
 
 
-## Shows the work bar over a spot, filled to `progress` (0-1).
+## Shows a spot's work bar, filled to `progress` (0-1), while the station works its item on
+## its own. The cover switches to its working art (if any) while any spot is worked.
 func show_work(spot: int, progress: float) -> void:
-	_work_bar.value = progress
-	_work_bar.global_position = Vector2(
-		_item_positions[spot].x - _work_bar.size.x / 2.0, _art_top - _work_bar.size.y - 3.0
+	var bar: ProgressBar = _work_bars[spot]
+	bar.value = progress
+	bar.global_position = Vector2(
+		_item_positions[spot].x - bar.size.x / 2.0, _art_top - bar.size.y - 3.0
 	)
-	_work_bar.show()
+	bar.show()
+	if not _working[spot]:
+		_working[spot] = true
+		_update_cover()
 
 
-func hide_work() -> void:
-	_work_bar.hide()
+func hide_work(spot: int) -> void:
+	_work_bars[spot].hide()
+	if _working[spot]:
+		_working[spot] = false
+		_update_cover()
+
+
+func _update_cover() -> void:
+	_line_up(
+		_cover, data.get_cover_texture(facing, _working.has(true)),
+		_art_corner.x, _art_corner.y, data.is_mirrored(facing)
+	)
 
 
 func can_do(task_type: TaskType) -> bool:

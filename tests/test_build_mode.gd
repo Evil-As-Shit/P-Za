@@ -25,6 +25,7 @@ func _start() -> void:
 	# Facings: art for one front view gives its mirror image too.
 	var expected: Dictionary = {
 		"res://resources/stations/small_oven.tres": [0, 3],
+		"res://resources/stations/pizza_oven.tres": [0, 1, 2, 3],
 		"res://resources/stations/box_rack.tres": [0, 3],
 		"res://resources/stations/counter.tres": [0, 1, 2, 3],
 	}

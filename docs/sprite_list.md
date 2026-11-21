@@ -19,6 +19,18 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 - Pickup counter (1×1, one facing): `Object_Spritesheet.png` at (128, 0). In game the counter currently uses the numbered rotation-test cubes on row 2 (four facings, "1|2" to "4|1") to check rotation.
 - Facings: a station's facings 0 (working side down-left) and 3 (down-right) are mirror images, as are 1 and 2 (the back views). Drawing one front view gives both front facings by flipping; draw a back view to allow the back facings.
 
+## Placeholders (generated, to be redrawn)
+
+Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette and grid as the art above. The oven and register are used in game; the rest aren't wired up yet.
+
+- `oven_2x2_sheet.png`: 2×2 oven, 64×80 per facing (0–3 left to right). Row 1 closed, row 2 baking (glowing window). Used by the Pizza Oven station.
+- `register_sheet.png`: register and ticket printer on the pickup-counter base, 32×48 per facing. Used by the Register station.
+- `chair_sheet.png`: wooden chair, 32×48 per facing. Facing is the way the sitter faces.
+- `fridge_sheet.png`: reach-in fridge, 32×64 per facing (on the 1×1 guide).
+- `dough_mixer_sheet.png`: floor mixer, 32×48 per facing.
+- `box_flat_sheet.png`: 32×16 cells like `box_sheet.png`. A single flat box, then a strapped bundle of flats.
+- `ingredient_icons.png`: on the 16×16 item guide. Dough, sauce, cheese, pepperoni, mushroom, olives.
+
 ## Priority 1: the pizza loop (next slices)
 
 | # | Sprite | Guide | Notes |

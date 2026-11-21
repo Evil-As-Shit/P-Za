@@ -1,0 +1,60 @@
+[gd_resource type="Resource" script_class="StationData" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/station_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="2_task_type"]
+[ext_resource type="Resource" path="res://resources/tasks/load_oven.tres" id="3_task"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/placeholder/oven_2x2_sheet.png" id="4_sheet"]
+[ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="5_spot"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_closed0"]
+atlas = ExtResource("4_sheet")
+region = Rect2(0, 0, 64, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_closed1"]
+atlas = ExtResource("4_sheet")
+region = Rect2(64, 0, 64, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_closed2"]
+atlas = ExtResource("4_sheet")
+region = Rect2(128, 0, 64, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_closed3"]
+atlas = ExtResource("4_sheet")
+region = Rect2(192, 0, 64, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_baking0"]
+atlas = ExtResource("4_sheet")
+region = Rect2(0, 80, 64, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_baking1"]
+atlas = ExtResource("4_sheet")
+region = Rect2(64, 80, 64, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_baking2"]
+atlas = ExtResource("4_sheet")
+region = Rect2(128, 80, 64, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_baking3"]
+atlas = ExtResource("4_sheet")
+region = Rect2(192, 80, 64, 80)
+
+[sub_resource type="Resource" id="Resource_spot_a"]
+script = ExtResource("5_spot")
+work_cell = Vector2i(0, 2)
+item_cell = Vector2i(0, 1)
+
+[sub_resource type="Resource" id="Resource_spot_b"]
+script = ExtResource("5_spot")
+work_cell = Vector2i(1, 2)
+item_cell = Vector2i(1, 1)
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Pizza Oven"
+task_types = Array[ExtResource("2_task_type")]([ExtResource("3_task")])
+footprint = Vector2i(2, 2)
+facing_textures = Array[Texture2D]([SubResource("AtlasTexture_closed0"), SubResource("AtlasTexture_closed1"), SubResource("AtlasTexture_closed2"), SubResource("AtlasTexture_closed3")])
+cover_textures = Array[Texture2D]([SubResource("AtlasTexture_closed0"), SubResource("AtlasTexture_closed1"), SubResource("AtlasTexture_closed2"), SubResource("AtlasTexture_closed3")])
+working_cover_textures = Array[Texture2D]([SubResource("AtlasTexture_baking0"), SubResource("AtlasTexture_baking1"), SubResource("AtlasTexture_baking2"), SubResource("AtlasTexture_baking3")])
+spots = Array[ExtResource("5_spot")]([SubResource("Resource_spot_a"), SubResource("Resource_spot_b")])
+item_offset = Vector2(0, -16)

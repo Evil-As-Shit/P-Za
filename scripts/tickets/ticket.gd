@@ -17,7 +17,8 @@ var stack_jobs: Array[Job] = []
 var hand_off_job: Job = null
 ## Handed off and waiting to go out. It stays on the rack until then.
 var ready: bool = false
-## Shop time it printed (ShopClock.get_open_minutes()).
+## Shop time the customer ordered (ShopClock.get_open_minutes()). Usually when it printed,
+## but earlier if they waited at the register.
 var printed_at: int = 0
 ## Shop minutes the customer waits before giving up, from printing.
 var patience: int = 45

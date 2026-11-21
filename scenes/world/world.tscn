@@ -49,6 +49,9 @@
 [ext_resource type="Script" path="res://scripts/world/build_mode.gd" id="47_build"]
 [ext_resource type="Script" path="res://scripts/stations/station_data.gd" id="48_station_data"]
 [ext_resource type="PackedScene" path="res://scenes/ui/build_panel.tscn" id="49_build_panel"]
+[ext_resource type="Resource" path="res://resources/stations/pizza_oven.tres" id="50_pizza_oven"]
+[ext_resource type="Resource" path="res://resources/stations/register.tres" id="51_register"]
+[ext_resource type="Resource" path="res://resources/tasks/take_order.tres" id="52_take_order"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -119,6 +122,10 @@ data = ExtResource("14_counter")
 cell = Vector2i(5, 9)
 role = ExtResource("22_pickup_role")
 
+[node name="Register" parent="Entities" instance=ExtResource("5_station")]
+data = ExtResource("51_register")
+cell = Vector2i(6, 9)
+
 [node name="Pawn" parent="Entities" instance=ExtResource("3_pawn")]
 display_name = "Pawn 1"
 priorities = Dictionary[ExtResource("15_work_type"), int]({
@@ -156,11 +163,12 @@ script = ExtResource("45_work")
 work_types = Array[ExtResource("15_work_type")]([ExtResource("16_kitchen"), ExtResource("17_oven"), ExtResource("18_boxing"), ExtResource("19_front")])
 item_scene = ExtResource("11_item")
 throw_out_task = ExtResource("44_throw_out")
+take_order_task = ExtResource("52_take_order")
 
 [node name="BuildMode" type="Node" parent="."]
 script = ExtResource("47_build")
 station_scene = ExtResource("5_station")
-catalog = Array[ExtResource("48_station_data")]([ExtResource("6_table"), ExtResource("33_small_table"), ExtResource("14_counter"), ExtResource("10_oven"), ExtResource("12_box_rack"), ExtResource("43_garbage_can")])
+catalog = Array[ExtResource("48_station_data")]([ExtResource("6_table"), ExtResource("33_small_table"), ExtResource("14_counter"), ExtResource("51_register"), ExtResource("10_oven"), ExtResource("50_pizza_oven"), ExtResource("12_box_rack"), ExtResource("43_garbage_can")])
 
 [node name="ShopCamera" type="Camera2D" parent="."]
 script = ExtResource("4_camera")

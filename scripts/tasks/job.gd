@@ -13,6 +13,10 @@ var order_item: OrderItem
 ## For shop jobs that aren't part of an order (ticket and order_item are null): the item
 ## the job moves, e.g. leftovers to throw out.
 var target: Item = null
+## For taking an order at the register (a shop job): what the customer is ordering, one
+## recipe per item, and the shop time they ordered (ShopClock.get_open_minutes()).
+var recipes: Array[Recipe] = []
+var placed_at: int = 0
 ## True for the steps of an order item's recipe (not stacking or hand-off).
 var recipe_step: bool = false
 ## Station spot reserved for this job while it is claimed.
