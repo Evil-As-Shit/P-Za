@@ -51,6 +51,8 @@ var _selected_station: Station = null
 @onready var _clock: ShopClock = $ShopClock
 @onready var _clock_panel: ClockPanel = $Hud/ClockPanel
 @onready var _orders: OrderSource = $OrderSource
+@onready var _finances: ShopFinances = $ShopFinances
+@onready var _day_report_panel: DayReportPanel = $Hud/DayReportPanel
 
 
 func _ready() -> void:
@@ -80,6 +82,10 @@ func _ready() -> void:
 	_clock_panel.show_time(_clock.day, _clock.get_minute_of_day())
 	_clock_panel.show_speed(_clock.speed)
 	_clock.time_changed.connect(_on_time_changed)
+	_clock.day_started.connect(_on_day_started)
+	_finances.cash_changed.connect(_clock_panel.show_cash)
+	_clock_panel.show_cash(_finances.cash)
+	_day_report_panel.continue_requested.connect(_on_report_closed)
 	_orders.setup(_clock)
 	_orders.order_placed.connect(_print_ticket)
 
@@ -449,8 +455,14 @@ func _work_unattended(item: Item, task: TaskType, done_texture: Texture2D) -> vo
 	_on_rack_jobs_changed()
 
 
-## The finished order is picked up: its stack leaves and frees its spot.
+## The finished order is picked up and paid for: its stack leaves and frees its spot.
 func _send_out(ticket: Ticket) -> void:
+	var revenue: float = 0.0
+	for order_item: OrderItem in ticket.order_items:
+		revenue += order_item.recipe.price
+	_finances.record_sale(
+		revenue, ticket.order_items.size(), maxi(_rack.now_minutes - ticket.printed_at, 0)
+	)
 	var stack: Item = ticket.stack_base.item if ticket.stack_base != null else null
 	for order_item: OrderItem in ticket.order_items:
 		order_item.item = null
@@ -508,6 +520,30 @@ func _print_ticket(recipes: Array[Recipe]) -> void:
 		_rack.move_ticket(
 			ticket, Ticket.Section.MAKE, _rack.get_tickets(Ticket.Section.MAKE).size()
 		)
+
+
+## A day ended: pay wages and bills, and pause on the day's report until it's closed.
+## Orders still open carry over into the new day.
+func _on_day_started(day: int) -> void:
+	if day <= 1:
+		return
+	var hours: float = float(_clock.close_hour - _clock.open_hour)
+	var wages: float = 0.0
+	for pawn: Pawn in _pawns:
+		wages += pawn.hourly_wage * hours
+	var open_orders: int = (
+		_rack.get_tickets(Ticket.Section.WAIT).size() + _rack.get_tickets(Ticket.Section.MAKE).size()
+	)
+	var report: DayReport = _finances.close_day(day - 1, wages, _pawns.size(), hours, open_orders)
+	if _clock.speed > 0:
+		_clock.toggle_pause()
+	_day_report_panel.show_report(report)
+
+
+func _on_report_closed() -> void:
+	_day_report_panel.hide()
+	if _clock.speed == 0:
+		_clock.toggle_pause()
 
 
 func _on_time_changed(_day: int, _minute: int) -> void:
@@ -759,6 +795,7 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 		order_item.item.set_wrap(null, null)
 
 	var item: Item = order_item.item
+	_finances.record_ingredients(task.ingredient_cost)
 	_release_station(job)
 	_rack.complete_job(job)
 	if task.fetch_supply != &"":

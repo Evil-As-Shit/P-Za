@@ -3,6 +3,8 @@ extends Resource
 ## Something on the menu, made by working its steps in order.
 
 @export var display_name: String
+## What a customer pays for one.
+@export var price: float = 0.0
 ## Tasks to perform, in order (e.g. stretch, sauce, cheese, bake).
 @export var steps: Array[TaskType] = []
 ## How the item looks as it's made: index 0 before any step, index i after step i.

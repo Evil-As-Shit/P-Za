@@ -22,6 +22,8 @@ const LOWEST_PRIORITY: int = 4
 ## Work type -> priority (1 to LOWEST_PRIORITY). Missing or 0 means never.
 @export var priorities: Dictionary[WorkType, int] = {}
 
+## Paid per shop hour, for the whole day, at closing.
+@export var hourly_wage: float = 15.0
 @export var move_speed: float = 60.0
 ## Seconds of work done per second. Skill and mood will change this later.
 @export var work_speed: float = 1.0

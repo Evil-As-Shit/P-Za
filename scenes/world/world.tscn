@@ -35,6 +35,13 @@
 [ext_resource type="Resource" path="res://resources/stations/small_table.tres" id="33_small_table"]
 [ext_resource type="Resource" path="res://resources/tasks/stack_box.tres" id="34_stack_box"]
 [ext_resource type="Resource" path="res://resources/tasks/hand_off.tres" id="35_hand_off"]
+[ext_resource type="Script" path="res://scripts/economy/shop_finances.gd" id="36_finances"]
+[ext_resource type="Script" path="res://scripts/economy/bill.gd" id="37_bill"]
+[ext_resource type="Resource" path="res://resources/bills/rent.tres" id="38_rent"]
+[ext_resource type="Resource" path="res://resources/bills/electricity.tres" id="39_electricity"]
+[ext_resource type="Resource" path="res://resources/bills/gas.tres" id="40_gas"]
+[ext_resource type="Resource" path="res://resources/bills/water.tres" id="41_water"]
+[ext_resource type="PackedScene" path="res://scenes/ui/day_report_panel.tscn" id="42_report_panel"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -145,6 +152,10 @@ script = ExtResource("26_clock")
 script = ExtResource("28_orders")
 menu = Array[ExtResource("29_recipe")]([ExtResource("8_pizza")])
 
+[node name="ShopFinances" type="Node" parent="."]
+script = ExtResource("36_finances")
+bills = Array[ExtResource("37_bill")]([ExtResource("38_rent"), ExtResource("39_electricity"), ExtResource("40_gas"), ExtResource("41_water")])
+
 [node name="TicketRack" type="Node" parent="."]
 script = ExtResource("7_rack")
 stack_task = ExtResource("34_stack_box")
@@ -159,4 +170,7 @@ hand_off_task = ExtResource("35_hand_off")
 [node name="ClockPanel" parent="Hud" instance=ExtResource("27_clock_panel")]
 
 [node name="StationPanel" parent="Hud" instance=ExtResource("23_station_panel")]
+visible = false
+
+[node name="DayReportPanel" parent="Hud" instance=ExtResource("42_report_panel")]
 visible = false

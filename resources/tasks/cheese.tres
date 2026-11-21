@@ -9,3 +9,4 @@ id = &"cheese"
 display_name = "Cheese"
 work_type = ExtResource("9_work_type")
 base_work_time = 1.5
+ingredient_cost = 1.5

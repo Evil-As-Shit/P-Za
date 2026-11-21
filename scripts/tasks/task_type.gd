@@ -8,6 +8,8 @@ extends Resource
 @export var work_type: WorkType
 ## Seconds of work at normal speed. Skill and mood will scale this later.
 @export var base_work_time: float = 5.0
+## Cost of what this step uses up (e.g. the cheese, a box), paid when it's done.
+@export var ingredient_cost: float = 0.0
 ## If true, the pawn only loads the item and the station works it for base_work_time on
 ## its own (e.g. baking). The ticket moves on right away, so its next steps can be done
 ## meanwhile, but the item can't be moved until it's done.

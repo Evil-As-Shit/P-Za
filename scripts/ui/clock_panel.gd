@@ -1,23 +1,28 @@
 class_name ClockPanel
 extends PanelContainer
-## HUD clock: day, time and speed buttons (pause, 1x, 2x, 3x). Reports the player's pick.
+## HUD clock: day, time, cash and speed buttons (pause, then each speed). Reports the
+## player's pick.
 
 signal speed_requested(speed: int)
 
+const NEGATIVE_COLOR := Color(1.0, 0.45, 0.4)
+
 @onready var _day: Label = %Day
 @onready var _time: Label = %Time
+@onready var _cash: Label = %Cash
 @onready var _buttons: HBoxContainer = %SpeedButtons
 
 
-## Builds one button per speed (0 shows as pause).
+## Builds one button per speed (0 shows as pause). Keys 1, 2, 3... pick them in order.
 func setup(speeds: Array[int]) -> void:
 	for child: Node in _buttons.get_children():
 		_buttons.remove_child(child)
 		child.queue_free()
-	for speed: int in speeds:
+	for index: int in speeds.size():
+		var speed: int = speeds[index]
 		var button := Button.new()
 		button.text = "||" if speed == 0 else "%dx" % speed
-		button.tooltip_text = "Pause (Space)" if speed == 0 else "Speed %d (%d)" % [speed, speed]
+		button.tooltip_text = "Pause (Space)" if speed == 0 else "%dx speed (%d)" % [speed, index]
 		button.toggle_mode = true
 		button.focus_mode = Control.FOCUS_NONE
 		button.custom_minimum_size = Vector2(32, 0)
@@ -29,6 +34,11 @@ func setup(speeds: Array[int]) -> void:
 func show_time(day: int, minute_of_day: int) -> void:
 	_day.text = "Day %d" % day
 	_time.text = ShopClock.format_time(minute_of_day)
+
+
+func show_cash(cash: float) -> void:
+	_cash.text = ShopFinances.format_money(cash)
+	_cash.modulate = NEGATIVE_COLOR if cash < -0.005 else Color.WHITE
 
 
 func show_speed(speed: int) -> void:

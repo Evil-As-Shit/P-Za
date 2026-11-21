@@ -155,6 +155,8 @@ Each item below is a direction, not a final spec.
 - The day runs in phases, and the player can pause or speed up time.
   - A day covers shop hours (10:00 to 22:00 on the clock) and lasts 30 real minutes at normal speed (one shop minute is 2.5 real seconds). For now, when it ends the next day starts and work in progress carries on; prep, close and review phases come later.
   - Speeds are pause, 1x, 3x and 6x (Space and 1/2/3, or the HUD buttons); a day is 30, 10 or 5 real minutes. Speed scales all game time. While paused the player can still pan, use the rack and set priorities.
+- **Money:** cash shows on the HUD next to the clock and starts at zero (it can go negative for now). Each order is paid when it goes out (a plain pizza is $15). Ingredients are paid as they're used (dough ball, sauce, cheese, box). At closing, wages (each pawn's hourly wage for the whole day) and daily bills (rent, electricity, gas, water) are paid. All numbers are placeholders.
+- **Day report:** at closing the game pauses on a report: orders served (and pizzas), orders still open (they carry over), average and longest ticket time, then sales, each cost, profit and cash. "Start next day" resumes.
 - Ingredients arrive in regular recurring deliveries, with an emergency option at a premium. Fresh ingredients spoil, so cold storage matters.
 - Kitchens get dirty. Poor cleanliness leads to health inspector penalties.
 - Equipment can be upgraded for capacity and reliability. The player lays out and arranges the kitchen, and pawn movement is affected by the layout.
