@@ -25,11 +25,13 @@ class Spot:
 @export var phone_time_max: float = 6.0
 ## Item scene spawned when a ticket's first step starts (no ingredient storage yet).
 @export var item_scene: PackedScene
-## Seconds a finished order waits where it was handed off before it goes out (placeholder
-## until customers pick orders up).
-@export var pickup_wait: float = 1.5
+## Shop minutes a finished order waits where it was handed off before it goes out
+## (placeholder until customers pick orders up).
+@export var pickup_wait_minutes: float = 0.6
 ## Placeholder: new tickets go straight to the bottom of Make instead of waiting in Wait.
 @export var auto_make: bool = true
+## Taking a cancelled order's leftovers to the garbage.
+@export var throw_out_task: TaskType
 
 var _pawns: Array[Pawn] = []
 var _stations: Array[Station] = []
@@ -37,6 +39,8 @@ var _stations: Array[Station] = []
 var _waiting_for: Dictionary[Item, Pawn] = {}
 ## Pawns holding a ticket's item (e.g. by the oven) while someone sets out its container.
 var _waiting_for_container: Dictionary[OrderItem, Pawn] = {}
+## Shop jobs outside any order (throwing out leftovers), done or not.
+var _shop_jobs: Array[Job] = []
 ## Station shown in the station panel, or null.
 var _selected_station: Station = null
 
@@ -69,6 +73,7 @@ func _ready() -> void:
 	_rack.jobs_changed.connect(_on_rack_jobs_changed)
 	_rack.job_withdrawn.connect(_on_rack_job_withdrawn)
 	_rack.ticket_completed.connect(_on_rack_ticket_completed)
+	_rack.ticket_cancelled.connect(_on_rack_ticket_cancelled)
 	_rack_panel.move_requested.connect(_rack.move_ticket)
 	_on_rack_changed()
 	_priority_panel.priority_change_requested.connect(_on_priority_change_requested)
@@ -179,6 +184,9 @@ func _try_assign_work(pawn: Pawn, max_priority: int = Pawn.LOWEST_PRIORITY) -> b
 	if pawn.has_job():
 		return true
 	var jobs: Array[Job] = _rack.get_open_jobs()
+	for job: Job in _shop_jobs:
+		if job.claimed_by == null:
+			jobs.append(job)
 	for priority: int in range(1, max_priority + 1):
 		for work_type: WorkType in work_types:
 			if pawn.get_priority(work_type) != priority:
@@ -198,7 +206,7 @@ func _try_job(pawn: Pawn, job: Job) -> bool:
 	if carried == null and task.ingredient != null:
 		return _try_ingredient_job(pawn, job)
 	var supply_station: Station = null
-	if carried == null and task.fetch_supply != &"":
+	if carried == null and task.fetch_supply != null:
 		supply_station = _find_supply(task.fetch_supply)
 		if supply_station == null:
 			return false
@@ -309,7 +317,9 @@ func _is_setting_out(ingredient: IngredientContainer) -> bool:
 ## order item's thing being made (for a hand-off, the stack's base, carrying the stack).
 ## Null if it doesn't exist yet.
 func _get_carried(job: Job) -> Item:
-	if job.task_type.fetch_supply != &"":
+	if job.target != null:
+		return job.target
+	if job.task_type.fetch_supply != null:
 		return job.order_item.container
 	return job.order_item.item
 
@@ -383,7 +393,7 @@ func _get_container_spot(order_item: OrderItem) -> Spot:
 
 
 ## First storage station with an unclaimed unit of `kind`, or null.
-func _find_supply(kind: StringName) -> Station:
+func _find_supply(kind: StorageKind) -> Station:
 	for station: Station in _stations:
 		if station.has_supply(kind):
 			return station
@@ -391,7 +401,7 @@ func _find_supply(kind: StringName) -> Station:
 
 
 ## First storage station with an unclaimed free place for `kind`, or null.
-func _find_room(kind: StringName) -> Station:
+func _find_room(kind: StorageKind) -> Station:
 	for station: Station in _stations:
 		if station.has_room(kind):
 			return station
@@ -438,7 +448,7 @@ func _work_unattended(item: Item, task: TaskType, done_texture: Texture2D) -> vo
 	var tween: Tween = create_tween()
 	tween.tween_method(
 		func(progress: float) -> void: station.show_work(spot, progress),
-		0.0, 1.0, task.base_work_time
+		0.0, 1.0, task.get_work_seconds()
 	)
 	await tween.finished
 	station.hide_work()
@@ -548,6 +558,7 @@ func _on_report_closed() -> void:
 
 func _on_time_changed(_day: int, _minute: int) -> void:
 	_rack.now_minutes = _clock.get_open_minutes()
+	_rack.cancel_overdue()
 	_rack_panel.update_times(_rack.now_minutes)
 
 
@@ -591,6 +602,54 @@ func _on_rack_job_withdrawn(job: Job) -> void:
 
 func _on_rack_ticket_completed(ticket: Ticket) -> void:
 	print("Ticket %s complete" % ticket.get_title())
+
+
+## The customer gave up: the sale is lost, and whatever was made for the order is thrown
+## out. Its claimed jobs were already withdrawn, so anything being carried is on the floor.
+func _on_rack_ticket_cancelled(ticket: Ticket) -> void:
+	var lost: float = 0.0
+	for order_item: OrderItem in ticket.order_items:
+		lost += order_item.recipe.price
+	_finances.record_missed(lost)
+	var leftovers: Array[Item] = []
+	for order_item: OrderItem in ticket.order_items:
+		for item: Item in [order_item.item, order_item.container]:
+			if item == null or not is_instance_valid(item):
+				continue
+			var outer: Item = item.get_outermost()
+			# A dough container set out for everyone stays.
+			if outer.ingredient != null and outer.station != null:
+				continue
+			if not leftovers.has(outer):
+				leftovers.append(outer)
+	# Anything lying on the floor (dropped when its job was pulled) goes too.
+	for child: Node in _entities.get_children():
+		if child is Item and not leftovers.has(child):
+			leftovers.append(child as Item)
+	for item: Item in leftovers:
+		_throw_out(item)
+	_on_rack_jobs_changed()
+
+
+## Adds a job to take `item` to the garbage, unless there is one already.
+func _throw_out(item: Item) -> void:
+	for job: Job in _shop_jobs:
+		if job.target == item:
+			return
+	var job := Job.new(throw_out_task, null, null)
+	job.target = item
+	_shop_jobs.append(job)
+
+
+## The item is in the garbage.
+func _finish_shop_job(job: Job) -> void:
+	var item: Item = job.target
+	if job.station != null:
+		job.station.take_item(job.spot)
+	item.queue_free()
+	_release_station(job)
+	_shop_jobs.erase(job)
+	_on_rack_jobs_changed()
 
 
 func _on_pawn_path_finished(pawn: Pawn) -> void:
@@ -724,7 +783,7 @@ func _redirect_to_container(job: Job, pawn: Pawn) -> void:
 ## True if a pawn is fetching or opening the order item's container.
 func _is_container_on_its_way(order_item: OrderItem) -> bool:
 	for job: Job in order_item.prep_jobs:
-		if job.task_type.fetch_supply != &"" and job.claimed_by != null:
+		if job.task_type.fetch_supply != null and job.claimed_by != null:
 			return true
 	return false
 
@@ -742,9 +801,12 @@ func _on_container_ready(order_item: OrderItem) -> void:
 
 
 func _on_pawn_work_started(job: Job, pawn: Pawn) -> void:
+	if job.target != null:
+		job.station.put_item(job.spot, pawn.release_item())
+		return
 	var order_item: OrderItem = job.order_item
 	var item: Item = pawn.release_item()
-	if item == null and order_item.item == null and job.task_type.fetch_supply == &"":
+	if item == null and order_item.item == null and job.task_type.fetch_supply == null:
 		item = _spawn_item(order_item.recipe.get_stage_texture(order_item.step_index))
 		order_item.item = item
 	if item == null:
@@ -766,7 +828,7 @@ func _on_pawn_work_started(job: Job, pawn: Pawn) -> void:
 
 func _on_pawn_work_progressed(job: Job, progress: float, _pawn: Pawn) -> void:
 	var frames: Array[Texture2D] = job.task_type.work_frames
-	if frames.is_empty() or job.order_item.item == null:
+	if frames.is_empty() or job.order_item == null or job.order_item.item == null:
 		return
 	# The work is split into one stretch with no overlay, then one per frame.
 	var index: int = mini(int(progress * (frames.size() + 1)), frames.size()) - 1
@@ -774,12 +836,17 @@ func _on_pawn_work_progressed(job: Job, progress: float, _pawn: Pawn) -> void:
 
 
 func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
+	if job.target != null:
+		_finish_shop_job(job)
+		if not pawn.has_job():
+			_work_or_wander(pawn)
+		return
 	var ticket: Ticket = job.ticket
 	var order_item: OrderItem = job.order_item
 	var task: TaskType = job.task_type
 	# Stacking and hand-off move finished items; the rest are recipe steps.
 	var recipe_step: bool = not task.onto_stack and job != ticket.hand_off_job
-	if task.fetch_supply != &"":
+	if task.fetch_supply != null:
 		# The container is set out: show it open.
 		order_item.container.set_texture(null)
 		order_item.container.set_wrap(
@@ -798,15 +865,17 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	_finances.record_ingredients(task.ingredient_cost)
 	_release_station(job)
 	_rack.complete_job(job)
-	if task.fetch_supply != &"":
+	if task.fetch_supply != null:
 		_on_container_ready(order_item)
 	if recipe_step and item != null and task.unattended:
 		_work_unattended(
 			item, task, order_item.recipe.get_stage_texture(order_item.step_index)
 		)
-	elif recipe_step and item != null and task.fetch_supply == &"":
+	elif recipe_step and item != null and task.fetch_supply == null:
 		item.set_texture(order_item.recipe.get_stage_texture(order_item.step_index))
 	if ticket.ready:
-		get_tree().create_timer(pickup_wait).timeout.connect(_send_out.bind(ticket))
+		get_tree().create_timer(ShopClock.minutes_to_seconds(pickup_wait_minutes)).timeout.connect(
+			_send_out.bind(ticket)
+		)
 	if not pawn.has_job():
 		_work_or_wander(pawn)

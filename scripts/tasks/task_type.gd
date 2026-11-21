@@ -6,11 +6,12 @@ extends Resource
 @export var display_name: String
 ## Priority grid column this task falls under. Pawns never do tasks without one.
 @export var work_type: WorkType
-## Seconds of work at normal speed. Skill and mood will scale this later.
-@export var base_work_time: float = 5.0
+## Shop-clock minutes of work at normal speed (so they don't change with the day's real
+## length). Skill and mood will scale this later.
+@export var work_minutes: float = 1.0
 ## Cost of what this step uses up (e.g. the cheese, a box), paid when it's done.
 @export var ingredient_cost: float = 0.0
-## If true, the pawn only loads the item and the station works it for base_work_time on
+## If true, the pawn only loads the item and the station works it for work_minutes on
 ## its own (e.g. baking). The ticket moves on right away, so its next steps can be done
 ## meanwhile, but the item can't be moved until it's done.
 @export var unattended: bool = false
@@ -32,9 +33,9 @@ extends Resource
 @export var ingredient: IngredientContainer
 
 @export_group("Containers")
-## If set, the pawn fetches one of this supply from storage (e.g. &"box") and sets it out
+## If set, the pawn fetches one of this supply from storage (e.g. Boxes) and sets it out
 ## on a free spot. It becomes the ticket's container.
-@export var fetch_supply: StringName
+@export var fetch_supply: StorageKind
 ## Look of the set-out container once this step is done (e.g. an open box), drawn under
 ## and over whatever goes in it.
 @export var container_under_texture: Texture2D
@@ -49,6 +50,11 @@ extends Resource
 ## If true, the container closes when this step is done and becomes the ticket's item.
 ## Implies at_container.
 @export var closes_container: bool = false
+
+
+## Game seconds of work at normal speed (see work_minutes).
+func get_work_seconds() -> float:
+	return ShopClock.minutes_to_seconds(work_minutes)
 
 
 func is_at_container() -> bool:

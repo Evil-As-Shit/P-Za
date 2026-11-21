@@ -4,10 +4,11 @@
 [ext_resource type="Texture2D" path="res://resources/items/dough_container_back.tres" id="2_back"]
 [ext_resource type="Texture2D" path="res://resources/items/dough_container_front.tres" id="3_front"]
 [ext_resource type="Texture2D" path="res://resources/items/dough_container_lid.tres" id="4_lid"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/dough.tres" id="5_kind"]
 
 [resource]
 script = ExtResource("1_layout")
-kind = &"dough"
+kind = ExtResource("5_kind")
 textures = Array[Texture2D]([ExtResource("2_back"), ExtResource("3_front"), ExtResource("4_lid")])
 piles_at_spots = true
 per_pile = 4

@@ -10,11 +10,16 @@ signal jobs_changed
 ## A ticket's job was being worked when the ticket left Make.
 signal job_withdrawn(job: Job)
 signal ticket_completed(ticket: Ticket)
+## The customer gave up waiting: the ticket left the rack unfinished. Its claimed jobs were
+## withdrawn first.
+signal ticket_cancelled(ticket: Ticket)
 
 ## Moving a finished item onto its order's stack.
 @export var stack_task: TaskType
 ## Carrying an order's finished stack to hand it off.
 @export var hand_off_task: TaskType
+## Shop minutes customers wait for an order before giving up.
+@export var patience_minutes: int = 45
 
 var _wait: Array[Ticket] = []
 var _make: Array[Ticket] = []
@@ -34,6 +39,7 @@ func _exit_tree() -> void:
 func print_ticket(recipes: Array[Recipe]) -> Ticket:
 	var ticket := Ticket.new(_next_order_number, recipes, stack_task, hand_off_task)
 	ticket.printed_at = now_minutes
+	ticket.patience = patience_minutes
 	_next_order_number += 1
 	_wait.append(ticket)
 	changed.emit()
@@ -89,6 +95,24 @@ func complete_job(job: Job) -> void:
 func send_out(ticket: Ticket) -> void:
 	_list(ticket.section).erase(ticket)
 	ticket_completed.emit(ticket)
+	ticket.release()
+	changed.emit()
+	jobs_changed.emit()
+
+
+## Cancels every ticket whose customer has run out of patience (see Ticket.is_overdue()).
+func cancel_overdue() -> void:
+	for ticket: Ticket in _wait + _make:
+		if ticket.is_overdue(now_minutes):
+			_cancel(ticket)
+
+
+func _cancel(ticket: Ticket) -> void:
+	_list(ticket.section).erase(ticket)
+	for job: Job in ticket.get_active_jobs():
+		if job.claimed_by != null:
+			job_withdrawn.emit(job)
+	ticket_cancelled.emit(ticket)
 	ticket.release()
 	changed.emit()
 	jobs_changed.emit()

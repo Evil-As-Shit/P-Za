@@ -8,6 +8,6 @@ script = ExtResource("1_task")
 id = &"stack_box"
 display_name = "Stack box"
 work_type = ExtResource("9_work_type")
-base_work_time = 0.5
+work_minutes = 0.2
 onto_stack = true
 stack_step = 2.0

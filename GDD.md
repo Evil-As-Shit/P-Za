@@ -18,6 +18,7 @@ Read this whole file first to get up to speed on the game, then follow these rul
 - **Use placeholder art and audio** unless the designer says otherwise.
 - **Keep this file current.** When the designer makes a design decision, update the relevant section here, keeping it short and high-level.
 - **Communicate briefly.** Give short, plain-language summaries. Don't add unrequested extras or expand the scope.
+- **Run the tests.** `tests/run_tests.ps1` runs every `tests/test_*.gd` headless (a full day takes seconds). Run it after gameplay changes, and add a test for each new system. Task and wait times are set in shop-clock minutes, so changing the day's length doesn't need retuning.
 
 ### Ask first
 
@@ -116,6 +117,7 @@ Each item below is a direction, not a final spec.
 - New tickets land in **Wait**. The player moves them to Make. (For now, as a placeholder, new tickets go straight to the bottom of Make; the player can still drag them back to Wait.)
 - Until customers exist, orders arrive at random while the shop is open: about one every 12 clock minutes, twice as often during the lunch (12:00–13:30) and dinner (18:00–19:30) rushes, and none in the last hour (from 21:00). Order sizes: about 60% are one pizza, 30% two or three, 10% four to eight (party orders), so about 2 pizzas per order on average. That's roughly 70 orders and 150 pizzas a day: the starting pawns keep up between rushes and fall behind during them (big orders can take an hour).
 - Timing target: like a real shop, one pizza on its own takes about 10 shop minutes from ticket to customer, and baking is most of that (about 5 minutes). Prep steps take well under a minute each.
+- **Patience:** customers wait 45 shop minutes from when the ticket prints. A ticket turns yellow at half that and red in the last fifth. If it isn't at the pickup counter by then, the customer leaves: the ticket is cancelled, the sale is lost, and anything already made for it (pizzas, boxes, a dropped dough container) is thrown out by a Kitchen pawn at the garbage can. The ETA slider and reviews will build on this later.
 - Pulling an in-progress ticket back to Wait stops the pawn. The work done so far is kept, and the job resumes when the ticket returns to Make.
 - Each ticket shows its order number, items (e.g. "3 Pizza"), status, how many of its pizzas are boxed, and how many shop-clock minutes it's been since it printed (counting until it goes out; closed hours don't count). Order type and the ETA come later.
 - Menu items are recipes: an ordered list of task steps. Each step is one job, done by one pawn at one station. A plain pizza is stretch, sauce, cheese, load oven, set out box, unload oven, then cut (which closes the box), so a ticket can be paused between steps. An order's pizzas are each worked through their recipe in parallel, by whichever pawns are free.
@@ -156,7 +158,7 @@ Each item below is a direction, not a final spec.
   - A day covers shop hours (10:00 to 22:00 on the clock) and lasts 30 real minutes at normal speed (one shop minute is 2.5 real seconds). For now, when it ends the next day starts and work in progress carries on; prep, close and review phases come later.
   - Speeds are pause, 1x, 3x and 6x (Space and 1/2/3, or the HUD buttons); a day is 30, 10 or 5 real minutes. Speed scales all game time. While paused the player can still pan, use the rack and set priorities.
 - **Money:** cash shows on the HUD next to the clock and starts at zero (it can go negative for now). Each order is paid when it goes out (a plain pizza is $15). Ingredients are paid as they're used (dough ball, sauce, cheese, box). At closing, wages (each pawn's hourly wage for the whole day) and daily bills (rent, electricity, gas, water) are paid. All numbers are placeholders.
-- **Day report:** at closing the game pauses on a report: orders served (and pizzas), orders still open (they carry over), average and longest ticket time, then sales, each cost, profit and cash. "Start next day" resumes.
+- **Day report:** at closing the game pauses on a report: orders served (and pizzas), orders missed (and the sales lost), orders still open (they carry over), average and longest ticket time, then sales, each cost, profit and cash. "Start next day" resumes.
 - Ingredients arrive in regular recurring deliveries, with an emergency option at a premium. Fresh ingredients spoil, so cold storage matters.
 - Kitchens get dirty. Poor cleanliness leads to health inspector penalties.
 - Equipment can be upgraded for capacity and reliability. The player lays out and arranges the kitchen, and pawn movement is affected by the layout.

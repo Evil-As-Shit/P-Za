@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="StationData" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/station_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="2_task_type"]
+[ext_resource type="Resource" path="res://resources/tasks/throw_out.tres" id="3_throw_out"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/Object_Spritesheet.png" id="4_sheet"]
+[ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="5_spot"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_can"]
+atlas = ExtResource("4_sheet")
+region = Rect2(160, 0, 32, 48)
+
+[sub_resource type="Resource" id="Resource_spot"]
+script = ExtResource("5_spot")
+work_cell = Vector2i(0, 1)
+item_cell = Vector2i(0, 0)
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Garbage Can"
+task_types = Array[ExtResource("2_task_type")]([ExtResource("3_throw_out")])
+footprint = Vector2i(1, 1)
+facing_textures = Array[Texture2D]([SubResource("AtlasTexture_can")])
+spots = Array[ExtResource("5_spot")]([SubResource("Resource_spot")])
+item_offset = Vector2(0, -12)

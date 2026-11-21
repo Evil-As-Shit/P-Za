@@ -3,6 +3,7 @@
 [ext_resource type="Resource" path="res://resources/work_types/boxing.tres" id="9_work_type"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/box_sheet.png" id="2_box"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/box.tres" id="3_box_kind"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_open_back"]
 atlas = ExtResource("2_box")
@@ -19,10 +20,10 @@ script = ExtResource("1_task")
 id = &"set_out_box"
 display_name = "Set out box"
 work_type = ExtResource("9_work_type")
-base_work_time = 0.5
+work_minutes = 0.2
 ingredient_cost = 0.6
 prep = true
-fetch_supply = &"box"
+fetch_supply = ExtResource("3_box_kind")
 container_under_texture = SubResource("AtlasTexture_open_back")
 container_over_texture = SubResource("AtlasTexture_open_front")
 container_contents_offset = Vector2(0, -1)

@@ -8,5 +8,5 @@ script = ExtResource("1_task")
 id = &"unload_oven"
 display_name = "Unload oven"
 work_type = ExtResource("9_work_type")
-base_work_time = 0.75
+work_minutes = 0.3
 into_container = true

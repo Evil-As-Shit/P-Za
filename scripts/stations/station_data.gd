@@ -56,7 +56,7 @@ func get_item_cell(origin: Vector2i, facing: int, spot: int) -> Vector2i:
 
 
 ## Layout for storing `kind` here, or null if this station can't store it.
-func get_storage_layout(kind: StringName) -> StorageLayout:
+func get_storage_layout(kind: StorageKind) -> StorageLayout:
 	for layout: StorageLayout in storage_layouts:
 		if layout.kind == kind:
 			return layout

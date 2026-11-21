@@ -15,6 +15,12 @@ signal speed_changed(speed: int)
 ## Game speeds the player can pick. 0 is paused.
 @export var speeds: Array[int] = [0, 1, 3, 6]
 
+## Game seconds per shop minute when no clock is running (a 30-minute, 12-hour day).
+const DEFAULT_SECONDS_PER_MINUTE: float = 2.5
+
+## The clock in play, so durations given in shop minutes can be converted anywhere.
+static var _current: ShopClock = null
+
 var day: int = 1
 var speed: int = 1
 ## Speed to go back to when unpausing.
@@ -29,8 +35,22 @@ func _ready() -> void:
 	day_started.emit(day)
 
 
+func _enter_tree() -> void:
+	_current = self
+
+
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
+	if _current == self:
+		_current = null
+
+
+## Game seconds that `minutes` shop minutes last (at 1x; speed scales game time itself).
+static func minutes_to_seconds(minutes: float) -> float:
+	var per_minute: float = DEFAULT_SECONDS_PER_MINUTE
+	if _current != null:
+		per_minute = _current.day_length_minutes / (_current.close_hour - _current.open_hour)
+	return minutes * per_minute
 
 
 func _process(delta: float) -> void:

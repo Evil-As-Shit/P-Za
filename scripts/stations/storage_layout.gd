@@ -3,8 +3,8 @@ extends Resource
 ## How one kind of stored thing (e.g. boxes, dough containers) is stacked on a station type:
 ## where its piles stand, how tall they get and how each unit looks.
 
-## Kind stored, matching StationRole.stores (e.g. &"box").
-@export var kind: StringName
+## Kind stored, matching StationRole.stores (e.g. Boxes).
+@export var kind: StorageKind
 ## One unit's art, drawn in order (e.g. a container's back, front and lid), in the item
 ## frame layout.
 @export var textures: Array[Texture2D] = []

@@ -6,6 +6,6 @@ extends Resource
 @export var id: StringName
 @export var display_name: String
 @export var task_types: Array[TaskType] = []
-## Kind of thing stored here (e.g. &"box"), or empty for a work role. The station needs a
+## Kind of thing stored here (e.g. Boxes), or null for a work role. The station needs a
 ## StorageLayout for it.
-@export var stores: StringName
+@export var stores: StorageKind

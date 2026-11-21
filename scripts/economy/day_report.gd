@@ -9,6 +9,9 @@ var pizzas_served: int = 0
 var order_minutes: Array[int] = []
 ## Orders still on the rack at closing.
 var orders_open: int = 0
+## Orders whose customers gave up waiting, and what they would have paid.
+var orders_missed: int = 0
+var sales_missed: float = 0.0
 var revenue: float = 0.0
 var ingredients: float = 0.0
 var wages: float = 0.0

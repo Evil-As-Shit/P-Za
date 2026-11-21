@@ -26,6 +26,12 @@ func record_sale(revenue: float, pizzas: int, minutes: int) -> void:
 	_change_cash(revenue)
 
 
+## A customer gave up on an order worth `sales`. No money changes hands.
+func record_missed(sales: float) -> void:
+	_today.orders_missed += 1
+	_today.sales_missed += sales
+
+
 ## Ingredients (or boxes) were used up.
 func record_ingredients(cost: float) -> void:
 	if cost == 0.0:

@@ -82,7 +82,7 @@ func place(shop_floor: ShopFloor) -> void:
 
 ## Assigns a role (or null for unused). Only for stations that take roles.
 func set_role(new_role: StationRole) -> void:
-	var old_kind: StringName = get_stored_kind()
+	var old_kind: StorageKind = get_stored_kind()
 	role = new_role
 	_update_role_label()
 	if get_stored_kind() != old_kind:
@@ -213,19 +213,19 @@ func get_work_target(spot: int) -> Vector2:
 	return _item_positions[spot]
 
 
-## Kind of thing the station stores (from its role), or empty if it isn't storage.
-func get_stored_kind() -> StringName:
-	return role.stores if role != null else &""
+## Kind of thing the station stores (from its role), or null if it isn't storage.
+func get_stored_kind() -> StorageKind:
+	return role.stores if role != null else null
 
 
 func get_storage_layout() -> StorageLayout:
-	var kind: StringName = get_stored_kind()
-	return data.get_storage_layout(kind) if kind != &"" else null
+	var kind: StorageKind = get_stored_kind()
+	return data.get_storage_layout(kind) if kind != null else null
 
 
 ## True if one unit of `kind` is in stock and not already promised to a pawn.
-func has_supply(kind: StringName) -> bool:
-	return kind != &"" and get_stored_kind() == kind and _stock - _stock_claimed > 0
+func has_supply(kind: StorageKind) -> bool:
+	return kind != null and get_stored_kind() == kind and _stock - _stock_claimed > 0
 
 
 ## Promises one unit to a pawn on its way. Undo with unclaim_supply() if it never arrives.
@@ -256,9 +256,9 @@ func _get_capacity() -> int:
 
 
 ## True if there's a free place for one unit of `kind` not already promised to a pawn.
-func has_room(kind: StringName) -> bool:
+func has_room(kind: StorageKind) -> bool:
 	return (
-		kind != &"" and get_stored_kind() == kind
+		kind != null and get_stored_kind() == kind
 		and _stock + _room_claimed < _get_capacity()
 	)
 

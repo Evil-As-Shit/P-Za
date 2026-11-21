@@ -5,6 +5,8 @@
 [ext_resource type="Texture2D" path="res://resources/items/dough_container_front.tres" id="3_front"]
 [ext_resource type="Texture2D" path="res://resources/items/dough_container_lid.tres" id="4_lid"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/pizza_sheet.png" id="5_pizza"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/dough.tres" id="6_dough"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/empty_dough.tres" id="7_empty"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ball"]
 atlas = ExtResource("5_pizza")
@@ -14,8 +16,8 @@ margin = Rect2(0, 48, 0, 48)
 [resource]
 script = ExtResource("1_container")
 display_name = "Dough Container"
-full_kind = &"dough"
-empty_kind = &"empty_dough"
+full_kind = ExtResource("6_dough")
+empty_kind = ExtResource("7_empty")
 back_texture = ExtResource("2_back")
 front_texture = ExtResource("3_front")
 lid_texture = ExtResource("4_lid")

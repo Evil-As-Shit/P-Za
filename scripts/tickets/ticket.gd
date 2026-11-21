@@ -19,6 +19,8 @@ var hand_off_job: Job = null
 var ready: bool = false
 ## Shop time it printed (ShopClock.get_open_minutes()).
 var printed_at: int = 0
+## Shop minutes the customer waits before giving up, from printing.
+var patience: int = 45
 
 var _stack_task: TaskType
 var _hand_off_task: TaskType
@@ -83,6 +85,21 @@ func get_finished_count() -> int:
 		if order_item.is_complete():
 			count += 1
 	return count
+
+
+## Shop minutes since it printed.
+func get_age(now_minutes: int) -> int:
+	return maxi(now_minutes - printed_at, 0)
+
+
+## True once the customer has run out of patience. Handed-off orders still go out.
+func is_overdue(now_minutes: int) -> bool:
+	return not ready and get_age(now_minutes) >= patience
+
+
+## How much of the customer's patience is used up (0-1).
+func get_patience_used(now_minutes: int) -> float:
+	return clampf(float(get_age(now_minutes)) / maxf(patience, 1), 0.0, 1.0)
 
 
 func get_title() -> String:

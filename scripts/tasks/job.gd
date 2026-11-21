@@ -10,6 +10,9 @@ var ticket: Ticket
 ## The order item the job works on or moves (e.g. one pizza). For a hand-off, the stack's
 ## base.
 var order_item: OrderItem
+## For shop jobs that aren't part of an order (ticket and order_item are null): the item
+## the job moves, e.g. leftovers to throw out.
+var target: Item = null
 ## Station spot reserved for this job while it is claimed.
 var station: Station = null
 var spot: int = -1
@@ -27,7 +30,7 @@ func _init(p_task_type: TaskType, p_ticket: Ticket, p_order_item: OrderItem) -> 
 
 ## Pawn work needed. Unattended tasks need none: the pawn just loads the item.
 func get_work_required() -> float:
-	return 0.0 if task_type.unattended else task_type.base_work_time
+	return 0.0 if task_type.unattended else task_type.get_work_seconds()
 
 
 func is_complete() -> bool:

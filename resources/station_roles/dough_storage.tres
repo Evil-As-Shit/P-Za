@@ -1,9 +1,10 @@
 [gd_resource type="Resource" script_class="StationRole" format=3]
 
 [ext_resource type="Script" path="res://scripts/stations/station_role.gd" id="1_role"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/dough.tres" id="2_kind"]
 
 [resource]
 script = ExtResource("1_role")
 id = &"dough_storage"
 display_name = "Dough"
-stores = &"dough"
+stores = ExtResource("2_kind")

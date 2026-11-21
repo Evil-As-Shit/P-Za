@@ -9,6 +9,6 @@ script = ExtResource("1_task")
 id = &"stretch"
 display_name = "Stretch"
 work_type = ExtResource("9_work_type")
-base_work_time = 2.5
+work_minutes = 1.0
 ingredient_cost = 0.8
 ingredient = ExtResource("2_dough")

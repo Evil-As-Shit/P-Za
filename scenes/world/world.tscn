@@ -42,12 +42,15 @@
 [ext_resource type="Resource" path="res://resources/bills/gas.tres" id="40_gas"]
 [ext_resource type="Resource" path="res://resources/bills/water.tres" id="41_water"]
 [ext_resource type="PackedScene" path="res://scenes/ui/day_report_panel.tscn" id="42_report_panel"]
+[ext_resource type="Resource" path="res://resources/stations/garbage_can.tres" id="43_garbage_can"]
+[ext_resource type="Resource" path="res://resources/tasks/throw_out.tres" id="44_throw_out"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
 debug_recipe = ExtResource("8_pizza")
 work_types = Array[ExtResource("15_work_type")]([ExtResource("16_kitchen"), ExtResource("17_oven"), ExtResource("18_boxing"), ExtResource("19_front")])
 item_scene = ExtResource("11_item")
+throw_out_task = ExtResource("44_throw_out")
 
 [node name="ShopFloor" parent="." instance=ExtResource("2_floor")]
 
@@ -77,6 +80,10 @@ cell = Vector2i(8, 5)
 [node name="SmallOven2" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("10_oven")
 cell = Vector2i(9, 5)
+
+[node name="GarbageCan" parent="Entities" instance=ExtResource("5_station")]
+data = ExtResource("43_garbage_can")
+cell = Vector2i(10, 5)
 
 [node name="BoxRack" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("12_box_rack")

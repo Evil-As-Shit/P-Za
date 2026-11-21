@@ -11,6 +11,8 @@
 [ext_resource type="Texture2D" path="res://resources/items/dough_container_back.tres" id="9_back"]
 [ext_resource type="Texture2D" path="res://resources/items/dough_container_front.tres" id="10_front"]
 [ext_resource type="Texture2D" path="res://resources/items/dough_container_lid.tres" id="11_lid"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/box.tres" id="12_box_kind"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/dough.tres" id="13_dough_kind"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_bottom"]
 atlas = ExtResource("4_sheet")
@@ -32,7 +34,7 @@ item_cell = Vector2i(0, 0)
 
 [sub_resource type="Resource" id="Resource_boxes"]
 script = ExtResource("6_layout")
-kind = &"box"
+kind = ExtResource("12_box_kind")
 textures = Array[Texture2D]([SubResource("AtlasTexture_closed_box")])
 piles = Array[Vector2]([Vector2(16, -11), Vector2(0, -3)])
 piles_on_top = Array[Vector2]([Vector2(16, -33), Vector2(0, -25)])
@@ -43,7 +45,7 @@ starts_full = true
 
 [sub_resource type="Resource" id="Resource_dough"]
 script = ExtResource("6_layout")
-kind = &"dough"
+kind = ExtResource("13_dough_kind")
 textures = Array[Texture2D]([ExtResource("9_back"), ExtResource("10_front"), ExtResource("11_lid")])
 piles = Array[Vector2]([Vector2(16, -11), Vector2(0, -3)])
 piles_on_top = Array[Vector2]([Vector2(16, -33), Vector2(0, -25)])

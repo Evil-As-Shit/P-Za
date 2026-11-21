@@ -9,6 +9,9 @@ const DIM := Color(1.0, 1.0, 1.0, 0.6)
 const GOOD := Color(0.55, 0.9, 0.5)
 const BAD := Color(1.0, 0.45, 0.4)
 
+## The report on show, or null.
+var report: DayReport = null
+
 @onready var _title: Label = %Title
 @onready var _lines: GridContainer = %Lines
 @onready var _continue: Button = %Continue
@@ -18,19 +21,26 @@ func _ready() -> void:
 	_continue.pressed.connect(continue_requested.emit)
 
 
-func show_report(report: DayReport) -> void:
+func show_report(p_report: DayReport) -> void:
+	report = p_report
 	_title.text = "Day %d closed" % report.day
 	for child: Node in _lines.get_children():
 		_lines.remove_child(child)
 		child.queue_free()
 
 	_add_line("Orders served", "%d (%d pizzas)" % [report.orders_served, report.pizzas_served])
+	_add_line(
+		"Orders missed", "%d" % report.orders_missed, "",
+		BAD if report.orders_missed > 0 else Color.WHITE
+	)
 	if report.orders_open > 0:
 		_add_line("Still open", "%d (carried over)" % report.orders_open)
 	_add_line("Average ticket", "%d min" % roundi(report.get_average_minutes()))
 	_add_line("Longest ticket", "%d min" % report.get_longest_minutes())
 	_add_gap()
 	_add_line("Sales", ShopFinances.format_money(report.revenue))
+	if report.orders_missed > 0:
+		_add_line("Sales lost", ShopFinances.format_money(report.sales_missed), "", DIM)
 	_add_line("Ingredients", _cost(report.ingredients))
 	_add_line(
 		"Wages", _cost(report.wages),
