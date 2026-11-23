@@ -175,7 +175,7 @@ func _on_priority_change_requested(pawn: Pawn, work_type: WorkType, priority: in
 
 #region Orders
 
-## A customer orders: they wait at the register until a Front pawn takes the order.
+## A customer orders: they wait at the register until a Cashier pawn takes the order.
 func _on_order_placed(recipes: Array[Recipe]) -> void:
 	_work.take_order(recipes, _rack.now_minutes)
 

@@ -1,5 +1,5 @@
 extends "res://tests/test_base.gd"
-## Boxes arrive flat on the pallet. Idle Boxing pawns fold them standing at the pallet and
+## Boxes arrive flat on the pallet. Idle Box folding pawns fold them standing at the pallet and
 ## carry each one to box storage (which starts empty) as part of the same Fold box job, one
 ## pawn at a time; Boxing tables stay free. With no folded boxes to be had, a pawn setting
 ## out a box folds a flat one on the spot, which takes longer.

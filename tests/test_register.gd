@@ -1,5 +1,5 @@
 extends "res://tests/test_base.gd"
-## Orders are taken at the register: a customer's order waits there until a Front pawn
+## Orders are taken at the register: a customer's order waits there until a Cashier pawn
 ## takes it, then its ticket prints, timed from when they ordered. With no register, the
 ## customer gives up after their patience and the sale is missed.
 
@@ -51,8 +51,8 @@ func _watch_first_order() -> void:
 		if waiting[0].station != _register:
 			fail("the order was taken somewhere other than the register")
 			return
-		if _taken_by.get_priority(load("res://resources/work_types/front.tres")) == 0:
-			fail("%s took an order without Front work" % _taken_by.display_name)
+		if _taken_by.get_priority(load("res://resources/work_types/cashier.tres")) == 0:
+			fail("%s took an order without Cashier work" % _taken_by.display_name)
 			return
 	var make: Array[Ticket] = rack.get_tickets(Ticket.Section.MAKE)
 	if make.is_empty():

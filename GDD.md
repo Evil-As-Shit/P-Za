@@ -49,12 +49,15 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 ### Pawns and work priorities
 
 - Pawns are autonomous. The player sets work priorities per pawn and never gives direct move or work commands.
-- **Priority grid:** pawns are rows, broad work types are columns, and each cell is 1–4 (1 first) or blank (never). Columns, left to right:
-  - **Kitchen:** stretch, sauce, cheese, load oven, throw out leftovers (later dough and sauce prep).
+- **Priority grid:** pawns are rows, work types are columns, and each cell is 1–4 (1 first) or blank (never). Each column except Hauling is also a skill (see Staff). Columns, left to right:
+  - **Dough stretching:** stretch the dough.
+  - **Pizza making:** sauce, cheese (later toppings), load the oven.
   - **Oven:** take pizzas out.
-  - **Boxing:** set out a box, cut, stack boxes, fold boxes.
-  - **Front:** take orders at the register, carry finished orders to pickup (later service).
-  - Driving and Cleaning get columns when they exist.
+  - **Cutting:** cut the pizza in its box.
+  - **Box folding:** fold boxes.
+  - **Cashier:** take orders at the register.
+  - **Hauling** (no skill): set out a box, stack boxes, carry finished orders to pickup, throw out leftovers, put dough containers away.
+  - Later: Dough making, Sauce making, Driving, Cleaning, Service (dine-in), Managing.
 - An idle pawn takes work by its grid: priority 1 before 2, and the leftmost column wins a tie. Within a work type, it takes the first open job in Make-rack order. Pawns finish their current job before choosing again.
 - New hires start with everything blank until the player assigns work. Training is a separate checkbox (see Staff).
 - When no manager has line of sight, pawns skip their low-priority work (and slack off).
@@ -74,12 +77,12 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 
 ### Orders and the ticket rack
 
-- Orders print as physical tickets from the register. A customer's order waits at the register until a Front pawn takes it (a short "Take order" task), then its ticket prints. With no register, or nobody on Front, customers pile up at the register; the ticket rack shows how many are waiting. Order types are dine-in, to-go, pickup and delivery (only plain pickup-style orders exist for now).
+- Orders print as physical tickets from the register. A customer's order waits at the register until a Cashier pawn takes it (a short "Take order" task), then its ticket prints. With no register, or nobody on Cashier, customers pile up at the register; the ticket rack shows how many are waiting. Order types are dine-in, to-go, pickup and delivery (only plain pickup-style orders exist for now).
 - The **ticket rack** is a HUD panel with **Wait** and **Make** columns. Pawns work the Make tickets in order, so dragging and reordering tickets steers the kitchen indirectly.
 - New tickets land in Wait and the player moves them to Make. For now, new tickets go straight to the bottom of Make; the player can still drag them back to Wait.
 - Pulling an in-progress ticket back to Wait stops its pawns. Work done so far is kept and resumes when the ticket returns to Make. A pizza being carried at that moment is set down on the floor.
 - Each ticket shows its order number, items (e.g. "3 Pizza"), status, how many pizzas are boxed, and the shop minutes since it printed (closed hours don't count). Order type and the ETA come later.
-- **Patience:** customers wait 45 shop minutes from when they order, including any time waiting at the register (a ticket's age counts from then). The ticket turns yellow at half that and red in the last fifth. A customer whose order was never taken leaves and the sale is lost. If the order isn't at the pickup counter by then, the customer leaves: the ticket is cancelled, the sale is lost, and anything made for it (pizzas, boxes, a dropped dough container) is thrown out by a Kitchen pawn at the garbage can.
+- **Patience:** customers wait 45 shop minutes from when they order, including any time waiting at the register (a ticket's age counts from then). The ticket turns yellow at half that and red in the last fifth. A customer whose order was never taken leaves and the sale is lost. If the order isn't at the pickup counter by then, the customer leaves: the ticket is cancelled, the sale is lost, and anything made for it (pizzas, boxes, a dropped dough container) is thrown out by a Hauling pawn at the garbage can.
 - The player never takes or serves orders by hand: pawns take them at the register, and completed orders go out on their own.
 - **Demand (for now):** until customers exist, orders arrive at random while the shop is open: about one every 12 shop minutes, twice as often during the lunch (12:00–13:30) and dinner (18:00–19:30) rushes, and none in the last hour (from 21:00). About 60% are one pizza, 30% two or three, and 10% four to eight (party orders), so roughly 70 orders and 150 pizzas a day. The starting staff keep up between rushes and fall behind during them.
 
@@ -88,11 +91,11 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 - **Recipes:** a menu item is an ordered list of task steps; each step is one job, done by one pawn at one station, so a ticket can be paused between steps. A plain pizza is stretch, sauce, cheese, load oven, set out box, take out of oven, then cut. An order's pizzas are each worked in parallel by whichever pawns are free.
 - **Timing target:** like a real shop, one pizza alone takes about 10 shop minutes from ticket to customer. Baking is about 5 of that; prep steps take well under a minute each.
 - The pizza is a real item. It sits on a station and pawns carry it between stations. A spot holding another ticket's pizza can't be used.
-- **Dough:** dough balls come in lidded containers of 6, stacked in Dough storage. To stretch, a pawn takes a ball from the open container on a Prep spot. If none is open, they first fetch one and set it out on a Prep spot (lid off), where it takes up that spot. Only one container is set out at a time. The pawn who takes the last ball carries the empty to Empty Dough storage (later, to a cleaning station). Once no pizza is waiting to be stretched, a Kitchen pawn with nothing else to do puts the lid back on and takes the container back to Dough storage with what's left in it; the next one taken out is that partly used one.
-- **Oven:** baking runs on its own; a Kitchen pawn loads the pizza and is free while it cooks. Once it's done, an Oven pawn takes it out and drops it into its open box. Later, when it's taken out will set its doneness (under, perfect, over), modified by Oven skill.
-- **Boxes:** pizza boxes arrive flat, stacked on a pallet next to the boxing tables. When a Boxing pawn has nothing else to do at any priority, they stand at the pallet, fold a box in hand and carry it to Boxes storage (the box rack), all as one Fold box job, until the rack is full. Only one pawn folds at a time. Folding never uses a Boxing spot, so it can't hold up orders. Once the pizza is in the oven, a pawn takes a folded box from the rack and opens it on an empty Boxing spot. If there are no folded boxes, they take a flat one from the pallet and fold it there on the spot, which takes longer. Once the pizza is in the box, a pawn cuts it there (cut lines appear as the work goes) and the box closes.
+- **Dough:** dough balls come in lidded containers of 6, stacked in Dough storage. To stretch, a pawn takes a ball from the open container on a Prep spot. If none is open, they first fetch one and set it out on a Prep spot (lid off), where it takes up that spot. Only one container is set out at a time. The pawn who takes the last ball carries the empty to Empty Dough storage (later, to a cleaning station). Once no pizza is waiting to be stretched, a Hauling pawn with nothing else to do puts the lid back on and takes the container back to Dough storage with what's left in it; the next one taken out is that partly used one.
+- **Oven:** baking runs on its own; a Pizza making pawn loads the pizza and is free while it cooks. Once it's done, an Oven pawn takes it out and drops it into its open box. Later, when it's taken out will set its doneness (under, perfect, over), modified by Oven skill.
+- **Boxes:** pizza boxes arrive flat, stacked on a pallet next to the boxing tables. When a Box folding pawn has nothing else to do at any priority, they stand at the pallet, fold a box in hand and carry it to Boxes storage (the box rack), all as one Fold box job, until the rack is full. Only one pawn folds at a time. Folding never uses a Boxing spot, so it can't hold up orders. Once the pizza is in the oven, a pawn takes a folded box from the rack and opens it on an empty Boxing spot. If there are no folded boxes, they take a flat one from the pallet and fold it there on the spot, which takes longer. Once the pizza is in the box, a pawn cuts it there (cut lines appear as the work goes) and the box closes.
 - A pizza never waits in the oven for a box: if its box isn't open yet, it's set on a free Boxing spot and moved into the box when it's cut. That only happens while a spot would still be free for its box (and the boxes of any other waiting pizzas); otherwise it stays in the oven, so unboxed pizzas can't fill every spot.
-- **Stacking and hand-off:** finished boxes stack on the boxing table (up to 8). The order's first closed box stays where it was cut as the stack's base, and a Boxing pawn moves each later box onto it. When the last box joins, a Front pawn carries the whole stack to the pickup counter (later: right away for to-go, or when the customer arrives for pickup). The ticket shows Ready, and after a short wait (placeholder) the order goes out and leaves the rack.
+- **Stacking and hand-off:** finished boxes stack on the boxing table (up to 8). The order's first closed box stays where it was cut as the stack's base, and a Hauling pawn moves each later box onto it. When the last box joins, a Hauling pawn carries the whole stack to the pickup counter (later: right away for to-go, or when the customer arrives for pickup). The ticket shows Ready, and after a short wait (placeholder) the order goes out and leaves the rack.
 
 ### Pizza crafting and the menu
 

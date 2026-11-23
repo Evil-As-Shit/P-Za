@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="TaskType" format=3]
 
-[ext_resource type="Resource" path="res://resources/work_types/boxing.tres" id="9_work_type"]
+[ext_resource type="Resource" path="res://resources/work_types/cutting.tres" id="9_work_type"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/pizza_sheet.png" id="2_sheet"]
 [ext_resource type="Script" path="res://scripts/tasks/behaviors/at_container_behavior.gd" id="3_behavior"]

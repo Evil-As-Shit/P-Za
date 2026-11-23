@@ -24,10 +24,13 @@
 [ext_resource type="Script" path="res://scripts/orders/order_source.gd" id="28_orders"]
 [ext_resource type="Script" path="res://scripts/menu/recipe.gd" id="29_recipe"]
 [ext_resource type="Script" path="res://scripts/tasks/work_type.gd" id="15_work_type"]
-[ext_resource type="Resource" path="res://resources/work_types/kitchen.tres" id="16_kitchen"]
+[ext_resource type="Resource" path="res://resources/work_types/dough_stretching.tres" id="16_dough"]
+[ext_resource type="Resource" path="res://resources/work_types/pizza_making.tres" id="16_pizza_making"]
 [ext_resource type="Resource" path="res://resources/work_types/oven.tres" id="17_oven"]
-[ext_resource type="Resource" path="res://resources/work_types/boxing.tres" id="18_boxing"]
-[ext_resource type="Resource" path="res://resources/work_types/front.tres" id="19_front"]
+[ext_resource type="Resource" path="res://resources/work_types/cutting.tres" id="18_cutting"]
+[ext_resource type="Resource" path="res://resources/work_types/box_folding.tres" id="18_folding"]
+[ext_resource type="Resource" path="res://resources/work_types/cashier.tres" id="19_cashier"]
+[ext_resource type="Resource" path="res://resources/work_types/hauling.tres" id="19_hauling"]
 [ext_resource type="PackedScene" path="res://scenes/ui/priority_panel.tscn" id="20_priority_panel"]
 [ext_resource type="Resource" path="res://resources/station_roles/box_storage.tres" id="30_box_storage"]
 [ext_resource type="Resource" path="res://resources/station_roles/dough_storage.tres" id="31_dough_storage"]
@@ -135,38 +138,47 @@ cell = Vector2i(6, 9)
 [node name="Pawn" parent="Entities" instance=ExtResource("3_pawn")]
 display_name = "Pawn 1"
 priorities = Dictionary[ExtResource("15_work_type"), int]({
-ExtResource("16_kitchen"): 1,
+ExtResource("16_dough"): 1,
+ExtResource("16_pizza_making"): 1,
 ExtResource("17_oven"): 2,
-ExtResource("18_boxing"): 3,
-ExtResource("19_front"): 3
+ExtResource("18_cutting"): 3,
+ExtResource("18_folding"): 3,
+ExtResource("19_cashier"): 3,
+ExtResource("19_hauling"): 3
 })
 
 [node name="Pawn2" parent="Entities" instance=ExtResource("3_pawn")]
 display_name = "Pawn 2"
 priorities = Dictionary[ExtResource("15_work_type"), int]({
 ExtResource("17_oven"): 2,
-ExtResource("18_boxing"): 1,
-ExtResource("19_front"): 1
+ExtResource("18_cutting"): 1,
+ExtResource("18_folding"): 1,
+ExtResource("19_cashier"): 1,
+ExtResource("19_hauling"): 1
 })
 
 [node name="Pawn3" parent="Entities" instance=ExtResource("3_pawn")]
 display_name = "Pawn 3"
 priorities = Dictionary[ExtResource("15_work_type"), int]({
-ExtResource("16_kitchen"): 1,
+ExtResource("16_dough"): 1,
+ExtResource("16_pizza_making"): 1,
 ExtResource("17_oven"): 2,
-ExtResource("18_boxing"): 3,
-ExtResource("19_front"): 3
+ExtResource("18_cutting"): 3,
+ExtResource("18_folding"): 3,
+ExtResource("19_cashier"): 3,
+ExtResource("19_hauling"): 3
 })
 
 [node name="Pawn4" parent="Entities" instance=ExtResource("3_pawn")]
 display_name = "Pawn 4"
 priorities = Dictionary[ExtResource("15_work_type"), int]({
-ExtResource("19_front"): 1
+ExtResource("19_cashier"): 1,
+ExtResource("19_hauling"): 1
 })
 
 [node name="Work" type="Node" parent="."]
 script = ExtResource("45_work")
-work_types = Array[ExtResource("15_work_type")]([ExtResource("16_kitchen"), ExtResource("17_oven"), ExtResource("18_boxing"), ExtResource("19_front")])
+work_types = Array[ExtResource("15_work_type")]([ExtResource("16_dough"), ExtResource("16_pizza_making"), ExtResource("17_oven"), ExtResource("18_cutting"), ExtResource("18_folding"), ExtResource("19_cashier"), ExtResource("19_hauling")])
 item_scene = ExtResource("11_item")
 throw_out_task = ExtResource("44_throw_out")
 take_order_task = ExtResource("52_take_order")

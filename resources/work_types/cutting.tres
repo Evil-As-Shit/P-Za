@@ -4,5 +4,5 @@
 
 [resource]
 script = ExtResource("1_work_type")
-id = &"kitchen"
-display_name = "Kitchen"
+id = &"cutting"
+display_name = "Cutting"
