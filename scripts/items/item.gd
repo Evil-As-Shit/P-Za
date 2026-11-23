@@ -66,6 +66,12 @@ func set_wrap(
 	_contents.position = contents_offset
 
 
+## Art drawn under the item only (e.g. the pizza screen it sits on in a rack). Pass null
+## to take it off.
+func set_under(texture: Texture2D) -> void:
+	_set_art(_under, texture)
+
+
 ## Turns the item to face a pawn standing at `side` (a grid step from the item's cell), so
 ## its back (e.g. a box's lid) is away from them. Art is drawn facing a pawn down-right;
 ## for a pawn down-left it's mirrored. For a pawn behind it, its turned art is used (mirrored

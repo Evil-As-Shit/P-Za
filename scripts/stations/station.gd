@@ -104,6 +104,7 @@ func place(shop_floor: ShopFloor) -> void:
 	for spot: int in data.spots.size():
 		_item_positions.append(
 			shop_floor.cell_to_global(data.get_item_cell(cell, facing, spot)) + data.item_offset
+			- Vector2(0.0, data.spots[spot].item_height)
 		)
 	_items.resize(data.spots.size())
 	_reserved.resize(data.spots.size())
@@ -412,8 +413,23 @@ func put_item(spot: int, item: Item) -> void:
 	item.station = self
 	item.spot = spot
 	item.reparent(_item_slot, false)
+	_item_slot.move_child(item, _get_draw_index(spot))
 	item.global_position = _item_positions[spot]
 	item.face_toward(get_pawn_side(spot))
+	if data.item_underlay != null:
+		item.set_under(data.item_underlay)
+
+
+## Where among the items an item on `spot` draws: under any sitting higher (see
+## StationSpot.item_height), otherwise last.
+func _get_draw_index(spot: int) -> int:
+	var height: float = data.spots[spot].item_height
+	for child: Node in _item_slot.get_children():
+		var other := child as Item
+		if other != null and other.spot >= 0 and other.spot != spot \
+				and data.spots[other.spot].item_height > height:
+			return child.get_index()
+	return _item_slot.get_child_count() - 1
 
 
 ## Frees the spot and returns its item. The node stays where it is until the caller
@@ -424,6 +440,8 @@ func take_item(spot: int) -> Item:
 	if item != null:
 		item.station = null
 		item.spot = -1
+		if data.item_underlay != null:
+			item.set_under(null)
 	set_opened(spot, false)
 	return item
 

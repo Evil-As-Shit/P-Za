@@ -21,7 +21,7 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 
 ## Placeholders (generated, to be redrawn)
 
-Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette and grid as the art above. The oven, register, flat boxes, pallet and prep table are used in game; the rest aren't wired up yet.
+Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette and grid as the art above. The oven, register, flat boxes, pallet, prep table and pizza rack are used in game; the rest aren't wired up yet.
 
 - `oven_2x2_sheet.png`: 2×2 oven, 64×80 per facing (0–3 left to right). Row 1 closed, row 2 baking (glowing window). Used by the Pizza Oven station.
 - `register_sheet.png`: register and ticket printer on the pickup-counter base, 32×48 per facing. Used by the Register station.
@@ -31,6 +31,8 @@ Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette 
 - `box_flat_sheet.png`: 32×16 cells like `box_sheet.png`. A single flat box (used: stacked on the pallet, carried while folding), then a strapped bundle of flats (unused).
 - `pallet_sheet.png`: wooden pallet, 1×1, 32×48 per facing. Used by the Box Pallet station, which holds flat boxes next to the boxing tables.
 - `prep_table_sheet.png`: pizza prep table (refrigerated make table), 3×2 (3 cells along the working side, 2 deep), 80×96 per facing on `object_3x2_guide.png`. Front row: white cutting board at table height, where pizzas are assembled. Back row: raised rail with 8 ingredient pans (sauce, cheese ×2, pepperoni, mushroom, pepper, olives, onion). Cooler doors and compressor below. Row 1 lids open (shown while it's in use), row 2 lids closed. Used by the Prep Table station.
+- `pizza_rack_sheet.png`: sheet-pan style pizza rack on casters, 1×1, 32×80 per facing (0–3 left to right). Row 1 is the base (back frame, drawn under stored pizzas), row 2 the cover (front post and front rail ends, drawn over them). Open on the working side and the back, so facings 0 and 2 share art, as do 1 and 3. 17 slots, 3 px apart (first at 9 px, last at 57 px above the floor), one pizza per slot. Used by the Pizza Rack station.
+- `pizza_screen.png`: 32×16, laid out like the pizza stages. A pizza screen drawn under each pizza on the rack, so stacked layers read apart.
 - `ingredient_icons.png`: on the 16×16 item guide. Dough, sauce, cheese, pepperoni, mushroom, olives.
 
 ## Priority 1: the pizza loop (next slices)

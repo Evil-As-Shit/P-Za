@@ -66,6 +66,7 @@
 [ext_resource type="Resource" path="res://resources/orders/quote_rules.tres" id="61_quote_rules"]
 [ext_resource type="Script" path="res://scripts/reviews/shop_reputation.gd" id="62_reputation"]
 [ext_resource type="Resource" path="res://resources/reviews/review_rules.tres" id="63_review_rules"]
+[ext_resource type="Resource" path="res://resources/stations/pizza_rack.tres" id="64_pizza_rack"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -195,7 +196,7 @@ quote_rules = ExtResource("61_quote_rules")
 [node name="BuildMode" type="Node" parent="."]
 script = ExtResource("47_build")
 station_scene = ExtResource("5_station")
-catalog = Array[ExtResource("48_station_data")]([ExtResource("57_prep_table"), ExtResource("6_table"),ExtResource("33_small_table"), ExtResource("14_counter"), ExtResource("51_register"), ExtResource("10_oven"), ExtResource("50_pizza_oven"), ExtResource("12_box_rack"), ExtResource("53_pallet"), ExtResource("43_garbage_can")])
+catalog = Array[ExtResource("48_station_data")]([ExtResource("57_prep_table"), ExtResource("6_table"),ExtResource("33_small_table"), ExtResource("14_counter"), ExtResource("51_register"), ExtResource("10_oven"), ExtResource("50_pizza_oven"), ExtResource("64_pizza_rack"), ExtResource("12_box_rack"), ExtResource("53_pallet"), ExtResource("43_garbage_can")])
 
 [node name="ShopCamera" type="Camera2D" parent="."]
 script = ExtResource("4_camera")

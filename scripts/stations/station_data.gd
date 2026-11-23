@@ -38,6 +38,9 @@ extends Resource
 @export var spots: Array[StationSpot] = []
 ## Where an item sits, relative to its spot's floor center (e.g. up on the tabletop).
 @export var item_offset: Vector2 = Vector2.ZERO
+## Optional art drawn under each item sitting on its spots (e.g. a pizza screen on a rack),
+## in the item frame layout.
+@export var item_underlay: Texture2D
 
 ## How each kind of thing this station can store is stacked on it. Storage roles need a
 ## layout for their kind. Pawns fetch and drop off stored things at spot 0.

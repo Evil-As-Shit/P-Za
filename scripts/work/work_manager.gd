@@ -711,6 +711,17 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	if behavior.continue_job(job, pawn, self):
 		# The same pawn goes on to the job's next part.
 		return
+	if not behavior.is_step_done(job):
+		# The item was only moved out of the way (e.g. parked on a rack): the step is open again.
+		_release(job)
+		job.claimed_by = null
+		job.work_done = 0.0
+		job.part = 0
+		_rack.notify_job_state_changed()
+		assign_all()
+		if not pawn.has_job():
+			_work_or_wander(pawn)
+		return
 	if task.ingredient_cost != 0.0:
 		ingredients_used.emit(task.ingredient_cost)
 	var station: Station = job.station

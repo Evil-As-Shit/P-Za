@@ -101,6 +101,13 @@ func continue_job(_job: Job, _pawn: Pawn, _work: WorkManager) -> bool:
 	return false
 
 
+## Right after on_finished(): false if what the pawn did wasn't the job's step itself (e.g.
+## parking a pizza on a rack while the oven is full), so the job opens again for any pawn
+## instead of the ticket moving on.
+func is_step_done(_job: Job) -> bool:
+	return true
+
+
 ## After the job let go of its spot and the ticket moved on.
 func after_finished(_job: Job, _work: WorkManager) -> void:
 	pass
