@@ -15,6 +15,10 @@ enum Action {
 	TAKE_UNIT,
 	## Drop the carried empty container off at storage for empties.
 	STORE_EMPTY,
+	## Set the carried dirty dish down on a dish sink's dirty drainboard.
+	DROP_DISH,
+	## Take a clean dish off a dish sink's clean drainboard.
+	TAKE_DISH,
 }
 
 var action: Action
@@ -24,6 +28,8 @@ var station: Station = null
 var spot: int = -1
 ## The ingredient container a unit is taken from (TAKE_UNIT).
 var container: Item = null
+## The clean dish taken (TAKE_DISH).
+var dish: Dish = null
 
 
 func _init(p_action: Action, p_cell: Vector2i) -> void:
@@ -62,6 +68,23 @@ static func store_empty(p_station: Station) -> JobStop:
 	return stop
 
 
+static func drop_dish(p_sink: Station) -> JobStop:
+	var stop := JobStop.new(
+		Action.DROP_DISH, p_sink.get_work_cell(p_sink.data.dish_sink.dirty_spot)
+	)
+	stop.station = p_sink
+	return stop
+
+
+static func take_dish(p_sink: Station, p_dish: Dish) -> JobStop:
+	var stop := JobStop.new(
+		Action.TAKE_DISH, p_sink.get_work_cell(p_sink.data.dish_sink.clean_spot)
+	)
+	stop.station = p_sink
+	stop.dish = p_dish
+	return stop
+
+
 ## Claims what the stop needs.
 func claim() -> void:
 	match action:
@@ -73,6 +96,10 @@ func claim() -> void:
 			container.claim_unit()
 		Action.STORE_EMPTY:
 			station.claim_room()
+		Action.DROP_DISH:
+			station.get_dish_boards().claim_dirty_room()
+		Action.TAKE_DISH:
+			station.get_dish_boards().claim_clean(dish)
 
 
 ## Hands back what claim() took, for a stop the pawn won't make.
@@ -87,3 +114,7 @@ func release() -> void:
 				container.unclaim_unit()
 		Action.STORE_EMPTY:
 			station.unclaim_room()
+		Action.DROP_DISH:
+			station.get_dish_boards().unclaim_dirty_room()
+		Action.TAKE_DISH:
+			station.get_dish_boards().unclaim_clean(dish)

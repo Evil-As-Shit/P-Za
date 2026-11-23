@@ -67,6 +67,11 @@
 [ext_resource type="Script" path="res://scripts/reviews/shop_reputation.gd" id="62_reputation"]
 [ext_resource type="Resource" path="res://resources/reviews/review_rules.tres" id="63_review_rules"]
 [ext_resource type="Resource" path="res://resources/stations/pizza_rack.tres" id="64_pizza_rack"]
+[ext_resource type="Resource" path="res://resources/work_types/cleaning.tres" id="65_cleaning"]
+[ext_resource type="Resource" path="res://resources/stations/dish_sink.tres" id="66_dish_sink"]
+[ext_resource type="Resource" path="res://resources/tasks/wash_dishes.tres" id="67_wash"]
+[ext_resource type="Resource" path="res://resources/tasks/bring_dishes.tres" id="68_bring_dishes"]
+[ext_resource type="Resource" path="res://resources/tasks/put_away_dishes.tres" id="69_put_away_dishes"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -141,6 +146,11 @@ role = ExtResource("22_pickup_role")
 data = ExtResource("51_register")
 cell = Vector2i(6, 9)
 
+[node name="DishSink" parent="Entities" instance=ExtResource("5_station")]
+data = ExtResource("66_dish_sink")
+cell = Vector2i(0, 11)
+facing = 3
+
 [node name="Pawn" parent="Entities" instance=ExtResource("3_pawn")]
 display_name = "Pawn 1"
 is_manager = true
@@ -180,23 +190,25 @@ ExtResource("19_hauling"): 3
 display_name = "Pawn 4"
 priorities = Dictionary[ExtResource("15_work_type"), int]({
 ExtResource("19_cashier"): 1,
+ExtResource("65_cleaning"): 2,
 ExtResource("19_hauling"): 1
 })
 
 [node name="Work" type="Node" parent="."]
 script = ExtResource("45_work")
-work_types = Array[ExtResource("15_work_type")]([ExtResource("16_dough"), ExtResource("16_pizza_making"), ExtResource("17_oven"), ExtResource("18_cutting"), ExtResource("18_folding"), ExtResource("19_cashier"), ExtResource("19_hauling")])
+work_types = Array[ExtResource("15_work_type")]([ExtResource("16_dough"), ExtResource("16_pizza_making"), ExtResource("17_oven"), ExtResource("18_cutting"), ExtResource("18_folding"), ExtResource("19_cashier"), ExtResource("65_cleaning"), ExtResource("19_hauling")])
 item_scene = ExtResource("11_item")
 throw_out_task = ExtResource("44_throw_out")
 take_order_task = ExtResource("52_take_order")
-restock_tasks = Array[ExtResource("56_task_type")]([ExtResource("55_fold_box"), ExtResource("58_put_away_dough")])
+restock_tasks = Array[ExtResource("56_task_type")]([ExtResource("55_fold_box"), ExtResource("58_put_away_dough"), ExtResource("68_bring_dishes"), ExtResource("69_put_away_dishes")])
+chore_tasks = Array[ExtResource("56_task_type")]([ExtResource("67_wash")])
 managing = ExtResource("60_managing")
 quote_rules = ExtResource("61_quote_rules")
 
 [node name="BuildMode" type="Node" parent="."]
 script = ExtResource("47_build")
 station_scene = ExtResource("5_station")
-catalog = Array[ExtResource("48_station_data")]([ExtResource("57_prep_table"), ExtResource("6_table"),ExtResource("33_small_table"), ExtResource("14_counter"), ExtResource("51_register"), ExtResource("10_oven"), ExtResource("50_pizza_oven"), ExtResource("64_pizza_rack"), ExtResource("12_box_rack"), ExtResource("53_pallet"), ExtResource("43_garbage_can")])
+catalog = Array[ExtResource("48_station_data")]([ExtResource("57_prep_table"), ExtResource("6_table"),ExtResource("33_small_table"), ExtResource("14_counter"), ExtResource("51_register"), ExtResource("10_oven"), ExtResource("50_pizza_oven"), ExtResource("64_pizza_rack"), ExtResource("12_box_rack"), ExtResource("53_pallet"), ExtResource("43_garbage_can"), ExtResource("66_dish_sink")])
 
 [node name="ShopCamera" type="Camera2D" parent="."]
 script = ExtResource("4_camera")

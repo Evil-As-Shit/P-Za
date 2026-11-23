@@ -21,6 +21,7 @@ region = Rect2(0, 0, 32, 48)
 script = ExtResource("9_spot")
 work_cell = Vector2i(0, 1)
 item_cell = Vector2i(0, 0)
+work_area = Rect2i(1, 1, 3, 3)
 
 [resource]
 script = ExtResource("1_data")

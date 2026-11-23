@@ -4,7 +4,7 @@ extends TaskBehavior
 ## item's item. The pawn takes it from an open container on a station that does the task;
 ## if none is open, they first fetch a full one from storage and set it out (lid off) on a
 ## free spot. Only one container is set out at a time. Whoever takes the last unit carries
-## the empty container to storage for empties on the way, if there's room.
+## the empty container to a dish sink (or storage for empties) on the way, if there's room.
 
 @export var ingredient: IngredientContainer
 
@@ -74,13 +74,16 @@ func on_stop_reached(job: Job, stop: JobStop, pawn: Pawn, work: WorkManager) -> 
 				work.assign_all()
 			else:
 				_take_unit(job, container, pawn)
-		JobStop.Action.STORE_EMPTY:
+		JobStop.Action.STORE_EMPTY, JobStop.Action.DROP_DISH:
 			var container: Item = pawn.release_item()
 			var unit: Item = job.order_item.item
 			container.take_out(unit)
 			pawn.hold_item(unit)
 			container.queue_free()
-			stop.station.add_stock()
+			if stop.action == JobStop.Action.DROP_DISH:
+				stop.station.get_dish_boards().add_dirty(ingredient.dish)
+			else:
+				stop.station.add_stock()
 			work.assign_all()
 
 
@@ -132,13 +135,19 @@ func _take_unit(job: Job, container: Item, pawn: Pawn) -> void:
 	pawn.hold_item(unit)
 
 
-## Adds a stop at storage for empties before the pawn goes on to work, if there's room
-## and they can get there. Returns false if not (the empty container stays where it is).
+## Adds a stop to drop the empty off before the pawn goes on to work: at a dish sink's dirty
+## drainboard if one has room, else at storage for empties. Returns false if there's no room
+## or they can't get there (the empty container stays where it is).
 func _detour_to_store_empty(job: Job, pawn: Pawn, work: WorkManager) -> bool:
-	var empties: Station = work.find_room(ingredient.empty_kind)
-	if empties == null:
-		return false
-	var stop: JobStop = JobStop.store_empty(empties)
+	var stop: JobStop = null
+	var sink: Station = work.find_dish_room() if ingredient.dish != null else null
+	if sink != null:
+		stop = JobStop.drop_dish(sink)
+	else:
+		var empties: Station = work.find_room(ingredient.empty_kind)
+		if empties == null:
+			return false
+		stop = JobStop.store_empty(empties)
 	var to_stop: PackedVector2Array = work.get_walk_path(work.get_cell(pawn), stop.cell)
 	var to_work: PackedVector2Array = work.get_walk_path(
 		stop.cell, job.station.get_work_cell(job.spot)

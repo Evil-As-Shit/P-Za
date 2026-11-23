@@ -26,7 +26,8 @@ func get_carried(job: Job) -> Item:
 func get_spots(job: Job, _work: WorkManager) -> Array[WorkSpot]:
 	var spots: Array[WorkSpot] = []
 	if job.destination != null:
-		spots.append(WorkSpot.new(job.destination, 0))
+		var sink: DishSink = job.destination.data.dish_sink
+		spots.append(WorkSpot.new(job.destination, sink.dirty_spot if sink != null else 0))
 	return spots
 
 
@@ -45,7 +46,10 @@ func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 		job.target = null
 		job.destination = null
 		return false
-	storage.claim_room()
+	if storage.get_dish_boards() != null:
+		storage.get_dish_boards().claim_dirty_room()
+	else:
+		storage.claim_room()
 	# Its units are spoken for now, so nobody comes to take one from it meanwhile.
 	for i: int in container.get_units().size():
 		container.claim_unit()
@@ -57,7 +61,8 @@ func on_picked_up(job: Job, _pawn: Pawn, _work: WorkManager) -> void:
 	job.target.set_lid(ingredient.lid_texture)
 
 
-## At storage: stored with however many units are left in it.
+## At storage: stored with however many units are left in it. At a sink: set down on the
+## dirty board.
 func on_work_started(job: Job, pawn: Pawn, _work: WorkManager) -> void:
 	var container: Item = pawn.release_item()
 	if container == null:
@@ -65,7 +70,10 @@ func on_work_started(job: Job, pawn: Pawn, _work: WorkManager) -> void:
 	var left: int = container.get_units().size()
 	container.queue_free()
 	job.target = null
-	job.destination.add_stock(left if left > 0 else -1)
+	if job.destination.get_dish_boards() != null:
+		job.destination.get_dish_boards().add_dirty(ingredient.dish)
+	else:
+		job.destination.add_stock(left if left > 0 else -1)
 
 
 ## Interrupted: the room at storage and the container's units are handed back. The
@@ -77,7 +85,10 @@ func on_withdrawn(job: Job, work: WorkManager) -> void:
 		for i: int in container.get_units().size():
 			container.unclaim_unit()
 		if job.destination != null and is_instance_valid(job.destination):
-			job.destination.unclaim_room()
+			if job.destination.get_dish_boards() != null:
+				job.destination.get_dish_boards().unclaim_dirty_room()
+			else:
+				job.destination.unclaim_room()
 	job.target = null
 	work.cancel_shop_job(job)
 
@@ -104,10 +115,12 @@ func _find_idle_container(work: WorkManager) -> Item:
 	return idle
 
 
-## Storage with room for it: for empties if it's empty, for full ones otherwise.
+## Where it goes, with room for it: an empty one to a dish sink (or else storage for
+## empties), one with units left to storage for full ones.
 func _find_storage(container: Item, work: WorkManager) -> Station:
 	if container.get_units().is_empty():
-		return work.find_room(ingredient.empty_kind)
+		var sink: Station = work.find_dish_room() if ingredient.dish != null else null
+		return sink if sink != null else work.find_room(ingredient.empty_kind)
 	return work.find_room(ingredient.full_kind)
 
 

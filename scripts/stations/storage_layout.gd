@@ -27,7 +27,7 @@ extends Resource
 ## Placeholder until deliveries: the station starts full when assigned this storage, and
 ## refills the moment it runs out.
 @export var starts_full: bool = false
-## Placeholder until a cleaning station: the station is cleared the moment it fills up.
+## The station is cleared the moment it fills up (no layout uses this since the dish sink).
 @export var clears_when_full: bool = false
 
 

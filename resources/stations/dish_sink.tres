@@ -1,0 +1,63 @@
+[gd_resource type="Resource" script_class="StationData" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/station_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="2_task_type"]
+[ext_resource type="Resource" path="res://resources/tasks/wash_dishes.tres" id="3_wash"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/stations/three_sink_sheet.png" id="4_sheet"]
+[ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="5_spot"]
+[ext_resource type="Script" path="res://scripts/stations/dish_sink.gd" id="6_sink"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_facing0"]
+atlas = ExtResource("4_sheet")
+region = Rect2(0, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_facing1"]
+atlas = ExtResource("4_sheet")
+region = Rect2(96, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_facing2"]
+atlas = ExtResource("4_sheet")
+region = Rect2(192, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_facing3"]
+atlas = ExtResource("4_sheet")
+region = Rect2(288, 0, 96, 96)
+
+[sub_resource type="Resource" id="Resource_dirty"]
+script = ExtResource("5_spot")
+work_cell = Vector2i(0, 1)
+item_cell = Vector2i(0, 0)
+
+[sub_resource type="Resource" id="Resource_wash"]
+script = ExtResource("5_spot")
+work_cell = Vector2i(1, 1)
+item_cell = Vector2i(1, 0)
+
+[sub_resource type="Resource" id="Resource_rinse"]
+script = ExtResource("5_spot")
+work_cell = Vector2i(2, 1)
+item_cell = Vector2i(2, 0)
+
+[sub_resource type="Resource" id="Resource_sanitize"]
+script = ExtResource("5_spot")
+work_cell = Vector2i(3, 1)
+item_cell = Vector2i(3, 0)
+
+[sub_resource type="Resource" id="Resource_clean"]
+script = ExtResource("5_spot")
+work_cell = Vector2i(4, 1)
+item_cell = Vector2i(4, 0)
+
+[sub_resource type="Resource" id="Resource_sink"]
+script = ExtResource("6_sink")
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Dish Sink"
+task_types = Array[ExtResource("2_task_type")]([ExtResource("3_wash")])
+footprint = Vector2i(5, 1)
+facing_textures = Array[Texture2D]([SubResource("AtlasTexture_facing0"), SubResource("AtlasTexture_facing1"), SubResource("AtlasTexture_facing2"), SubResource("AtlasTexture_facing3")])
+mirror_facings = false
+spots = Array[ExtResource("5_spot")]([SubResource("Resource_dirty"), SubResource("Resource_wash"), SubResource("Resource_rinse"), SubResource("Resource_sanitize"), SubResource("Resource_clean")])
+item_offset = Vector2(0, -16)
+dish_sink = SubResource("Resource_sink")

@@ -2,6 +2,12 @@
 
 [ext_resource type="Resource" path="res://resources/work_types/pizza_making.tres" id="9_work_type"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
+[ext_resource type="Script" path="res://scripts/tasks/behaviors/portion_behavior.gd" id="2_behavior"]
+[ext_resource type="Resource" path="res://resources/items/sauce_bucket.tres" id="3_bucket"]
+
+[sub_resource type="Resource" id="Resource_behavior"]
+script = ExtResource("2_behavior")
+supply = ExtResource("3_bucket")
 
 [resource]
 script = ExtResource("1_task")
@@ -11,3 +17,4 @@ work_type = ExtResource("9_work_type")
 work_minutes = 0.6
 ingredient_cost = 0.4
 opens_station = true
+behavior = SubResource("Resource_behavior")

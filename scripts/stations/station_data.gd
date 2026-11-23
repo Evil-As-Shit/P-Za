@@ -38,6 +38,11 @@ extends Resource
 @export var spots: Array[StationSpot] = []
 ## Where an item sits, relative to its spot's floor center (e.g. up on the tabletop).
 @export var item_offset: Vector2 = Vector2.ZERO
+## Surface slots (see SlotGrid) outside the spots' work areas where side items go (e.g.
+## the sauce bucket between pizzas), at facing 0, in the order they're filled.
+@export var side_areas: Array[Rect2i] = []
+## Placed in the side areas when the station is built (e.g. a full sauce bucket).
+@export var side_items: Array[PortionContainer] = []
 ## Optional art drawn under each item sitting on its spots (e.g. a pizza screen on a rack),
 ## in the item frame layout.
 @export var item_underlay: Texture2D
@@ -45,6 +50,8 @@ extends Resource
 ## How each kind of thing this station can store is stacked on it. Storage roles need a
 ## layout for their kind. Pawns fetch and drop off stored things at spot 0.
 @export var storage_layouts: Array[StorageLayout] = []
+## Makes the station a dish sink: drainboards for dirty and clean dishes, and basins.
+@export var dish_sink: DishSink
 
 
 ## Rotates a map-grid offset by `facing` quarter turns.
@@ -85,6 +92,30 @@ func get_work_cell(origin: Vector2i, facing: int, spot: int) -> Vector2i:
 
 func get_item_cell(origin: Vector2i, facing: int, spot: int) -> Vector2i:
 	return origin + rotate_offset(spots[spot].item_cell, facing)
+
+
+## Middle of the spot's work area, in cells from the origin cell's center, turned to
+## `facing` (see SlotGrid).
+func get_item_point(facing: int, spot: int) -> Vector2:
+	return get_area_point(spots[spot].get_work_area(), facing)
+
+
+## Middle of a slot area given at facing 0, in cells from the origin cell's center, turned
+## to `facing`.
+static func get_area_point(area: Rect2i, facing: int) -> Vector2:
+	return rotate_point(SlotGrid.get_center(area), facing)
+
+
+## True if `area` (slots at facing 0) lies inside a side area and clear of every spot's work
+## area.
+func is_side_area(area: Rect2i) -> bool:
+	for spot: StationSpot in spots:
+		if spot.get_work_area().intersects(area):
+			return false
+	for side: Rect2i in side_areas:
+		if side.encloses(area):
+			return true
+	return false
 
 
 ## Layout for storing `kind` here, or null if this station can't store it.

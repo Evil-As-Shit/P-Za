@@ -17,6 +17,9 @@ var container: Item = null
 var busy: bool = false
 ## Set if this is an ingredient container (e.g. a dough tub); its contents are the units.
 var ingredient: IngredientContainer = null
+## Set if tasks take portions from it in place (e.g. a sauce bucket), with how many are left.
+var portions: PortionContainer = null
+var portions_left: int = 0
 
 var _mirrored: bool = false
 ## True while shown with its turned art (see RotatedArt).
@@ -171,6 +174,24 @@ func take_unit() -> Item:
 	var unit: Item = get_units().back()
 	take_out(unit)
 	return unit
+
+
+## Makes this a full container of `kind` (see PortionContainer).
+func fill_portions(kind: PortionContainer) -> void:
+	portions = kind
+	portions_left = kind.portions
+	set_texture(kind.container_texture)
+	_show_portions()
+
+
+## Takes `amount` portions out (no fewer than none left).
+func use_portions(amount: int) -> void:
+	portions_left = maxi(portions_left - amount, 0)
+	_show_portions()
+
+
+func _show_portions() -> void:
+	set_under(portions.get_level_texture(portions_left))
 
 
 ## The outermost item this one is inside (or itself), which is what sits somewhere.

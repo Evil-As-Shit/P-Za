@@ -7,6 +7,8 @@ extends Node2D
 ## Drawn on the 3x3 guide: one 96 px frame per side, the station in the middle cell.
 const WORK_SPOT_SHEET: Texture2D = preload("res://Assets/Sprites/work_spot_sheet.png")
 const WORK_SPOT_FRAME := Vector2i(96, 96)
+## Spawned for a station's own side items (see StationData.side_items).
+const ITEM_SCENE: PackedScene = preload("res://scenes/items/item.tscn")
 ## Pixel in each frame where the middle cell's center is.
 const WORK_SPOT_CENTER := Vector2(48, 72)
 ## Frame for each pawn side: down-left, up-left, up-right, down-right.
@@ -34,6 +36,11 @@ const CANVAS_MARGIN: int = 16
 
 var _footprint: Array[Vector2i] = []
 var _item_positions: Array[Vector2] = []
+## Floor-level depth (y) of each spot's work area, for drawing items back to front.
+var _item_floor_y: Array[float] = []
+## Items in the side areas (see StationData.side_areas) and the slots each takes, at
+## facing 0.
+var _side_items: Dictionary[Item, Rect2i] = {}
 var _items: Array[Item] = []
 var _reserved: Array[bool] = []
 ## Spots being worked by a task that opens the station (see TaskType.opens_station).
@@ -66,6 +73,8 @@ var _working: Array[bool] = []
 ## where the canvas's top-left corner is on the floor. Null for a one-cell station.
 var _canvas: SubViewport = null
 var _canvas_origin := Vector2.ZERO
+## A dish sink's drainboards (see StationData.dish_sink), or null.
+var _dish_boards: DishBoards = null
 
 ## All the station's art and what's on it, in draw order. Positions are floor positions,
 ## also inside the canvas.
@@ -100,11 +109,14 @@ func place(shop_floor: ShopFloor) -> void:
 		centroid += center
 	centroid /= float(_footprint.size())
 
+	# Each item sits in the middle of its spot's work area, up on the surface.
 	_item_positions.clear()
+	_item_floor_y.clear()
 	for spot: int in data.spots.size():
+		var on_floor: Vector2 = _area_on_floor(data.spots[spot].get_work_area())
+		_item_floor_y.append(on_floor.y)
 		_item_positions.append(
-			shop_floor.cell_to_global(data.get_item_cell(cell, facing, spot)) + data.item_offset
-			- Vector2(0.0, data.spots[spot].item_height)
+			on_floor + data.item_offset - Vector2(0.0, data.spots[spot].item_height)
 		)
 	_items.resize(data.spots.size())
 	_reserved.resize(data.spots.size())
@@ -114,6 +126,8 @@ func place(shop_floor: ShopFloor) -> void:
 		if _items[spot] != null:
 			_items[spot].global_position = _item_positions[spot]
 			_items[spot].face_toward(get_pawn_side(spot))
+	_place_side_items()
+	_sort_items()
 	_working.resize(data.spots.size())
 	if _work_bars.is_empty():
 		_work_bars.append(_work_bar)
@@ -145,6 +159,7 @@ func place(shop_floor: ShopFloor) -> void:
 			_art_top = minf(_art_top, art.global_position.y + _opaque_top(art.texture))
 	_origin_center = shop_floor.cell_to_global(cell)
 	_build_piles(_placed)
+	_place_dish_boards()
 	_placed = true
 	_place_work_spot_markers()
 	# On the tabletop, over the middle of the footprint.
@@ -401,23 +416,102 @@ func put_item(spot: int, item: Item) -> void:
 	item.station = self
 	item.spot = spot
 	item.reparent(_item_slot, false)
-	_item_slot.move_child(item, _get_draw_index(spot))
+	_sort_items()
 	item.global_position = _item_positions[spot]
 	item.face_toward(get_pawn_side(spot))
 	if data.item_underlay != null:
 		item.set_under(data.item_underlay)
 
 
-## Where among the items an item on `spot` draws: under any sitting higher (see
-## StationSpot.item_height), otherwise last.
-func _get_draw_index(spot: int) -> int:
-	var height: float = data.spots[spot].item_height
-	for child: Node in _item_slot.get_children():
-		var other := child as Item
-		if other != null and other.spot >= 0 and other.spot != spot \
-				and data.spots[other.spot].item_height > height:
-			return child.get_index()
-	return _item_slot.get_child_count() - 1
+## Draws the items on the spots and side areas back to front: by how far forward their slots
+## are on the floor, then lower before higher (see StationSpot.item_height).
+func _sort_items() -> void:
+	var placed: Array[Item] = []
+	for item: Item in _items:
+		if item != null and item.get_parent() == _item_slot:
+			placed.append(item)
+	placed.append_array(_side_items.keys())
+	placed.sort_custom(func(a: Item, b: Item) -> bool:
+		if _get_floor_y(a) != _get_floor_y(b):
+			return _get_floor_y(a) < _get_floor_y(b)
+		return _get_height(a) < _get_height(b)
+	)
+	for item: Item in placed:
+		_item_slot.move_child(item, -1)
+
+
+func _get_floor_y(item: Item) -> float:
+	if _side_items.has(item):
+		return _area_on_floor(_side_items[item]).y
+	return _item_floor_y[item.spot]
+
+
+func _get_height(item: Item) -> float:
+	return 0.0 if _side_items.has(item) else data.spots[item.spot].item_height
+
+
+## Where the middle of a slot area (at facing 0) is on the floor.
+func _area_on_floor(area: Rect2i) -> Vector2:
+	var origin_center: Vector2 = _floor.cell_to_global(cell)
+	var step_x: Vector2 = _floor.cell_to_global(cell + Vector2i.RIGHT) - origin_center
+	var step_y: Vector2 = _floor.cell_to_global(cell + Vector2i.DOWN) - origin_center
+	var point: Vector2 = StationData.get_area_point(area, facing)
+	return origin_center + step_x * point.x + step_y * point.y
+
+
+#region Side areas
+
+## Items sitting in the side areas (e.g. a sauce bucket).
+func get_side_items() -> Array[Item]:
+	var items: Array[Item] = []
+	items.assign(_side_items.keys())
+	return items
+
+
+## Sets `item` down in the first free slots of the side areas that fit `size`. Returns
+## false if there's no room.
+func put_side_item(item: Item, size: Vector2i) -> bool:
+	for side: Rect2i in data.side_areas:
+		for y: int in range(side.position.y, side.end.y - size.y + 1):
+			for x: int in range(side.position.x, side.end.x - size.x + 1):
+				var area := Rect2i(Vector2i(x, y), size)
+				if data.is_side_area(area) and _is_side_free(area):
+					_side_items[item] = area
+					item.station = self
+					item.spot = -1
+					item.reparent(_item_slot, false)
+					_show_side_item(item)
+					_sort_items()
+					return true
+	return false
+
+
+func _is_side_free(area: Rect2i) -> bool:
+	for taken: Rect2i in _side_items.values():
+		if taken.intersects(area):
+			return false
+	return true
+
+
+## The first time: sets out the station's own side items (see StationData.side_items).
+## After a move: lines the side items up with the turned surface.
+func _place_side_items() -> void:
+	if _side_items.is_empty() and not _placed:
+		for kind: PortionContainer in data.side_items:
+			var item := ITEM_SCENE.instantiate() as Item
+			_item_slot.add_child(item)
+			item.fill_portions(kind)
+			if not put_side_item(item, kind.slot_size):
+				push_warning("%s has no room for its %s" % [data.display_name, kind.display_name])
+				item.queue_free()
+	for item: Item in _side_items:
+		_show_side_item(item)
+
+
+func _show_side_item(item: Item) -> void:
+	item.global_position = _area_on_floor(_side_items[item]) + data.item_offset
+
+#endregion
 
 
 ## Frees the spot and returns its item. The node stays where it is until the caller
@@ -502,6 +596,27 @@ func get_storage_layout() -> StorageLayout:
 	return data.get_storage_layout(kind) if kind != null else null
 
 
+## A dish sink's drainboards, or null if the station isn't a sink.
+func get_dish_boards() -> DishBoards:
+	return _dish_boards
+
+
+## Makes a sink's drainboards the first time, and lines their piles up with its spots. Dishes
+## on them stay through moves.
+func _place_dish_boards() -> void:
+	var sink: DishSink = data.dish_sink
+	if sink == null:
+		return
+	if _dish_boards == null:
+		_dish_boards = DishBoards.new()
+		_dish_boards.name = "DishBoards"
+		_dish_boards.sink = sink
+		_supply_on_top.add_child(_dish_boards)
+	_dish_boards.arrange(
+		_item_positions[sink.dirty_spot], _item_positions[sink.clean_spot], data.is_mirrored(facing)
+	)
+
+
 ## Stored units (promised or not).
 func get_stock() -> int:
 	return _stock
@@ -561,8 +676,8 @@ func unclaim_room() -> void:
 
 
 ## Stores a unit in a claimed place. `left` is how much is still in it, for a partly used
-## one (e.g. a dough container with 4 of its 6 balls); -1 for a full one. Placeholder until
-## a cleaning station: storage that clears when full does so the moment it fills.
+## one (e.g. a dough container with 4 of its 6 balls); -1 for a full one. Storage that clears
+## when full (see StorageLayout.clears_when_full) does so the moment it fills.
 func add_stock(left: int = -1) -> void:
 	_room_claimed -= 1
 	_stock += 1

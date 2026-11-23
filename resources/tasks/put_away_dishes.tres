@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TaskType" format=3]
+
+[ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
+[ext_resource type="Resource" path="res://resources/work_types/hauling.tres" id="2_work_type"]
+[ext_resource type="Script" path="res://scripts/tasks/behaviors/put_away_dish_behavior.gd" id="3_behavior"]
+[ext_resource type="Resource" path="res://resources/items/dough_container.tres" id="4_dough"]
+
+[sub_resource type="Resource" id="Resource_behavior"]
+script = ExtResource("3_behavior")
+ingredient = ExtResource("4_dough")
+
+[resource]
+script = ExtResource("1_task")
+id = &"put_away_dishes"
+display_name = "Put away clean dishes"
+work_type = ExtResource("2_work_type")
+work_minutes = 0.1
+behavior = SubResource("Resource_behavior")

@@ -28,6 +28,9 @@ signal waiting_orders_changed(count: int)
 ## Restocking tasks (e.g. folding boxes): a job opens for one whenever its behavior says
 ## it's needed. Pawns only take them when they have nothing else to do.
 @export var restock_tasks: Array[TaskType] = []
+## Chores (e.g. washing dishes): a job opens for one whenever its behavior says it's needed,
+## and pawns take it by their priorities like order work.
+@export var chore_tasks: Array[TaskType] = []
 ## The manager's skill. Not a priority-grid column: the manager is picked separately.
 @export var managing: WorkType
 ## How the manager quotes each order's wait.
@@ -236,6 +239,9 @@ func try_assign(pawn: Pawn, max_priority: int = Pawn.LOWEST_PRIORITY) -> bool:
 	for job: Job in _shop_jobs:
 		if job.claimed_by == null:
 			jobs.append(job)
+	for task: TaskType in chore_tasks:
+		if task.get_behavior().is_needed(self):
+			jobs.append(Job.new(task, null, null))
 	if _try_jobs(pawn, jobs, max_priority):
 		return true
 	# Restocking (e.g. folding boxes) is filler: only for a pawn with nothing else to do at
@@ -386,6 +392,23 @@ func find_room(kind: StorageKind) -> Station:
 	for station: Station in _stations:
 		if station.has_room(kind):
 			return station
+	return null
+
+
+## Dish sinks in use, in station order.
+func get_sinks() -> Array[Station]:
+	var sinks: Array[Station] = []
+	for station: Station in _stations:
+		if station.get_dish_boards() != null:
+			sinks.append(station)
+	return sinks
+
+
+## First dish sink with an unclaimed free place on its dirty drainboard, or null.
+func find_dish_room() -> Station:
+	for sink: Station in get_sinks():
+		if sink.get_dish_boards().has_dirty_room():
+			return sink
 	return null
 
 

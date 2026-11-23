@@ -56,8 +56,9 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
   - **Cutting:** cut the pizza in its box.
   - **Box folding:** fold boxes.
   - **Cashier:** take orders at the register.
-  - **Hauling** (no skill): set out a box, stack boxes, carry finished orders to pickup, throw out leftovers, put dough containers away.
-  - Later: Dough making, Sauce making, Driving, Cleaning, Service (dine-in), Managing.
+  - **Cleaning:** wash dishes at the dish sink.
+  - **Hauling** (no skill): set out a box, stack boxes, carry finished orders to pickup, throw out leftovers, put dough containers away, take dishes to the sink and put clean ones away.
+  - Later: Dough making, Sauce making, Driving, Service (dine-in), Managing.
 - An idle pawn takes work by its grid: priority 1 before 2, and the leftmost column wins a tie. Within a work type, it takes the first open job in Make-rack order. Pawns finish their current job before choosing again.
 - New hires start with everything blank until the player assigns work. Training is a separate checkbox (see Staff).
 - When no manager has line of sight, pawns skip their low-priority work (and slack off).
@@ -71,11 +72,12 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 - Each station has one or more **spots**. A spot is where a pawn stands plus where its item sits, and one pawn uses it at a time. Clicking a station shows its work spots on the floor.
 - **Roles (zones, part 1):** tables, counters and racks are general-purpose. The player clicks one to give it a role, either work or storage:
   - Work: Prep (making pizzas), Boxing (boxes, unloading, cutting), Pickup (hand-off).
-  - Storage: Boxes (folded), Flat Boxes, Dough (full dough containers), Empty Dough (empty containers). A box pallet holds Flat Boxes from the start.
-  - Or unused. A station either works or stores. Ovens and the garbage can keep a fixed purpose.
+  - Storage: Boxes (folded), Flat Boxes, Dough (full dough containers), Empty Dough (empty containers, the overflow while the dish sink is full). A box pallet holds Flat Boxes from the start.
+  - Or unused. A station either works or stores. Ovens, the dish sink and the garbage can keep a fixed purpose.
   - Changing a station's role stops the pawns using it (like picking it up); their jobs keep their progress and go elsewhere.
 - Each station type sets how each stored kind stacks on it (racks have shelf positions; tables stack on each spot).
-- For now, Flat Boxes and Dough storage start full and refill the moment they run out (until deliveries exist); Boxes storage starts empty and is filled only by folding, and Empty Dough storage clears the moment it fills (until there's a cleaning station).
+- **Surfaces (built in slices; so far each spot's main item sits in its work area, side items like the sauce bucket sit in side areas, and items draw back to front):** tabletops are split into a 4×4 grid of slots per cell, and items take a footprint of slots (a pizza, box or dough container 3×3, a cutter or ladle 1×2, a flat pan 2×2), so different things share a table without overlapping. Nothing shares a slot; items draw back to front, so one in front may hide part of one behind. Placement is automatic: each spot has a work area for its main item, against the pawn's edge, and each station type defines side areas in the leftover strips (e.g. the sauce bucket among the pizzas on the prep table, the cutter at the back of a boxing table). Only items of the same kind stack. Storage becomes placed items too, so one tile can hold several kinds, and storage roles become filters. Dishes can stand on their side (fewer slots, no stacking) only in a dish rack.
+- For now, Flat Boxes and Dough storage start full and refill the moment they run out (until deliveries exist); Boxes storage starts empty and is filled only by folding, and Empty Dough storage only empties as Hauling pawns take its containers to the dish sink.
 - Later zone work: storage priority (like RimWorld stockpiles), then painted front/back-of-house areas.
 
 ### Orders and the ticket rack
@@ -94,7 +96,8 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 - **Recipes:** a menu item is an ordered list of task steps; each step is one job, done by one pawn at one station, so a ticket can be paused between steps. A plain pizza is stretch, sauce, cheese, load oven, set out box, take out of oven, then cut. An order's pizzas are each worked in parallel by whichever pawns are free.
 - **Timing target:** like a real shop, one pizza alone takes about 10 shop minutes from ticket to customer. Baking is about 5 of that; prep steps take well under a minute each.
 - The pizza is a real item. It sits on a station and pawns carry it between stations. A spot holding another ticket's pizza can't be used.
-- **Dough:** dough balls come in lidded containers of 6, stacked in Dough storage. To stretch, a pawn takes a ball from the open container on a Prep spot. If none is open, they first fetch one and set it out on a Prep spot (lid off), where it takes up that spot. Only one container is set out at a time. The pawn who takes the last ball carries the empty to Empty Dough storage (later, to a cleaning station). Once no pizza is waiting to be stretched, a Hauling pawn with nothing else to do puts the lid back on and takes the container back to Dough storage with what's left in it; the next one taken out is that partly used one.
+- **Dough:** dough balls come in lidded containers of 6, stacked in Dough storage. To stretch, a pawn takes a ball from the open container on a Prep spot. If none is open, they first fetch one and set it out on a Prep spot (lid off), where it takes up that spot. Only one container is set out at a time. The pawn who takes the last ball carries the empty to the dish sink's dirty drainboard (or Empty Dough storage if it's full). Once no pizza is waiting to be stretched, a Hauling pawn with nothing else to do puts the lid back on and takes the container back to Dough storage with what's left in it; the next one taken out is that partly used one.
+- **Sauce:** the prep table has a sauce bucket in the slot between its first two pizza spots. Each sauce step takes a portion (a full bucket does 20 pizzas, placeholder; bigger pizzas will take more later), and its sauce level drops through 5 steps. For now an emptied bucket refills on the spot; later it goes to the dish sink to be washed. A table set to Prep has no bucket and sauces as before.
 - **Oven:** baking runs on its own; a Pizza making pawn loads the pizza and is free while it cooks. Once it's done, an Oven pawn takes it out and drops it into its open box.
 - **Pizza rack:** while every oven spot is taken, the Pizza making pawn parks the made pizza on a free rack slot (one pizza per slot, tightly packed), freeing the prep table. It's loaded from the rack, in ticket order, once an oven spot frees up.
 - **Doneness:** a pizza is perfect for 1 shop minute after it's done, and over after that. The Oven pawn takes it out when they think it's ready: they aim for the middle of that window but are off by a random amount, up to ±1.5 minutes at skill level 0, ±0.5 at level 10 and none at 20. Too early is under (taken out mid-bake), too late is over, and a pizza left in with nobody free to take it out burns. For now doneness only shows as a pizza tint (pale or dark) and is tracked per pizza; later it will affect reviews. All numbers are placeholders.
@@ -141,7 +144,7 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 
 ### Building the shop
 
-- **Build mode (B):** pick a station type (prep table, table, small table, counter, register, small oven, pizza oven, pizza rack, rack, box pallet, garbage can) and place it.
+- **Build mode (B):** pick a station type (prep table, table, small table, counter, register, small oven, pizza oven, pizza rack, rack, box pallet, garbage can, dish sink) and place it.
 - The **prep table** (3×2) is where pizzas are made: three spots along its cutting board, set to Prep. Its ingredient lids open when a pizza there gets its first ingredient (sauce) and stay open until its last (cheese) is done. Its cooler and ingredient pans are art only until ingredients exist. A ghost shows green where it fits and red where it doesn't, along with its work spots. R turns it to each facing it has art for.
 - Clicking a station picks it up to move it, even while it's in use: what's on it (pizzas, boxes, stacks, a pizza baking) and its stored stock come along. While it's picked up nobody uses it: pawns working at it or on their way to it stop, setting down anything they carry, and pick their jobs back up (progress kept) once it's put down. Delete or the Sell button sells it (anything stored on it goes too), but only once nothing sits on its spots.
 - A placement doesn't fit if it's off the floor or on another station, its work spots are blocked, it covers another station's work spot, a pawn is standing there, or it would cut anything off.
@@ -152,6 +155,8 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 
 - Ingredients arrive in regular recurring deliveries, with an emergency option at a premium. Fresh ingredients spoil, so cold storage matters.
 - Kitchens get dirty. Poor cleanliness leads to health inspector penalties.
+- **Dish sink** (5×1, three compartments): from the worker's left, a dirty drainboard, wash, rinse and sanitize basins, and a clean drainboard (6 dishes each, placeholder). For now the only dish is the empty dough container. A Cleaning pawn washes in batches: they take every dish on the dirty board (as many as fit on the clean one), which disappear while worked, wash them all, rinse them all, sanitize them all (0.5, 0.25 and 0.25 shop minutes per dish, placeholders), then set them on the clean board. Hauling pawns take empties from Empty Dough storage to the dirty board, and clean containers to Dough storage, where they count as full (standing in for refilling them). The starting kitchen has one.
+- **Planned dishes** (later slices, each designed before it's built): pizza screens (dirtied when a pizza is loaded into the oven from the rack), sauce ladles and pizza cutters (dirtied after a number of uses), and sauce/topping pans (swapped out when empty, once ingredients exist). Clean ones go to a storage role per kind.
 - Equipment can be upgraded for capacity and reliability.
 
 ### Progression and failure
@@ -166,6 +171,5 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 ## Not yet decided
 
 Anything not covered here is undecided, so ask the designer instead of assuming. Known open questions:
-- What the cleaning station looks like and who uses it.
 - How customers appear in the shop (the register and order taking are in; customers are still invisible).
 - Balance: prices, costs, wages, bills and demand are placeholders.
