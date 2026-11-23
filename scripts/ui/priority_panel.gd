@@ -14,33 +14,32 @@ const FIRST_COLOR := Color(0.45, 0.85, 0.4)
 const SKILL_COLOR := Color(0.65, 0.7, 0.8)
 const SKILL_FONT_SIZE: int = 10
 
-## The grid's cells, with the pawn and work type of each (same order), so their tooltips can
-## keep up with practice.
-var _cells: Array[Button] = []
-var _cell_pawns: Array[Pawn] = []
-var _cell_types: Array[WorkType] = []
-
 @onready var _grid: GridContainer = %Grid
 
 
-func _process(_delta: float) -> void:
-	if not visible:
-		return
-	for i: int in _cells.size():
-		if _cells[i] is CheckBox:
-			_cells[i].tooltip_text = _manager_tooltip(_cell_pawns[i], _cell_types[i])
-		else:
-			_cells[i].tooltip_text = _tooltip(_cell_pawns[i], _cell_types[i])
+## A priority cell. Its tooltip is written when it shows, so practice minutes are current.
+class PriorityCell extends Button:
+	var tooltip_source: Callable
+
+	func _get_tooltip(_at_position: Vector2) -> String:
+		return tooltip_source.call()
+
+
+## A Manager box, with its tooltip written when it shows (see PriorityCell).
+class ManagerBox extends CheckBox:
+	var tooltip_source: Callable
+
+	func _get_tooltip(_at_position: Vector2) -> String:
+		return tooltip_source.call()
 
 
 ## `managing` is the Managing skill, shown by each Manager box (null hides the boxes).
-func show_priorities(pawns: Array[Pawn], work_types: Array[WorkType], managing: WorkType = null) -> void:
+func show_priorities(
+	pawns: Array[Pawn], work_types: Array[WorkType], managing: WorkType = null
+) -> void:
 	for child: Node in _grid.get_children():
 		_grid.remove_child(child)
 		child.queue_free()
-	_cells.clear()
-	_cell_pawns.clear()
-	_cell_types.clear()
 	var manager_column: int = 1 if managing != null else 0
 	_grid.columns = work_types.size() + 1 + manager_column
 
@@ -68,16 +67,13 @@ func show_priorities(pawns: Array[Pawn], work_types: Array[WorkType], managing: 
 
 ## A checkbox making the pawn the manager, with their Managing level in the corner.
 func _make_manager_box(pawn: Pawn, managing: WorkType) -> CheckBox:
-	var box := CheckBox.new()
+	var box := ManagerBox.new()
 	box.custom_minimum_size = CELL_SIZE
 	box.focus_mode = Control.FOCUS_NONE
 	box.button_pressed = pawn.is_manager
-	box.tooltip_text = _manager_tooltip(pawn, managing)
+	box.tooltip_source = _manager_tooltip.bind(pawn, managing)
 	_add_skill_label(box, pawn.get_skill(managing))
 	box.toggled.connect(func(on: bool) -> void: manager_change_requested.emit(pawn, on))
-	_cells.append(box)
-	_cell_pawns.append(pawn)
-	_cell_types.append(managing)
 	return box
 
 
@@ -93,17 +89,14 @@ func _add_skill_label(cell: Control, level: int) -> void:
 
 func _make_cell(pawn: Pawn, work_type: WorkType) -> Button:
 	var priority: int = pawn.get_priority(work_type)
-	var cell := Button.new()
+	var cell := PriorityCell.new()
 	cell.custom_minimum_size = CELL_SIZE
 	cell.focus_mode = Control.FOCUS_NONE
 	cell.text = str(priority) if priority > 0 else ""
 	if priority == 1:
 		cell.add_theme_color_override(&"font_color", FIRST_COLOR)
 		cell.add_theme_color_override(&"font_hover_color", FIRST_COLOR)
-	cell.tooltip_text = _tooltip(pawn, work_type)
-	_cells.append(cell)
-	_cell_pawns.append(pawn)
-	_cell_types.append(work_type)
+	cell.tooltip_source = _tooltip.bind(pawn, work_type)
 	if work_type.has_skill:
 		_add_skill_label(cell, pawn.get_skill(work_type))
 	cell.gui_input.connect(_on_cell_input.bind(pawn, work_type))
@@ -123,7 +116,9 @@ func _tooltip(pawn: Pawn, work_type: WorkType) -> String:
 
 func _manager_tooltip(pawn: Pawn, managing: WorkType) -> String:
 	var role: String = "Manager" if pawn.is_manager else "Not the manager"
-	return "%s (quotes each order's wait)\n%s %s" % [role, managing.display_name, _skill_text(pawn, managing)]
+	return "%s (quotes each order's wait)\n%s %s" % [
+		role, managing.display_name, _skill_text(pawn, managing)
+	]
 
 
 ## "Skill 5 (12/60 min practice to next)", or just the level at the top.

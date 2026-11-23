@@ -19,8 +19,13 @@ func _start() -> void:
 	if level != "1":
 		fail("after leveling Cutting to 1 the grid shows %s" % level)
 		return
-	if not cell.tooltip_text.contains("3/20 min"):
-		fail("tooltip didn't update with practice: %s" % cell.tooltip_text.replace("\n", " | "))
+	if not cell.get_tooltip().contains("3/20 min"):
+		fail("tooltip didn't update with practice: %s" % cell.get_tooltip().replace("\n", " | "))
+		return
+	# Practice keeps adding up without a level-up rebuilding the grid.
+	pawn.practice(CUTTING, 4.0)
+	if not cell.get_tooltip().contains("7/20 min"):
+		fail("tooltip didn't keep up with practice: %s" % cell.get_tooltip().replace("\n", " | "))
 		return
 	pass_test("grid shows the new level and practice")
 
