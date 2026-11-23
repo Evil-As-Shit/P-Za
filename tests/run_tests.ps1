@@ -1,6 +1,7 @@
 # Runs every tests/test_*.gd headless and reports which pass. A test fails if it says so,
 # exits with an error, or prints any engine error (script errors, leaks at exit).
-# Tests named test_visual_*.gd check rendered pixels, so they run with a window instead.
+# Tests named test_visual_*.gd check rendered pixels, so they run with a window instead,
+# opened off-screen.
 #
 # Usage (from the project folder):
 #   .\tests\run_tests.ps1                  # all tests
@@ -24,6 +25,9 @@ foreach ($test in $tests) {
     $godotArgs = @("--path", $project, "--fixed-fps", "60", "--script", "res://tests/$($test.Name)")
     if ($test.BaseName -notlike "test_visual_*") {
         $godotArgs = @("--headless") + $godotArgs
+    } else {
+        # Rendered tests need a real window: open it off-screen so it doesn't pop up.
+        $godotArgs = @("--position", "-32000,-32000") + $godotArgs
     }
     # "$_" turns stderr records into plain lines, so engine errors start with "ERROR:".
     $output = & $godot $godotArgs 2>&1 | ForEach-Object { "$_" } | Out-String
