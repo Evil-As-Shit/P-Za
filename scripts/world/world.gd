@@ -106,6 +106,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_clock.set_speed(_clock.speeds[2])
 	elif event.is_action_pressed(&"speed_3"):
 		_clock.set_speed(_clock.speeds[3])
+	elif event.is_action_pressed(&"speed_4"):
+		_clock.set_speed(_clock.speeds[4])
 	elif not _build.active and event is InputEventMouseButton \
 			and (event as InputEventMouseButton).pressed \
 			and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:

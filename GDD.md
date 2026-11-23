@@ -129,7 +129,7 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 ### Time and the day
 
 - A day covers shop hours (10:00 to 22:00) and lasts 30 real minutes at 1x (one shop minute is 2.5 real seconds).
-- Speeds are pause, 1x, 3x and 6x (Space and 1/2/3, or the HUD buttons), so a day takes 30, 10 or 5 real minutes. While paused the player can still pan, use the rack and set priorities.
+- Speeds are pause, 1x, 3x and 6x (Space and 1/2/3, or the HUD buttons), so a day takes 30, 10 or 5 real minutes. A debug 12x (key 4) is there for testing. While paused the player can still pan, use the rack and set priorities.
 - For now, when a day ends the next starts and work in progress carries on. Prep, close and review phases come later.
 
 ### Money and the day report

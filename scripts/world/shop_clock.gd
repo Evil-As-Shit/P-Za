@@ -15,8 +15,9 @@ const DEFAULT_SECONDS_PER_MINUTE: float = 2.5
 @export var day_length_minutes: float = 30.0
 @export_range(0, 23) var open_hour: int = 10
 @export_range(1, 24) var close_hour: int = 22
-## Game speeds the player can pick. 0 is paused.
-@export var speeds: Array[int] = [0, 1, 3, 6]
+## Game speeds the player can pick. 0 is paused. Above about 12x pawns walk slower than
+## they should (they reach at most one path point per frame).
+@export var speeds: Array[int] = [0, 1, 3, 6, 12]
 
 ## The clock in play, so durations given in shop minutes can be converted anywhere.
 static var _current: ShopClock = null
