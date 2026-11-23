@@ -13,7 +13,7 @@ extends SceneTree
 ##
 ## Stations: the template test boxes in tests/draw_order/ (1x1, low and tall 2x1 at both
 ## facings, 2x2, 3x3), and the real long table, register, prep table (3x2, lids open with
-## boxes on it, both facings), box rack (full, both facings) and pizza oven (both facings).
+## boxes on it, both facings), box rack (full, all four facings) and pizza oven (both facings).
 
 const STATION_SCENE := preload("res://scenes/stations/station.tscn")
 const FLOOR_SCENE := preload("res://scenes/world/shop_floor.tscn")
@@ -79,6 +79,8 @@ func _run() -> void:
 		["prep table", load("res://resources/stations/pizza_prep_table.tres"), 1],
 		["box rack", load("res://resources/stations/box_rack.tres"), 3],
 		["box rack", load("res://resources/stations/box_rack.tres"), 0],
+		["box rack", load("res://resources/stations/box_rack.tres"), 1],
+		["box rack", load("res://resources/stations/box_rack.tres"), 2],
 		["pizza oven", load("res://resources/stations/pizza_oven.tres"), 0],
 		["pizza oven", load("res://resources/stations/pizza_oven.tres"), 1],
 	]

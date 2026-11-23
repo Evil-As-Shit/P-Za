@@ -15,13 +15,13 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 - Pizza box: `box_sheet.png`, on a 32×16 grid. Left column: closed box (row 1), open box back with lid on the back-left edge (rows 2–3), its front edge (row 4). Right column, turned a quarter: closed box (row 1), front edge with the lid standing on the front-right edge (rows 2–3, drawn over the pizza), open box back (row 4). Items worked from in front use the left column (mirrored for a pawn down-left); from behind, the right column (mirrored for a pawn up-right), so the lid always faces away from the pawn. The pieces are `resources/items/box/*.tres`, paired in `resources/items/rotated_art.tres`.
 - Work-spot marker (pink iso circle): `work_spot_sheet.png`, drawn on the 3×3 guide with the station in the middle cell and the circle on the pawn's side (frames: down-left, up-left, up-right, down-right). Shown on the floor where pawns stand at a selected station.
 - Dough container (lid, inside/back, front edge; 32×16 cells stacked in that order, same anchor): `dough_container.png`. Holds 6 dough balls.
-- Box rack (2×1, one facing, split into top and bottom shelf): `box_rack_sheet.png`
+- Box rack, original one-facing art: `box_rack_sheet.png` (no longer used; replaced by the placeholder below)
 - Pickup counter (1×1, one facing): `Object_Spritesheet.png` at (128, 0). In game the counter currently uses the numbered rotation-test cubes on row 2 (four facings, "1|2" to "4|1") to check rotation.
 - Facings: a station's facings 0 (working side down-left) and 3 (down-right) are mirror images, as are 1 and 2 (the back views). Drawing one front view gives both front facings by flipping; draw a back view to allow the back facings.
 
 ## Placeholders (generated, to be redrawn)
 
-Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette and grid as the art above. The oven, register, flat boxes, pallet, prep table and pizza rack are used in game; the rest aren't wired up yet.
+Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette and grid as the art above. The oven, register, flat boxes, pallet, prep table, pizza rack and box rack are used in game; the rest aren't wired up yet.
 
 - `oven_2x2_sheet.png`: 2×2 oven, 64×80 per facing (0–3 left to right). Row 1 closed, row 2 baking (glowing window). Used by the Pizza Oven station.
 - `register_sheet.png`: register and ticket printer on the pickup-counter base, 32×48 per facing. Used by the Register station.
@@ -32,6 +32,7 @@ Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette 
 - `pallet_sheet.png`: wooden pallet, 1×1, 32×48 per facing. Used by the Box Pallet station, which holds flat boxes next to the boxing tables.
 - `prep_table_sheet.png`: pizza prep table (refrigerated make table), 3×2 (3 cells along the working side, 2 deep), 80×96 per facing on `object_3x2_guide.png`. Front row: white cutting board at table height, where pizzas are assembled. Back row: raised rail with 8 ingredient pans (sauce, cheese ×2, pepperoni, mushroom, pepper, olives, onion). Cooler doors and compressor below. Row 1 lids open (shown while it's in use), row 2 lids closed. Used by the Prep Table station.
 - `pizza_rack_sheet.png`: sheet-pan style pizza rack on casters, 1×1, 32×80 per facing (0–3 left to right). Row 1 is the base (back frame, drawn under stored pizzas), row 2 the cover (front post and front rail ends, drawn over them). Open on the working side and the back, so facings 0 and 2 share art, as do 1 and 3. 17 slots, 3 px apart (first at 9 px, last at 57 px above the floor), one pizza per slot. Used by the Pizza Rack station.
+- `box_rack_sheet.png`: chrome wire shelving, 2×1, 48×64 frames drawn at facing 3. Frame 1 is the base (back and side posts, bottom shelf 3 px up), frame 2 the cover (top shelf 25 px up, front post). Open on both long sides, so facing 1 reuses facing 3's art and 0 and 2 are its mirror image. Used by the Rack station at all four facings.
 - `pizza_screen.png`: 32×16, laid out like the pizza stages. A pizza screen drawn under each pizza on the rack, so stacked layers read apart.
 - `ingredient_icons.png`: on the 16×16 item guide. Dough, sauce, cheese, pepperoni, mushroom, olives.
 
@@ -43,7 +44,7 @@ Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette 
 | 2 | Pawn **carry** walk (down-left, up-left) | pawn rows 6–7 | For carrying pizzas and boxes between stations. |
 | 3 | **Oven** | object 2×2 | Drawn in the middle of its 4 tiles, leaving room to spare around it. Open and closed or "baking" states are nice to have. |
 | 4 | **Pizza box**: flat sheet | object 1×1 | Placeholder in use (`box_flat_sheet.png`). Pawns fold flats at the box pallet; a folding animation would help. |
-| 5 | **Box pallet** (real art); other box rack facings | object 1×1, 2×1 | Folding happens standing at the box pallet, next to the boxing tables; the pallet uses a placeholder. |
+| 5 | **Box pallet** and **box rack** (real art) | object 1×1, 2×1 | Folding happens standing at the box pallet, next to the boxing tables; the pallet uses a placeholder. |
 | 6 | **Register** (prints tickets) | object 1×1 or 2×1 | Where orders come from. |
 | 7 | **Doorway pieces** (door frames or wall end caps), full and short; optional cutaway side corners (full back wall joined to a short front wall) | `walls_with_reference.png` | Doors are gaps for now. |
 | 8 | Kitchen floor vs. dining floor tiles | your tile layout | Your current tiles already work on the grid. |

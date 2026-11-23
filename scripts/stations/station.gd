@@ -247,18 +247,6 @@ func _get_art_corner(cells: Array[Vector2i]) -> Vector2:
 	return corner
 
 
-## Where a point given for the art's own facing (relative to the origin cell's floor
-## center) ends up. For a mirrored facing, it's flipped across the art like the art is.
-func _get_art_point(offset: Vector2) -> Vector2:
-	if not data.is_mirrored(facing) or _sprite.texture == null:
-		return _origin_center + offset
-	var art_facing: int = data.get_art_facing(facing)
-	var native_corner: Vector2 = _get_art_corner(data.get_footprint_cells(cell, art_facing))
-	var from_corner: Vector2 = _origin_center + offset - native_corner
-	var corner: Vector2 = _get_art_corner(_footprint)
-	return Vector2(corner.x + _sprite.texture.get_width() - from_corner.x, corner.y + from_corner.y)
-
-
 ## Places a texture so its left edge and bottom row meet the footprint's corners, flipped
 ## if it's drawn for the mirror-image facing.
 static func _line_up(
@@ -612,14 +600,8 @@ func _build_piles(keep_stock: bool = false) -> void:
 				_make_pile(layout, _supply_inside, item_position, _pile_units.size())
 			)
 	else:
-		for pile_offset: Vector2 in layout.piles:
-			_pile_units.append(_make_pile(
-				layout, _supply_inside, _get_art_point(pile_offset), _pile_units.size()
-			))
-		for pile_offset: Vector2 in layout.piles_on_top:
-			_pile_units.append(_make_pile(
-				layout, _supply_on_top, _get_art_point(pile_offset), _pile_units.size()
-			))
+		_make_piles(layout, layout.piles, _supply_inside, 0)
+		_make_piles(layout, layout.piles_on_top, _supply_on_top, layout.piles.size())
 	if keep_stock:
 		_stock = mini(kept, _get_capacity())
 		_partial.resize(mini(_partial.size(), _stock))
@@ -628,6 +610,26 @@ func _build_piles(keep_stock: bool = false) -> void:
 		if layout.starts_full:
 			_stock = _get_capacity()
 	_update_piles()
+
+
+## Adds a pile at each of `offsets` (see StorageLayout.piles), numbered from `first_index`.
+## They're built back to front, so nearer piles draw over farther ones at any facing.
+func _make_piles(
+	layout: StorageLayout, offsets: Array[Vector3], parent: Node2D, first_index: int
+) -> void:
+	var step_x: Vector2 = _floor.cell_to_global(cell + Vector2i.RIGHT) - _origin_center
+	var step_y: Vector2 = _floor.cell_to_global(cell + Vector2i.DOWN) - _origin_center
+	var bases: Array[Vector2] = []
+	for offset: Vector3 in offsets:
+		var turned: Vector2 = StationData.rotate_point(Vector2(offset.x, offset.y), facing)
+		bases.append(_origin_center + step_x * turned.x + step_y * turned.y - Vector2(0.0, offset.z))
+	var order: Array[int] = []
+	for i: int in offsets.size():
+		order.append(i)
+	order.sort_custom(func(a: int, b: int) -> bool: return bases[a].y < bases[b].y)
+	_pile_units.resize(first_index + offsets.size())
+	for i: int in order:
+		_pile_units[first_index + i] = _make_pile(layout, parent, bases[i], first_index + i)
 
 
 func _make_pile(layout: StorageLayout, parent: Node2D, base: Vector2, index: int) -> Array[Node2D]:

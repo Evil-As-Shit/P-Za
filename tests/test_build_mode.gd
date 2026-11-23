@@ -27,7 +27,7 @@ func _start() -> void:
 	var expected: Dictionary = {
 		"res://resources/stations/small_oven.tres": [0, 3],
 		"res://resources/stations/pizza_oven.tres": [0, 1, 2, 3],
-		"res://resources/stations/box_rack.tres": [0, 3],
+		"res://resources/stations/box_rack.tres": [0, 1, 2, 3],
 		"res://resources/stations/counter.tres": [0, 1, 2, 3],
 	}
 	for path: String in expected:

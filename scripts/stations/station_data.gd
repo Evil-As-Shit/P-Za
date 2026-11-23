@@ -59,6 +59,18 @@ static func rotate_offset(offset: Vector2i, facing: int) -> Vector2i:
 	return offset
 
 
+## Rotates a map-grid offset (fractions of a cell allowed) by `facing` quarter turns.
+static func rotate_point(offset: Vector2, facing: int) -> Vector2:
+	match posmod(facing, 4):
+		1:
+			return Vector2(-offset.y, offset.x)
+		2:
+			return -offset
+		3:
+			return Vector2(offset.y, -offset.x)
+	return offset
+
+
 func get_footprint_cells(origin: Vector2i, facing: int) -> Array[Vector2i]:
 	var cells: Array[Vector2i] = []
 	for x: int in footprint.x:

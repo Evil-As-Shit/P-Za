@@ -11,11 +11,13 @@ extends Resource
 ## If true, there's one pile on each spot, where items sit (tables). Otherwise the piles
 ## stand at `piles` and `piles_on_top` (racks).
 @export var piles_at_spots: bool = false
-## Pile positions drawn under the station's cover, back to front, relative to the origin
-## cell's floor center.
-@export var piles: Array[Vector2] = []
-## Pile positions drawn over the cover (e.g. on a top shelf), back to front.
-@export var piles_on_top: Array[Vector2] = []
+## Pile positions drawn under the station's cover. x and y are map-grid offsets from the
+## origin cell's floor center at facing 0 (in cells, rotated with the station, like
+## StationSpot cells); z is the height in pixels above the floor. Drawn back to front
+## whatever the order.
+@export var piles: Array[Vector3] = []
+## Pile positions drawn over the cover (e.g. on a top shelf), given like `piles`.
+@export var piles_on_top: Array[Vector3] = []
 @export var per_pile: int = 3
 ## Optional units per pile, in pile order (inside piles, then on-top piles). Overrides
 ## per_pile for piles it covers.
