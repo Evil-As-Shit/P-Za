@@ -20,6 +20,8 @@ var ingredient: IngredientContainer = null
 ## Set if tasks take portions from it in place (e.g. a sauce bucket), with how many are left.
 var portions: PortionContainer = null
 var portions_left: int = 0
+## What it is, if it was set out as a station's side item (see SideItem).
+var side_item: SideItem = null
 
 var _mirrored: bool = false
 ## True while shown with its turned art (see RotatedArt).
@@ -180,7 +182,7 @@ func take_unit() -> Item:
 func fill_portions(kind: PortionContainer) -> void:
 	portions = kind
 	portions_left = kind.portions
-	set_texture(kind.container_texture)
+	set_texture(kind.texture)
 	_show_portions()
 
 

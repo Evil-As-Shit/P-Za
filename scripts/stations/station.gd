@@ -41,6 +41,8 @@ var _item_floor_y: Array[float] = []
 ## Items in the side areas (see StationData.side_areas) and the slots each takes, at
 ## facing 0.
 var _side_items: Dictionary[Item, Rect2i] = {}
+## The side items set out for the role (see StationRole.side_items).
+var _role_side_items: Array[Item] = []
 var _items: Array[Item] = []
 var _reserved: Array[bool] = []
 ## Spots being worked by a task that opens the station (see TaskType.opens_station).
@@ -173,6 +175,8 @@ func set_role(new_role: StationRole) -> void:
 	var old_kind: StorageKind = get_stored_kind()
 	role = new_role
 	_update_role_label()
+	if _placed:
+		_set_out_role_side_items()
 	if get_stored_kind() != old_kind:
 		_build_piles()
 
@@ -493,23 +497,49 @@ func _is_side_free(area: Rect2i) -> bool:
 	return true
 
 
-## The first time: sets out the station's own side items (see StationData.side_items).
-## After a move: lines the side items up with the turned surface.
+## The first time: sets out the station's own side items (see StationData.side_items) and
+## its role's. After a move: lines the side items up with the turned surface.
 func _place_side_items() -> void:
-	if _side_items.is_empty() and not _placed:
-		for kind: PortionContainer in data.side_items:
-			var item := ITEM_SCENE.instantiate() as Item
-			_item_slot.add_child(item)
-			item.fill_portions(kind)
-			if not put_side_item(item, kind.slot_size):
-				push_warning("%s has no room for its %s" % [data.display_name, kind.display_name])
-				item.queue_free()
+	if not _placed:
+		for kind: SideItem in data.side_items:
+			_set_out_side_item(kind)
+		_set_out_role_side_items()
 	for item: Item in _side_items:
 		_show_side_item(item)
 
 
+## Takes away the side items set out for the previous role and sets out the current role's.
+func _set_out_role_side_items() -> void:
+	for item: Item in _role_side_items:
+		_side_items.erase(item)
+		item.queue_free()
+	_role_side_items.clear()
+	if role == null:
+		return
+	for kind: SideItem in role.side_items:
+		var item: Item = _set_out_side_item(kind)
+		if item != null:
+			_role_side_items.append(item)
+
+
+## Makes a side item of `kind` and puts it in the side areas. Returns null if there's no room.
+func _set_out_side_item(kind: SideItem) -> Item:
+	var item := ITEM_SCENE.instantiate() as Item
+	_item_slot.add_child(item)
+	kind.set_up(item)
+	if not put_side_item(item, kind.slot_size):
+		push_warning("%s has no room for its %s" % [data.display_name, kind.display_name])
+		item.queue_free()
+		return null
+	return item
+
+
+## Places a side item in its slots, turned toward the worker if it faces them (see
+## SideItem.faces_worker).
 func _show_side_item(item: Item) -> void:
 	item.global_position = _area_on_floor(_side_items[item]) + data.item_offset
+	if item.side_item != null and item.side_item.faces_worker and get_spot_count() > 0:
+		item.face_toward(get_pawn_side(0))
 
 #endregion
 

@@ -1,18 +1,19 @@
 class_name PortionContainer
-extends Resource
+extends SideItem
 ## A container a task takes portions from in place (e.g. the sauce bucket on the prep
-## table): it sits on a station's side area and shows how full it is.
+## table): it sits on a station's side area and shows how full it is. Its texture is the
+## container, drawn over its contents.
 
-@export var display_name: String
-## Container art, drawn over its contents, in the item frame layout.
-@export var container_texture: Texture2D
 ## Contents at each level, fullest first, drawn under the container. The level shown drops
 ## evenly as portions are used; nothing is shown once it's empty.
 @export var level_textures: Array[Texture2D] = []
 ## Portions in a full one (placeholder).
 @export var portions: int = 20
-## Surface slots it takes (see SlotGrid).
-@export var slot_size: Vector2i = Vector2i.ONE
+
+
+func set_up(item: Item) -> void:
+	item.side_item = self
+	item.fill_portions(self)
 
 
 ## Contents art for `left` portions, or null when empty.

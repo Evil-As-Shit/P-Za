@@ -36,6 +36,6 @@ margin = Rect2(0, 48, 0, 48)
 [resource]
 script = ExtResource("1_script")
 display_name = "Sauce Bucket"
-container_texture = SubResource("AtlasTexture_bucket")
+texture =SubResource("AtlasTexture_bucket")
 level_textures = Array[Texture2D]([SubResource("AtlasTexture_level1"), SubResource("AtlasTexture_level2"), SubResource("AtlasTexture_level3"), SubResource("AtlasTexture_level4"), SubResource("AtlasTexture_level5")])
 portions = 20

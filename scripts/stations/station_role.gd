@@ -9,3 +9,6 @@ extends Resource
 ## Kind of thing stored here (e.g. Boxes), or null for a work role. The station needs a
 ## StorageLayout for it.
 @export var stores: StorageKind
+## Set out in the station's side areas while it has this role (e.g. a Boxing table's pizza
+## cutter), and taken away when the role changes.
+@export var side_items: Array[SideItem] = []

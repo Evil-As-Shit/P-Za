@@ -5,8 +5,12 @@
 [ext_resource type="Resource" path="res://resources/tasks/set_out_box.tres" id="3_set_out_box"]
 [ext_resource type="Resource" path="res://resources/tasks/unload_oven.tres" id="4_unload_oven"]
 [ext_resource type="Resource" path="res://resources/tasks/cut.tres" id="5_cut"]
+[ext_resource type="Script" path="res://scripts/items/side_item.gd" id="6_side_item"]
+[ext_resource type="Resource" path="res://resources/items/pizza_cutter.tres" id="7_cutter"]
+
 [resource]
 script = ExtResource("1_role")
 id = &"boxing"
 display_name = "Boxing"
 task_types = Array[ExtResource("2_task_type")]([ExtResource("3_set_out_box"), ExtResource("4_unload_oven"), ExtResource("5_cut")])
+side_items = Array[ExtResource("6_side_item")]([ExtResource("7_cutter")])

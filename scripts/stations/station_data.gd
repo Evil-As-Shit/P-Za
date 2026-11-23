@@ -41,8 +41,9 @@ extends Resource
 ## Surface slots (see SlotGrid) outside the spots' work areas where side items go (e.g.
 ## the sauce bucket between pizzas), at facing 0, in the order they're filled.
 @export var side_areas: Array[Rect2i] = []
-## Placed in the side areas when the station is built (e.g. a full sauce bucket).
-@export var side_items: Array[PortionContainer] = []
+## Placed in the side areas when the station is built (e.g. a full sauce bucket). A role
+## can add its own (see StationRole.side_items).
+@export var side_items: Array[SideItem] = []
 ## Optional art drawn under each item sitting on its spots (e.g. a pizza screen on a rack),
 ## in the item frame layout.
 @export var item_underlay: Texture2D
