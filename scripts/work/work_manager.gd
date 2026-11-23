@@ -44,6 +44,30 @@ var _waiting_for: Dictionary[Item, Pawn] = {}
 var _waiting_for_container: Dictionary[OrderItem, Pawn] = {}
 ## Shop jobs outside any order (throwing out leftovers), not done yet.
 var _shop_jobs: Array[Job] = []
+## Items a station is working on its own (e.g. baking), and ones done with doneness rules
+## that nobody has taken out yet.
+var _bakes: Array[Bake] = []
+## The timer a pawn standing by an item is waiting on to take it out (see _bakes).
+var _pull_timers: Dictionary[Item, SceneTreeTimer] = {}
+## Game seconds so far (speed included), for timing bakes.
+var _now: float = 0.0
+
+
+## An item a station works on its own (see TaskType.unattended).
+class Bake:
+	var item: Item
+	var order_item: OrderItem
+	var station: Station
+	var spot: int
+	var done_texture: Texture2D
+	var rules: DonenessRules
+	var tween: Tween
+	## Game seconds (see WorkManager._now) when the station is done with it.
+	var done_at: float
+
+
+func _process(delta: float) -> void:
+	_now += delta
 
 
 ## Call once before adding stations and pawns. Items are spawned under `entities`.
@@ -228,6 +252,7 @@ func withdraw_job(job: Job) -> void:
 	var waited_for: Item = _waiting_for.find_key(pawn)
 	if waited_for != null:
 		_waiting_for.erase(waited_for)
+		_pull_timers.erase(waited_for)
 	var waited_item: OrderItem = _waiting_for_container.find_key(pawn)
 	if waited_item != null:
 		_waiting_for_container.erase(waited_item)
@@ -483,13 +508,20 @@ func _on_pawn_stop_reached(job: Job, pawn: Pawn) -> void:
 	match stop.action:
 		JobStop.Action.PICK_UP:
 			var item: Item = behavior.get_carried(job)
+			if _is_unjudged(item, job):
+				# Taken out when the pawn thinks it's time, which sets how done it is.
+				var wait: float = _roll_pull_time(item, pawn, job) - _now
+				if wait <= 0.0:
+					_pull(job, pawn)
+					return
+				_stand_by(item, pawn, stop)
+				var timer: SceneTreeTimer = get_tree().create_timer(wait)
+				_pull_timers[item] = timer
+				timer.timeout.connect(_on_pull_time.bind(_find_bake(item), pawn, job, timer))
+				return
 			if item.busy:
 				# Not ready yet (e.g. still baking): stand by until the station is done.
-				_waiting_for[item] = pawn
-				var look_at: Vector2 = item.get_outermost().global_position
-				if stop.station != null and stop.spot >= 0:
-					look_at = stop.station.get_work_target(stop.spot)
-				pawn.wait_at_stop(look_at)
+				_stand_by(item, pawn, stop)
 				return
 			_pick_up(job, pawn)
 		JobStop.Action.TAKE_SUPPLY:
@@ -497,6 +529,71 @@ func _on_pawn_stop_reached(job: Job, pawn: Pawn) -> void:
 			behavior.on_supply_taken(job, stop.station, pawn, self)
 		_:
 			behavior.on_stop_reached(job, stop, pawn, self)
+
+
+## The pawn stands at the stop facing the item until it can be picked up.
+func _stand_by(item: Item, pawn: Pawn, stop: JobStop) -> void:
+	_waiting_for[item] = pawn
+	var look_at: Vector2 = item.get_outermost().global_position
+	if stop.station != null and stop.spot >= 0:
+		look_at = stop.station.get_work_target(stop.spot)
+	pawn.wait_at_stop(look_at)
+
+
+## True if the job's pawn taking the item out sets how done it is (the next recipe step
+## after a station worked it with doneness rules).
+func _is_unjudged(item: Item, job: Job) -> bool:
+	var bake: Bake = _find_bake(item)
+	return bake != null and bake.rules != null and job.recipe_step
+
+
+func _find_bake(item: Item) -> Bake:
+	for bake: Bake in _bakes:
+		if bake.item == item:
+			return bake
+	return null
+
+
+## Game seconds (see _now) when the pawn thinks it's time to take the item out, by their
+## skill in the job's work type.
+func _roll_pull_time(item: Item, pawn: Pawn, job: Job) -> float:
+	var bake: Bake = _find_bake(item)
+	var level: int = pawn.get_skill(job.task_type.work_type)
+	var minutes: float = bake.rules.roll_pull_minutes(level, pawn.skill_rules)
+	return bake.done_at + ShopClock.minutes_to_seconds(minutes)
+
+
+func _on_pull_time(bake: Bake, pawn: Pawn, job: Job, timer: SceneTreeTimer) -> void:
+	# The pawn may have been stopped meanwhile (and maybe come back on a new timer), and the
+	# item thrown out.
+	var item: Item = bake.item
+	if not is_instance_valid(item) or _pull_timers.get(item) != timer or _waiting_for.get(item) != pawn or pawn.get_job() != job:
+		return
+	_pull_timers.erase(item)
+	_waiting_for.erase(item)
+	_pull(job, pawn)
+	if not _waiting_for_container.values().has(pawn):
+		pawn.resume_job()
+
+
+## The pawn takes the item out now, which sets how done it is, and picks it up. If the
+## station isn't done with it yet, it stops there (under).
+func _pull(job: Job, pawn: Pawn) -> void:
+	var item: Item = job.task_type.get_behavior().get_carried(job)
+	var bake: Bake = _find_bake(item)
+	_bakes.erase(bake)
+	var minutes_after: float = (_now - bake.done_at) / ShopClock.minutes_to_seconds(1.0)
+	var doneness: DonenessRules.Doneness = bake.rules.judge(minutes_after)
+	var early: bool = item.busy
+	if early:
+		bake.tween.kill()
+		_finish_bake(bake, false)
+	item.set_tint(bake.rules.get_tint(doneness))
+	if bake.order_item != null:
+		bake.order_item.doneness = doneness
+	_pick_up(job, pawn)
+	if early:
+		assign_all()
 
 
 func _pick_up(job: Job, pawn: Pawn) -> void:
@@ -553,7 +650,7 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	if job.recipe_step and not task.prep and order_item.item != null:
 		var look: Texture2D = order_item.recipe.get_stage_texture(order_item.step_index)
 		if task.unattended:
-			_work_unattended(order_item.item, task, look)
+			_work_unattended(order_item, task, look)
 		else:
 			order_item.item.set_texture(look)
 	if job.ticket != null and job.ticket.ready:
@@ -562,32 +659,55 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 		_work_or_wander(pawn)
 
 
-## The station works the item on its own; when done it takes its new look and can be
-## moved again.
-func _work_unattended(item: Item, task: TaskType, done_texture: Texture2D) -> void:
-	item.busy = true
-	var station: Station = item.station
-	var spot: int = item.spot
-	var tween: Tween = create_tween()
+## The station works the order item's item on its own; when done it takes its new look and
+## can be moved again. With doneness rules, how done it is gets set when it's taken out.
+func _work_unattended(order_item: OrderItem, task: TaskType, done_texture: Texture2D) -> void:
+	var bake := Bake.new()
+	bake.item = order_item.item
+	bake.order_item = order_item
+	bake.station = bake.item.station
+	bake.spot = bake.item.spot
+	bake.done_texture = done_texture
+	bake.rules = task.doneness_rules
+	bake.done_at = _now + task.get_work_seconds()
+	bake.item.busy = true
+	# Drop ones whose item is gone (e.g. thrown out before it was taken out).
+	_bakes.assign(_bakes.filter(func(other: Bake) -> bool: return is_instance_valid(other.item)))
+	_bakes.append(bake)
+	bake.tween = create_tween()
 	# The station may be moved meanwhile (the item goes with it), or sold.
 	var show_progress := func(progress: float) -> void:
-		if is_instance_valid(station):
-			station.show_work(spot, progress)
-	tween.tween_method(show_progress, 0.0, 1.0, task.get_work_seconds())
-	await tween.finished
-	if is_instance_valid(station):
-		station.hide_work(spot)
+		if is_instance_valid(bake.station):
+			bake.station.show_work(bake.spot, progress)
+	bake.tween.tween_method(show_progress, 0.0, 1.0, task.get_work_seconds())
+	bake.tween.finished.connect(_finish_bake.bind(bake))
+
+
+## The station is done with the item (or it was taken out early): it takes its new look and
+## can be moved again. Then open work is handed out, unless `assign` is false.
+func _finish_bake(bake: Bake, assign: bool = true) -> void:
+	if bake.tween == null:
+		return
+	# Let go of the tween (its finished signal is bound to this bake), so neither leaks.
+	bake.tween = null
+	if is_instance_valid(bake.station):
+		bake.station.hide_work(bake.spot)
+	var item: Item = bake.item
+	if not is_instance_valid(item) or bake.rules == null:
+		_bakes.erase(bake)
 	if not is_instance_valid(item):
 		return
 	item.busy = false
-	item.set_texture(done_texture)
+	item.set_texture(bake.done_texture)
 	var waiting: Pawn = _waiting_for.get(item)
-	if waiting != null:
+	# A pawn timing when to take it out (see _on_pull_time()) keeps waiting.
+	if waiting != null and not _pull_timers.has(item):
 		_waiting_for.erase(item)
 		_pick_up(waiting.get_job(), waiting)
 		if not _waiting_for_container.values().has(waiting):
 			waiting.resume_job()
-	assign_all()
+	if assign:
+		assign_all()
 
 
 func _release(job: Job) -> void:

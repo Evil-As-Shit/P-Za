@@ -20,6 +20,8 @@ var item: Item = null
 var container: Item = null
 ## Sits on the order's stack (the first finished item is the stack's base).
 var stacked: bool = false
+## How done it came out of the oven (see DonenessRules), or NONE before that.
+var doneness: DonenessRules.Doneness = DonenessRules.Doneness.NONE
 
 
 func _init(p_ticket: Ticket, p_recipe: Recipe) -> void:

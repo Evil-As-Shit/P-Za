@@ -19,6 +19,9 @@ static var _default_behavior := TaskBehavior.new()
 ## its own (e.g. baking). The ticket moves on right away, so its next steps can be done
 ## meanwhile, but the item can't be moved until it's done.
 @export var unattended: bool = false
+## For unattended tasks: how done the item comes out, set when the next step's pawn takes
+## it out (e.g. a pizza from the oven). Empty means it's just ready once done.
+@export var doneness_rules: DonenessRules
 ## If true, this step opens once the steps before it are done and is worked alongside the
 ## steps after it (e.g. setting out a box while the pizza bakes). Later steps that need it
 ## wait until it's done.

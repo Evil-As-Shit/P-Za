@@ -2,6 +2,7 @@
 
 [ext_resource type="Resource" path="res://resources/work_types/pizza_making.tres" id="9_work_type"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
+[ext_resource type="Resource" path="res://resources/tasks/bake_doneness.tres" id="2_doneness"]
 
 [resource]
 script = ExtResource("1_task")
@@ -10,3 +11,4 @@ display_name = "Load oven"
 work_type = ExtResource("9_work_type")
 work_minutes = 5.0
 unattended = true
+doneness_rules = ExtResource("2_doneness")

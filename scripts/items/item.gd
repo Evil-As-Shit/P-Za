@@ -46,6 +46,11 @@ func set_lid(texture: Texture2D) -> void:
 	_set_art(_lid, texture)
 
 
+## Tints the item's own art (not its marks or contents), e.g. a pale or burnt pizza.
+func set_tint(color: Color) -> void:
+	_sprite.modulate = color
+
+
 ## Marks drawn over the item (e.g. cut lines). Pass null to clear.
 func set_overlay(texture: Texture2D) -> void:
 	_set_art(_overlay, texture)
