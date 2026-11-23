@@ -9,6 +9,10 @@ func _start() -> void:
 	stop_random_orders()
 	var hud: Hud = world.get_node("Hud")
 	var pawn: Pawn = work.get_pawns()[0]
+	# Others may stand in front of them (pawns start on random cells).
+	for other: Pawn in work.get_pawns():
+		if other != pawn:
+			other.global_position = pawn.global_position + Vector2(200.0, 0.0)
 	world._select_at(pawn.global_position + Vector2(0.0, -20.0))
 	if hud.get_shown_pawn() != pawn:
 		fail("clicking %s didn't show them in the pawn panel" % pawn.display_name)
