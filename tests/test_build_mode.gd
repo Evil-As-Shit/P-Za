@@ -60,12 +60,12 @@ func _start() -> void:
 	if not _build.pick_up(can):
 		fail("couldn't pick up the idle garbage can")
 		return
-	_build.hover(Vector2i(2, 9))
+	_build.hover(Vector2i(2, 4))
 	if not _build.confirm():
-		fail("the garbage can didn't fit at (2, 9)")
+		fail("the garbage can didn't fit at (2, 4)")
 		return
-	if can.cell != Vector2i(2, 9) or not _floor.is_walkable(Vector2i(10, 5)) \
-			or _floor.is_walkable(Vector2i(2, 9)) or not world._stations.has(can):
+	if can.cell != Vector2i(2, 4) or not _floor.is_walkable(Vector2i(10, 5)) \
+			or _floor.is_walkable(Vector2i(2, 4)) or not world._stations.has(can):
 		fail("the garbage can didn't move properly")
 		return
 

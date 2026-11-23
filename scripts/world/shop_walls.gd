@@ -13,10 +13,8 @@ enum ViewMode { FULL, CUTAWAY, DOWN }
 ## down-right).
 const SIDE_STEP: Array[Vector2i] = [Vector2i(-1, 0), Vector2i(0, -1), Vector2i(0, 1), Vector2i(1, 0)]
 ## Point each piece sorts by, relative to its cell's center, indexed by Side: the middle of
-## its edge. Joined pieces sort by their shared corner instead.
+## its edge. Joined corner pieces are drawn in halves, each sorted with its side.
 const SIDE_ANCHOR: Array[Vector2] = [Vector2(-8, -4), Vector2(8, -4), Vector2(-8, 4), Vector2(8, 4)]
-const BACK_CORNER_ANCHOR := Vector2(0, -8)
-const FRONT_CORNER_ANCHOR := Vector2(0, 8)
 
 @export var style: WallStyle
 ## Edges left open as doorways, as (cell x, cell y, Side).
@@ -54,9 +52,11 @@ func _rebuild() -> void:
 		add_cell_walls(self, style, _floor.cell_to_global(cell), sides, view_mode)
 
 
-## Adds the wall pieces for one cell's walled `sides` (Side values) to `parent` (a y-sorted node, so each
-## piece sorts on its own), drawn as `mode` says. `center` is the cell's global center.
-## Also used for rooms inside the shop (see WalkInRoom).
+## Adds the wall pieces for one cell's walled `sides` (Side values) to `parent` (a y-sorted
+## node, so each piece sorts on its own), drawn as `mode` says. `center` is the cell's global
+## center. Also used for rooms inside the shop (see WalkInRoom), which have floor around
+## them, so a joined corner piece is drawn in two halves, each sorted with its own wall:
+## sorted as one at the corner, it would cover things standing beside it.
 static func add_cell_walls(
 	parent: Node2D, style: WallStyle, center: Vector2, sides: Array[int], mode: ViewMode
 ) -> void:
@@ -69,7 +69,7 @@ static func add_cell_walls(
 
 	if back_left and back_right:
 		var corner: WallPiece = style.back_corner_short if back_short else style.back_corner
-		_add(parent, center, BACK_CORNER_ANCHOR, corner)
+		_add_halves(parent, center, corner, Side.BACK_LEFT, Side.BACK_RIGHT)
 	else:
 		if back_left:
 			var piece: WallPiece = style.back_left_short if back_short else style.back_left
@@ -80,7 +80,7 @@ static func add_cell_walls(
 
 	if front_left and front_right:
 		var corner: WallPiece = style.front_corner_short if front_short else style.front_corner
-		_add(parent, center, FRONT_CORNER_ANCHOR, corner)
+		_add_halves(parent, center, corner, Side.FRONT_LEFT, Side.FRONT_RIGHT)
 		return
 	# Where a front wall meets a back wall (the room's side corners), the capped piece covers
 	# the join, as long as both walls are the same height.
@@ -108,6 +108,25 @@ static func _add(parent: Node2D, center: Vector2, anchor: Vector2, piece: WallPi
 	sprite.offset = piece.offset - anchor
 	parent.add_child(sprite)
 	sprite.global_position = center + anchor
+
+
+## Adds a joined corner piece as its left and right halves (split where the walls meet, in
+## the middle of the art), sorted at the `left` and `right` sides' anchors.
+static func _add_halves(
+	parent: Node2D, center: Vector2, piece: WallPiece, left: int, right: int
+) -> void:
+	var size: Vector2 = piece.texture.get_size()
+	var half: float = size.x / 2.0
+	for right_half: bool in [false, true]:
+		var anchor: Vector2 = SIDE_ANCHOR[right if right_half else left]
+		var sprite := Sprite2D.new()
+		sprite.texture = piece.texture
+		sprite.centered = false
+		sprite.region_enabled = true
+		sprite.region_rect = Rect2(half if right_half else 0.0, 0.0, half, size.y)
+		sprite.offset = piece.offset + Vector2(half if right_half else 0.0, 0.0) - anchor
+		parent.add_child(sprite)
+		sprite.global_position = center + anchor
 
 
 func _is_door(cell: Vector2i, side: Side) -> bool:

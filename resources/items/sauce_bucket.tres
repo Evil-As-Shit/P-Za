@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://scripts/items/dish.gd" id="3_dish"]
 [ext_resource type="Resource" path="res://resources/storage_kinds/sauce.tres" id="4_sauce"]
 [ext_resource type="Resource" path="res://resources/storage_kinds/empty_dishes.tres" id="5_empty"]
+[ext_resource type="Resource" path="res://resources/stations/bulk_sauce_bucket.tres" id="6_bulk"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_bucket"]
 atlas = ExtResource("2_sheet")
@@ -16,6 +17,7 @@ script = ExtResource("3_dish")
 display_name = "Sauce Bucket"
 back_texture = SubResource("AtlasTexture_bucket")
 put_away_kind = ExtResource("4_sauce")
+filled_at = ExtResource("6_bulk")
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_level1"]
 atlas = ExtResource("2_sheet")

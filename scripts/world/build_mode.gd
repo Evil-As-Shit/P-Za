@@ -29,6 +29,8 @@ var _floor: ShopFloor
 var _entities: Node2D
 var _stations: Array[Station] = []
 var _pawns: Array[Pawn] = []
+## Returns the items lying on the floor (Array[Item]), which can't be built over.
+var _floor_items: Callable
 ## The station following the mouse (new, or picked up to move), or null.
 var _ghost: Station = null
 ## True if the ghost is an existing station being moved.
@@ -42,14 +44,17 @@ var _contents_from: Dictionary[Station, Vector3i] = {}
 var _fits: bool = false
 
 
-## `stations` and `pawns` are the owner's live lists, used to check placements.
+## `stations` and `pawns` are the owner's live lists, used to check placements, and
+## `floor_items` returns the items lying on the floor.
 func setup(
-	shop_floor: ShopFloor, entities: Node2D, stations: Array[Station], pawns: Array[Pawn]
+	shop_floor: ShopFloor, entities: Node2D, stations: Array[Station], pawns: Array[Pawn],
+	floor_items: Callable
 ) -> void:
 	_floor = shop_floor
 	_entities = entities
 	_stations = stations
 	_pawns = pawns
+	_floor_items = floor_items
 
 
 func set_active(on: bool) -> void:
@@ -280,6 +285,9 @@ func _fits_here(group: Array[Station]) -> bool:
 	for cell: Vector2i in footprint:
 		if not _floor.has_floor(cell) or not _floor.is_walkable(cell):
 			return false
+	# Pawns and things set down on the floor would be shut in under it.
+	for item: Item in _floor_items.call():
+		pawn_cells.append(_floor.global_to_cell(item.global_position))
 	for cell: Vector2i in blocked:
 		if pawn_cells.has(cell):
 			return false

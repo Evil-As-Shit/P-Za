@@ -74,7 +74,7 @@ func _ready() -> void:
 	_reputation.rating_changed.connect(_on_rating_changed)
 	_on_rating_changed(_reputation.rating)
 
-	_build.setup(_floor, _entities, _stations, _work.get_pawns())
+	_build.setup(_floor, _entities, _stations, _work.get_pawns(), _work.get_floor_items)
 	_build.station_built.connect(_on_station_built)
 	_build.move_started.connect(_on_station_move_started)
 	_build.move_finished.connect(_on_station_built)

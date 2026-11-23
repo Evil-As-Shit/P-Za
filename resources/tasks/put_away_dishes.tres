@@ -4,10 +4,13 @@
 [ext_resource type="Resource" path="res://resources/work_types/hauling.tres" id="2_work_type"]
 [ext_resource type="Script" path="res://scripts/tasks/behaviors/put_away_dish_behavior.gd" id="3_behavior"]
 [ext_resource type="Resource" path="res://resources/items/dishes.tres" id="4_dishes"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/clean_dishes.tres" id="5_clean"]
 
 [sub_resource type="Resource" id="Resource_behavior"]
 script = ExtResource("3_behavior")
+clean_kind = ExtResource("5_clean")
 dishes = ExtResource("4_dishes")
+fill_minutes = 0.5
 
 [resource]
 script = ExtResource("1_task")

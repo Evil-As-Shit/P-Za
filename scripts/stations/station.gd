@@ -733,13 +733,16 @@ func unclaim_supply() -> void:
 
 ## Removes a claimed unit from stock and returns how much is left in it: -1 for a full one,
 ## or the count put back with it (see add_stock()). Partly used ones go out first. For
-## storage that holds dishes, get_top_dish() beforehand says which one this is.
+## storage that holds dishes, get_top_dish() beforehand says which one this is, or `dish`
+## picks one (the top-most of its kind).
 ## Placeholder until deliveries: storage that starts full refills the moment it runs out.
-func take_supply() -> int:
+func take_supply(dish: Dish = null) -> int:
 	_stock_claimed -= 1
 	_stock -= 1
 	var left: int = _partial.pop_back() if not _partial.is_empty() else -1
-	if not _stock_dishes.is_empty():
+	if dish != null and _stock_dishes.has(dish):
+		_stock_dishes.remove_at(_stock_dishes.rfind(dish))
+	elif not _stock_dishes.is_empty():
 		_stock_dishes.pop_back()
 	var layout: StorageLayout = get_storage_layout()
 	if _stock == 0 and layout != null and layout.starts_full and layout.refills:
@@ -752,6 +755,11 @@ func take_supply() -> int:
 ## The dish the next take_supply() takes, for storage that holds dishes; else null.
 func get_top_dish() -> Dish:
 	return _stock_dishes.back() if not _stock_dishes.is_empty() else null
+
+
+## The dishes in stock, for storage that holds dishes, bottom first.
+func get_stock_dishes() -> Array[Dish]:
+	return _stock_dishes.duplicate()
 
 
 func _get_capacity() -> int:

@@ -19,6 +19,9 @@ enum State { IDLE, WALKING, WALKING_TO_STOP, WAITING_AT_STOP, WALKING_TO_JOB, WO
 
 ## Priorities run from 1 (done first) to this. 0 means the pawn never does that work.
 const LOWEST_PRIORITY: int = 4
+## How far past a sidestep the floor is checked (as a multiple of it), so a pawn at the
+## middle of its cell doesn't step aside toward a wall half a cell away.
+const SIDESTEP_REACH: float = 2.5
 
 @export var display_name: String = "Pawn"
 ## Work type -> priority (1 to LOWEST_PRIORITY). Missing or 0 means never.
@@ -51,6 +54,10 @@ const LOWEST_PRIORITY: int = 4
 @export_range(0.1, 1.0) var crowded_speed: float = 0.6
 @export_group("")
 
+## The floor the pawn walks on (set by its owner), so it doesn't step aside into a wall or
+## furniture. Null means anywhere.
+var shop_floor: ShopFloor = null
+
 var _state: State = State.IDLE
 var _path: PackedVector2Array = PackedVector2Array()
 ## Paths still to walk after the current one: to each remaining stop, then to work.
@@ -68,20 +75,21 @@ var _facing_right: bool = false
 var _sidestep_offset: Vector2 = Vector2.ZERO
 ## Walking speed multiplier right now (crowded_speed while passing someone).
 var _speed_factor: float = 1.0
-var _work_bar_base: Vector2 = Vector2.ZERO
 ## Game seconds spent walking for the current job so far (to its stops and work spot).
 var _walk_seconds: float = 0.0
 ## Work type -> shop minutes of practice toward the next skill level.
 var _practice: Dictionary[WorkType, float] = {}
 
-@onready var _sprite: AnimatedSprite2D = $Sprite
-@onready var _work_bar: ProgressBar = $WorkBar
-@onready var _hold_point: Marker2D = $HoldPoint
+## Everything drawn for the pawn. Moved while stepping aside; it sorts on its own (the pawn
+## is y-sorted), so the pawn is drawn in front of or behind others where it's drawn.
+@onready var _body: Node2D = $Body
+@onready var _sprite: AnimatedSprite2D = $Body/Sprite
+@onready var _work_bar: ProgressBar = $Body/WorkBar
+@onready var _hold_point: Marker2D = $Body/HoldPoint
 
 
 func _ready() -> void:
 	add_to_group(&"pawns")
-	_work_bar_base = _work_bar.position
 	_play_idle()
 	_place_hold_point()
 
@@ -108,7 +116,7 @@ func has_point(point: Vector2) -> bool:
 	if texture == null:
 		return false
 	var size: Vector2 = texture.get_size()
-	var rect := Rect2(_sprite.position + _sprite.offset - size / 2.0, size)
+	var rect := Rect2(_body.position + _sprite.position + _sprite.offset - size / 2.0, size)
 	return rect.has_point(to_local(point))
 
 
@@ -122,7 +130,8 @@ func is_walking() -> bool:
 
 
 ## While walking near another pawn: steps aside, away from them (to the right when meeting
-## head-on, so two pawns pass each other), and slows down. Eases back once clear.
+## head-on, so two pawns pass each other), and slows down. Eases back once clear. Never
+## steps toward a wall or furniture: then the other way, or not at all.
 func _avoid_others(delta: float) -> void:
 	var target := Vector2.ZERO
 	_speed_factor = 1.0
@@ -146,14 +155,28 @@ func _avoid_others(delta: float) -> void:
 			var side: float = 1.0
 			if absf(right.dot(to_other)) > 1.0:
 				side = -signf(right.dot(to_other))
-			target = _to_screen(right * side).normalized() * sidestep
+			for try_side: float in [side, -side]:
+				var aside: Vector2 = _to_screen(right * try_side).normalized() * sidestep
+				if _can_step_toward(aside):
+					target = aside
+					break
 	var offset: Vector2 = _sidestep_offset.move_toward(target, sidestep_speed * delta)
 	if offset == _sidestep_offset:
 		return
 	_sidestep_offset = offset
-	_sprite.position = _sidestep_offset
-	_work_bar.position = _work_bar_base + _sidestep_offset
-	_place_hold_point()
+	_body.position = _sidestep_offset
+
+
+## True if stepping aside by `aside` (screen pixels) keeps the pawn's look on its side of
+## any wall or furniture: the floor just past it that way is open to the pawn's cell.
+func _can_step_toward(aside: Vector2) -> bool:
+	if shop_floor == null:
+		return true
+	var here: Vector2i = shop_floor.global_to_cell(global_position)
+	var past: Vector2i = shop_floor.global_to_cell(global_position + aside * SIDESTEP_REACH)
+	if past == here:
+		return true
+	return shop_floor.is_walkable(past) and not shop_floor.is_edge_blocked(here, past)
 
 
 ## Screen offset to floor distances (the floor's iso grid is squashed to half height).
@@ -228,12 +251,14 @@ func _walk_next_path() -> void:
 	_state = State.WALKING_TO_STOP if not _next_paths.is_empty() else State.WALKING_TO_JOB
 
 
-## Carries `item` in front of the pawn (until there's a carry animation).
+## Carries `item` in front of the pawn, with the holding animations.
 func hold_item(item: Item) -> void:
 	_held_item = item
 	item.reparent(_hold_point, false)
 	item.position = Vector2.ZERO
 	_place_hold_point()
+	if not is_walking():
+		_play_idle()
 
 
 ## Call from stop_reached when the stop can't be done yet (e.g. the item is still baking):
@@ -295,6 +320,8 @@ func get_held_item() -> Item:
 func release_item() -> Item:
 	var item: Item = _held_item
 	_held_item = null
+	if not is_walking():
+		_play_idle()
 	return item
 
 
@@ -387,7 +414,10 @@ func _step_along_path(delta: float) -> void:
 
 	_face(to_target)
 	global_position += to_target.normalized() * step
-	_sprite.play(&"walk_up" if _facing_up else &"walk_down")
+	if _held_item != null:
+		_sprite.play(&"hold_walk_up" if _facing_up else &"hold_walk_down")
+	else:
+		_sprite.play(&"walk_up" if _facing_up else &"walk_down")
 
 
 func _on_path_end() -> void:
@@ -448,12 +478,14 @@ func _place_hold_point() -> void:
 		reach.x = -reach.x
 	if _facing_up:
 		reach.y = -reach.y
-	_hold_point.position = reach + Vector2(0.0, -hold_height) + _sidestep_offset
-	move_child(_hold_point, 0 if _facing_up else _sprite.get_index() + 1)
+	_hold_point.position = reach + Vector2(0.0, -hold_height)
+	_body.move_child(_hold_point, 0 if _facing_up else _sprite.get_index() + 1)
 
 
 func _play_idle() -> void:
-	if _on_phone:
+	if _held_item != null:
+		_sprite.play(&"hold_idle_up" if _facing_up else &"hold_idle_down")
+	elif _on_phone:
 		_sprite.play(&"phone_up" if _facing_up else &"phone_down")
 	else:
 		_sprite.play(&"idle_up" if _facing_up else &"idle_down")

@@ -11,18 +11,21 @@ bg_color = Color(0.12, 0.12, 0.14, 0.9)
 bg_color = Color(0.45, 0.85, 0.4, 1)
 
 [node name="Pawn" type="Node2D"]
+y_sort_enabled = true
 script = ExtResource("1_pawn")
 skill_rules = ExtResource("3_skill_rules")
 
-[node name="Sprite" type="AnimatedSprite2D" parent="."]
+[node name="Body" type="Node2D" parent="."]
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Body"]
 offset = Vector2(0.5, -20)
 sprite_frames = ExtResource("2_frames")
 animation = &"idle_down"
 
-[node name="HoldPoint" type="Marker2D" parent="."]
+[node name="HoldPoint" type="Marker2D" parent="Body"]
 position = Vector2(-5, -21)
 
-[node name="WorkBar" type="ProgressBar" parent="."]
+[node name="WorkBar" type="ProgressBar" parent="Body"]
 visible = false
 z_index = 1
 offset_left = -8.0

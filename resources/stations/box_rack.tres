@@ -13,6 +13,8 @@
 [ext_resource type="Texture2D" path="res://resources/items/dough_container_lid.tres" id="11_lid"]
 [ext_resource type="Resource" path="res://resources/storage_kinds/box.tres" id="12_box_kind"]
 [ext_resource type="Resource" path="res://resources/storage_kinds/dough.tres" id="13_dough_kind"]
+[ext_resource type="Resource" path="res://resources/station_roles/clean_dishes_storage.tres" id="14_clean"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/clean_dishes.tres" id="15_clean_kind"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_base"]
 atlas = ExtResource("4_sheet")
@@ -47,13 +49,23 @@ pile_sizes = Array[int]([3, 2, 2, 2])
 pile_step = 3.0
 starts_full = true
 
+[sub_resource type="Resource" id="Resource_clean"]
+script = ExtResource("6_layout")
+kind = ExtResource("15_clean_kind")
+textures = Array[Texture2D]([ExtResource("9_back"), ExtResource("10_front")])
+piles = Array[Vector3]([Vector3(1, 0, 3), Vector3(0, 0, 3)])
+piles_on_top = Array[Vector3]([Vector3(1, 0, 25), Vector3(0, 0, 25)])
+per_pile = 3
+pile_step = 3.0
+holds_dishes = true
+
 [resource]
 script = ExtResource("1_data")
 display_name = "Rack"
 default_facing = 3
-roles = Array[ExtResource("3_role")]([ExtResource("7_boxes"), ExtResource("8_dough")])
+roles = Array[ExtResource("3_role")]([ExtResource("7_boxes"), ExtResource("8_dough"), ExtResource("14_clean")])
 footprint = Vector2i(2, 1)
 facing_textures = Array[Texture2D]([null, SubResource("AtlasTexture_base"), null, SubResource("AtlasTexture_base")])
 cover_textures = Array[Texture2D]([null, SubResource("AtlasTexture_cover"), null, SubResource("AtlasTexture_cover")])
 spots = Array[ExtResource("2_spot")]([SubResource("Resource_spot")])
-storage_layouts = Array[ExtResource("6_layout")]([SubResource("Resource_boxes"), SubResource("Resource_dough")])
+storage_layouts = Array[ExtResource("6_layout")]([SubResource("Resource_boxes"), SubResource("Resource_dough"), SubResource("Resource_clean")])

@@ -112,8 +112,11 @@ func _on_completed(ticket: Ticket) -> void:
 ## Its floor is open; the only way in from outside is through the door; the rack is inside,
 ## in use and storing dough.
 func _check_room() -> String:
+	var furniture: Array[Vector2i] = []
+	for station: Station in world._stations:
+		furniture.append_array(station.get_blocked_cells())
 	for cell: Vector2i in _walk_in.get_footprint_cells():
-		if not _rack.get_footprint_cells().has(cell) and not _floor.is_walkable(cell):
+		if not furniture.has(cell) and not _floor.is_walkable(cell):
 			return "floor cell %s blocks pawns" % cell
 	var door: Vector2i = _walk_in.cell + StationData.rotate_offset(
 		_walk_in.data.walk_in.door_cell, _walk_in.facing

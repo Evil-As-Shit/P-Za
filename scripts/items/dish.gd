@@ -14,3 +14,6 @@ extends Resource
 ## Where a clean one is put away; it's stored there as a full unit (e.g. a dough container
 ## goes back to Dough storage, refilled).
 @export var put_away_kind: StorageKind
+## Station type it's filled at on its way to storage (e.g. a sauce bucket at the bulk sauce
+## bucket), or null if it goes straight there.
+@export var filled_at: StationData

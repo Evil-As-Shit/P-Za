@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="StationData" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/station_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="2_spot"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/placeholder/bulk_sauce_bucket.png" id="3_art"]
+
+[sub_resource type="Resource" id="Resource_spot"]
+script = ExtResource("2_spot")
+work_cell = Vector2i(0, 1)
+item_cell = Vector2i(0, 0)
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Bulk Sauce Bucket"
+footprint = Vector2i(1, 1)
+facing_textures = Array[Texture2D]([ExtResource("3_art"), ExtResource("3_art"), ExtResource("3_art"), ExtResource("3_art")])
+spots = Array[ExtResource("2_spot")]([SubResource("Resource_spot")])

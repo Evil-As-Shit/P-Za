@@ -33,7 +33,8 @@ var spot: int = -1
 ## The ingredient container a unit is taken from (TAKE_UNIT), or the side item taken
 ## (TAKE_SIDE).
 var container: Item = null
-## The clean dish taken (TAKE_DISH).
+## The clean dish taken (TAKE_DISH), or the dish taken from storage that holds dishes
+## (TAKE_SUPPLY; null for its top one).
 var dish: Dish = null
 
 
@@ -46,9 +47,11 @@ static func pick_up(p_cell: Vector2i) -> JobStop:
 	return JobStop.new(Action.PICK_UP, p_cell)
 
 
-static func take_supply(p_station: Station) -> JobStop:
+## Taking a unit from storage: for storage that holds dishes, `p_dish` (or its top one).
+static func take_supply(p_station: Station, p_dish: Dish = null) -> JobStop:
 	var stop := JobStop.new(Action.TAKE_SUPPLY, p_station.get_work_cell(0))
 	stop.station = p_station
+	stop.dish = p_dish
 	return stop
 
 

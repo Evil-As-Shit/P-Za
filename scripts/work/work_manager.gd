@@ -138,6 +138,7 @@ func add_pawn(pawn: Pawn) -> void:
 	pawn.work_started.connect(_on_pawn_work_started.bind(pawn))
 	pawn.job_finished.connect(_on_pawn_job_finished.bind(pawn))
 	pawn.work_progressed.connect(_on_pawn_work_progressed.bind(pawn))
+	pawn.shop_floor = _floor
 	_pawns.append(pawn)
 	_wait_then_wander(pawn)
 
@@ -621,8 +622,8 @@ func _on_pawn_stop_reached(job: Job, pawn: Pawn) -> void:
 				return
 			_pick_up(job, pawn)
 		JobStop.Action.TAKE_SUPPLY:
-			job.taken_dish = stop.station.get_top_dish()
-			job.taken_left = stop.station.take_supply()
+			job.taken_dish = stop.dish if stop.dish != null else stop.station.get_top_dish()
+			job.taken_left = stop.station.take_supply(stop.dish)
 			behavior.on_supply_taken(job, stop.station, pawn, self)
 		_:
 			behavior.on_stop_reached(job, stop, pawn, self)
