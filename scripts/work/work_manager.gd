@@ -260,6 +260,8 @@ func withdraw_job(job: Job) -> void:
 	var held: Item = pawn.release_item()
 	if held != null:
 		drop_on_floor(held, get_cell(pawn))
+	if job.task_type.opens_station and job.station != null:
+		job.station.set_opened(job.spot, false)
 	_release(job)
 	job.task_type.get_behavior().on_withdrawn(job, self)
 	_rack.notify_job_state_changed()
@@ -613,6 +615,8 @@ func _pick_up(job: Job, pawn: Pawn) -> void:
 
 
 func _on_pawn_work_started(job: Job, pawn: Pawn) -> void:
+	if job.task_type.opens_station and job.station != null:
+		job.station.set_opened(job.spot, true)
 	job.task_type.get_behavior().on_work_started(job, pawn, self)
 
 
@@ -634,9 +638,13 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 		return
 	if task.ingredient_cost != 0.0:
 		ingredients_used.emit(task.ingredient_cost)
+	var station: Station = job.station
+	var spot: int = job.spot
 	_release(job)
 	if job.ticket != null:
 		_rack.complete_job(job)
+	if task.opens_station and station != null and not _next_step_opens_station(job.order_item):
+		station.set_opened(spot, false)
 	else:
 		_shop_jobs.erase(job)
 		if not job.recipes.is_empty():
@@ -708,6 +716,13 @@ func _finish_bake(bake: Bake, assign: bool = true) -> void:
 			waiting.resume_job()
 	if assign:
 		assign_all()
+
+
+## Whether the order item's next step also opens its station (e.g. cheese after sauce), so
+## the station stays open between them.
+func _next_step_opens_station(order_item: OrderItem) -> bool:
+	return order_item != null and order_item.current_job != null \
+			and order_item.current_job.task_type.opens_station
 
 
 func _release(job: Job) -> void:

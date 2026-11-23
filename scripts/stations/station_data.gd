@@ -20,8 +20,9 @@ extends Resource
 ## and floor-level bottom corner. The working side faces down-left at facing 0, up-left at
 ## 1, up-right at 2 and down-right at 3.
 @export var facing_textures: Array[Texture2D] = []
-## Optional art shown instead while the station is in use (a spot is reserved by a pawn or
-## holds something), e.g. a prep table with its lids up. Laid out like facing_textures.
+## Optional art shown instead while the station is in use (a task that opens it, see
+## TaskType.opens_station, is worked at one of its spots), e.g. a prep table with its lids
+## up. Laid out like facing_textures.
 @export var in_use_textures: Array[Texture2D] = []
 ## Optional art drawn over the station's items (e.g. an oven's top half), per facing, laid
 ## out like facing_textures. Make each the same height as its facing texture.

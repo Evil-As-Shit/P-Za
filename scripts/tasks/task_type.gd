@@ -29,6 +29,10 @@ static var _default_behavior := TaskBehavior.new()
 ## Drawn over the item while it's worked, one after another as the work fills (e.g. cut
 ## lines), after a first stretch with none. The last one stays when done.
 @export var work_frames: Array[Texture2D] = []
+## If true, the station shows its in-use art while this task is worked there, and stays that
+## way while the item's next step opens it too (e.g. the prep table's lids stay open from
+## sauce through cheese).
+@export var opens_station: bool = false
 ## How the task is planned and carried out. Empty means the default (see TaskBehavior).
 @export var behavior: TaskBehavior
 

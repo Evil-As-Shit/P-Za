@@ -36,6 +36,8 @@ var _footprint: Array[Vector2i] = []
 var _item_positions: Array[Vector2] = []
 var _items: Array[Item] = []
 var _reserved: Array[bool] = []
+## Spots being worked by a task that opens the station (see TaskType.opens_station).
+var _opened: Array[bool] = []
 ## Stored units (of the storage role's kind), how many are promised to pawns on their way to
 ## take one, and how many free places are promised to pawns bringing one.
 var _stock: int = 0
@@ -105,6 +107,7 @@ func place(shop_floor: ShopFloor) -> void:
 		)
 	_items.resize(data.spots.size())
 	_reserved.resize(data.spots.size())
+	_opened.resize(data.spots.size())
 	# What's on it comes along (it may have been turned, too).
 	for spot: int in data.spots.size():
 		if _items[spot] != null:
@@ -400,7 +403,6 @@ func get_item(spot: int) -> Item:
 ## Sets an item on a spot's surface, facing the spot's pawn. The spot must be empty.
 func put_item(spot: int, item: Item) -> void:
 	_items[spot] = item
-	_update_in_use_art()
 	item.station = self
 	item.spot = spot
 	item.reparent(_item_slot, false)
@@ -416,7 +418,7 @@ func take_item(spot: int) -> Item:
 	if item != null:
 		item.station = null
 		item.spot = -1
-	_update_in_use_art()
+	set_opened(spot, false)
 	return item
 
 
@@ -427,17 +429,23 @@ func is_reserved(spot: int) -> bool:
 ## Claims a spot for one pawn's job. Call release() when the job ends or is dropped.
 func reserve(spot: int) -> void:
 	_reserved[spot] = true
-	_update_in_use_art()
 
 
 func release(spot: int) -> void:
 	_reserved[spot] = false
+
+
+## Opens the station at a spot for tasks that open it (e.g. the prep table's lids from the
+## first ingredient to the last), and closes it again. Taking the spot's item closes it too.
+func set_opened(spot: int, opened: bool) -> void:
+	_opened[spot] = opened
 	_update_in_use_art()
 
 
-## In use: a spot is reserved by a pawn or holds something (see StationData.in_use_textures).
+## In use: a task that opens the station is worked at one of its spots (see
+## StationData.in_use_textures).
 func _is_in_use() -> bool:
-	return _reserved.has(true) or has_items()
+	return _opened.has(true)
 
 
 func _update_in_use_art() -> void:
