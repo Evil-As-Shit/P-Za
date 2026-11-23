@@ -14,6 +14,7 @@ func _start() -> void:
 	stop_random_orders()
 	clock.set_speed(6)
 	rack.patience_minutes = 100000
+	rack.patience_past_quote = 100000
 	_dough_rack = world.get_node("Entities/DoughRack")
 	_ticket = order_pizzas(1)
 	rack.ticket_completed.connect(_on_completed)

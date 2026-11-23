@@ -12,6 +12,7 @@ func _start() -> void:
 	clock.set_speed(6)
 	# Plenty of patience: this test is about stacking, not speed.
 	rack.patience_minutes = 100000
+	rack.patience_past_quote = 100000
 	for size: int in SIZES:
 		_remaining[order_pizzas(size)] = size
 	rack.ticket_completed.connect(_on_completed)

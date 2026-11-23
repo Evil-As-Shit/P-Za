@@ -28,6 +28,7 @@ func _start() -> void:
 		return
 	clock.set_speed(6)
 	rack.patience_minutes = 100000
+	rack.patience_past_quote = 100000
 	_ticket = order_pizzas(3)
 	rack.ticket_completed.connect(_on_completed)
 

@@ -288,7 +288,7 @@ func _on_time_changed(_day: int, _minute: int) -> void:
 	_rack.cancel_overdue()
 	# Customers still waiting at the register give up after the same patience.
 	for job: Job in _work.get_waiting_orders():
-		if _rack.now_minutes - job.placed_at >= _rack.patience_minutes:
+		if _rack.now_minutes - job.placed_at >= _rack.get_patience(job.quoted_minutes):
 			_work.drop_order(job)
 			_finances.record_missed(Recipe.get_total_price(job.recipes))
 			_reputation.review_left(true)

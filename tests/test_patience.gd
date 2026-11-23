@@ -10,6 +10,13 @@ var _cancelled: bool = false
 
 func _start() -> void:
 	stop_random_orders()
+	# Patience runs to the manager's quote plus a fixed grace (or a flat wait with no quote).
+	if rack.get_patience(17) != 17 + rack.patience_past_quote:
+		fail("a 17 min quote gave %d min patience, expected %d" % [rack.get_patience(17), 17 + rack.patience_past_quote])
+		return
+	if rack.get_patience(-1) != rack.patience_minutes:
+		fail("an unquoted order doesn't use the flat patience")
+		return
 	clock.set_speed(6)
 	_ticket = order_pizzas(3)
 	_ticket.patience = PATIENCE

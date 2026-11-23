@@ -17,6 +17,7 @@ func _start() -> void:
 	stop_random_orders()
 	clock.set_speed(6)
 	rack.patience_minutes = 100000
+	rack.patience_past_quote = 100000
 	_rack = world.get_node("Entities/DoughRack")
 	_prep = world.get_node("Entities/PrepTable")
 	# A bucket with one ball left was put away earlier: it's the next one taken out.

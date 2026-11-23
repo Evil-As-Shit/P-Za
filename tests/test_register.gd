@@ -35,9 +35,12 @@ func _step() -> void:
 	elif not _second_placed:
 		_order_with_no_register()
 	elif work.get_waiting_orders().is_empty():
-		if rack.get_ticket_count() != 1:
-			fail("an order printed with no register to take it")
-			return
+		# The first order may have gone out meanwhile (the customer waits past their quote).
+		for section: Ticket.Section in [Ticket.Section.WAIT, Ticket.Section.MAKE]:
+			for ticket: Ticket in rack.get_tickets(section):
+				if ticket != _printed:
+					fail("an order printed with no register to take it")
+					return
 		if finances.get_today().orders_missed != 1:
 			fail("missed orders is %d, expected 1" % finances.get_today().orders_missed)
 			return
@@ -77,5 +80,6 @@ func _order_with_no_register() -> void:
 		return
 	world._set_build_mode(false)
 	rack.patience_minutes = SHORT_PATIENCE
+	rack.patience_past_quote = SHORT_PATIENCE
 	world._on_order_placed([world.debug_recipe] as Array[Recipe])
 	_second_placed = true

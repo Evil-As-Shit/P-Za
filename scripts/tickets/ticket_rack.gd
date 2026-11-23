@@ -18,7 +18,9 @@ signal ticket_cancelled(ticket: Ticket)
 @export var stack_task: TaskType
 ## Carrying an order's finished stack to hand it off.
 @export var hand_off_task: TaskType
-## Shop minutes customers wait for an order before giving up.
+## Shop minutes past the manager's quote a customer waits before giving up.
+@export var patience_past_quote: int = 20
+## Shop minutes a customer waits for an unquoted order (e.g. the debug hotkey) before giving up.
 @export var patience_minutes: int = 45
 
 var _wait: Array[Ticket] = []
@@ -41,12 +43,18 @@ func _exit_tree() -> void:
 func print_ticket(recipes: Array[Recipe], placed_at: int = -1, quoted: int = -1) -> Ticket:
 	var ticket := Ticket.new(_next_order_number, recipes, stack_task, hand_off_task)
 	ticket.printed_at = now_minutes if placed_at < 0 else placed_at
-	ticket.patience = patience_minutes
+	ticket.patience = get_patience(quoted)
 	ticket.quoted_minutes = quoted
 	_next_order_number += 1
 	_wait.append(ticket)
 	changed.emit()
 	return ticket
+
+
+## Shop minutes a customer waits from ordering before giving up, given the manager's
+## `quoted` wait (-1 if none).
+func get_patience(quoted: int) -> int:
+	return quoted + patience_past_quote if quoted >= 0 else patience_minutes
 
 
 ## Moves a ticket to `index` in `section` (index counted before the ticket is removed).

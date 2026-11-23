@@ -28,6 +28,7 @@ func _start() -> void:
 	_floor = world.get_node("ShopFloor")
 	clock.set_speed(6)
 	rack.patience_minutes = 100000
+	rack.patience_past_quote = 100000
 	_tickets.append(order_pizzas(1))
 	_tickets.append(order_pizzas(1))
 	rack.ticket_completed.connect(_on_completed)
