@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" path="res://resources/items/dough_container_lid.tres" id="4_lid"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/pizza_sheet.png" id="5_pizza"]
 [ext_resource type="Resource" path="res://resources/storage_kinds/dough.tres" id="6_dough"]
-[ext_resource type="Resource" path="res://resources/storage_kinds/empty_dough.tres" id="7_empty"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/empty_dishes.tres" id="7_empty"]
 [ext_resource type="Resource" path="res://resources/items/dough_container_dish.tres" id="8_dish"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ball"]
@@ -24,4 +24,4 @@ back_texture = ExtResource("2_back")
 front_texture = ExtResource("3_front")
 lid_texture = ExtResource("4_lid")
 unit_texture = SubResource("AtlasTexture_ball")
-unit_offsets = Array[Vector2]([Vector2(-2, -5), Vector2(2, -3), Vector2(-6, -3), Vector2(6, -1), Vector2(-2, -1), Vector2(2, 1)])
+unit_offsets = Array[Vector2]([Vector2(0, -4), Vector2(2, -3), Vector2(-4, -2), Vector2(4, -2), Vector2(-2, -1), Vector2(0, 0)])
