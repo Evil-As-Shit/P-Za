@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="IngredientPan" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/ingredient_pan.gd" id="1_pan"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/cheese.tres" id="2_kind"]
+[ext_resource type="Texture2D" path="res://resources/items/cheese_bag.tres" id="3_bag"]
+
+[resource]
+script = ExtResource("1_pan")
+display_name = "Cheese"
+portions = 10
+refill_at = 3
+bag_kind = ExtResource("2_kind")
+bag_texture = ExtResource("3_bag")
+refill_minutes = 0.25

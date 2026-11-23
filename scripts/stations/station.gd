@@ -83,8 +83,10 @@ var _canvas: SubViewport = null
 var _canvas_origin := Vector2.ZERO
 ## A dish sink's drainboards (see StationData.dish_sink), or null.
 var _dish_boards: DishBoards = null
-## A walk-in's room, with its shelves (see StationData.walk_in), or null.
+## A walk-in's room (see StationData.walk_in), or null.
 var _room: WalkInRoom = null
+## Portions left in each of its ingredient pans (see StationData.pans); full until used.
+var _pan_left: Dictionary[IngredientPan, int] = {}
 
 ## All the station's art and what's on it, in draw order. Positions are floor positions,
 ## also inside the canvas.
@@ -689,6 +691,23 @@ func get_storage_layout() -> StorageLayout:
 	if role != null and role.stores != null:
 		return data.get_storage_layout(role.stores)
 	return data.built_in_storage
+
+
+## Portions left in `pan`, or -1 if the station doesn't have it.
+func get_pan_left(pan: IngredientPan) -> int:
+	if not data.pans.has(pan):
+		return -1
+	return _pan_left.get(pan, pan.portions)
+
+
+## Takes `amount` portions from `pan`.
+func use_pan(pan: IngredientPan, amount: int) -> void:
+	_pan_left[pan] = maxi(get_pan_left(pan) - amount, 0)
+
+
+## Refills `pan` (one bag fills it).
+func fill_pan(pan: IngredientPan) -> void:
+	_pan_left[pan] = pan.portions
 
 
 ## A dish sink's drainboards, or null if the station isn't a sink.

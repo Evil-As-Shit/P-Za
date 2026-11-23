@@ -15,6 +15,9 @@
 [ext_resource type="Resource" path="res://resources/storage_kinds/dough.tres" id="13_dough_kind"]
 [ext_resource type="Resource" path="res://resources/station_roles/clean_dishes_storage.tres" id="14_clean"]
 [ext_resource type="Resource" path="res://resources/storage_kinds/clean_dishes.tres" id="15_clean_kind"]
+[ext_resource type="Resource" path="res://resources/station_roles/cheese_storage.tres" id="16_cheese"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/cheese.tres" id="17_cheese_kind"]
+[ext_resource type="Texture2D" path="res://resources/items/cheese_bag.tres" id="18_bag"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_base"]
 atlas = ExtResource("4_sheet")
@@ -59,13 +62,23 @@ per_pile = 3
 pile_step = 3.0
 holds_dishes = true
 
+[sub_resource type="Resource" id="Resource_cheese"]
+script = ExtResource("6_layout")
+kind = ExtResource("17_cheese_kind")
+textures = Array[Texture2D]([ExtResource("18_bag")])
+piles = Array[Vector3]([Vector3(1, 0, 3), Vector3(0, 0, 3)])
+piles_on_top = Array[Vector3]([Vector3(1, 0, 25), Vector3(0, 0, 25)])
+per_pile = 3
+pile_step = 4.0
+starts_full = true
+
 [resource]
 script = ExtResource("1_data")
 display_name = "Rack"
 default_facing = 3
-roles = Array[ExtResource("3_role")]([ExtResource("7_boxes"), ExtResource("8_dough"), ExtResource("14_clean")])
+roles = Array[ExtResource("3_role")]([ExtResource("7_boxes"), ExtResource("8_dough"), ExtResource("14_clean"), ExtResource("16_cheese")])
 footprint = Vector2i(2, 1)
 facing_textures = Array[Texture2D]([null, SubResource("AtlasTexture_base"), null, SubResource("AtlasTexture_base")])
 cover_textures = Array[Texture2D]([null, SubResource("AtlasTexture_cover"), null, SubResource("AtlasTexture_cover")])
 spots = Array[ExtResource("2_spot")]([SubResource("Resource_spot")])
-storage_layouts = Array[ExtResource("6_layout")]([SubResource("Resource_boxes"), SubResource("Resource_dough"), SubResource("Resource_clean")])
+storage_layouts = Array[ExtResource("6_layout")]([SubResource("Resource_boxes"), SubResource("Resource_dough"), SubResource("Resource_clean"), SubResource("Resource_cheese")])

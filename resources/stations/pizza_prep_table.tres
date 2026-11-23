@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://scripts/items/side_item.gd" id="6_side_item"]
 [ext_resource type="Resource" path="res://resources/items/sauce_bucket.tres" id="7_sauce"]
 [ext_resource type="Resource" path="res://resources/storage_layouts/sauce_in_cooler.tres" id="8_cooler"]
+[ext_resource type="Script" path="res://scripts/stations/ingredient_pan.gd" id="9_pan_script"]
+[ext_resource type="Resource" path="res://resources/items/cheese_pan.tres" id="10_cheese"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_closed0"]
 atlas = ExtResource("4_sheet")
@@ -72,3 +74,4 @@ item_offset = Vector2(0, -16)
 side_areas = Array[Rect2i]([Rect2i(7, 11, 2, 2)])
 side_items = Array[ExtResource("6_side_item")]([ExtResource("7_sauce")])
 built_in_storage = ExtResource("8_cooler")
+pans = Array[ExtResource("9_pan_script")]([ExtResource("10_cheese")])

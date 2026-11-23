@@ -55,6 +55,8 @@ extends Resource
 ## itself (e.g. the prep table's cooler of spare sauce buckets). A layout with no textures
 ## or piles drawn keeps it hidden.
 @export var built_in_storage: StorageLayout
+## Ingredient pans built into the station (e.g. the prep table's cheese pan).
+@export var pans: Array[IngredientPan] = []
 ## Makes the station a dish sink: drainboards for dirty and clean dishes, and basins.
 @export var dish_sink: DishSink
 ## Makes the station a walk-in cooler: walls, a door and shelves, with open floor inside.
