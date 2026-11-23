@@ -64,6 +64,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/pawn_panel.tscn" id="59_pawn_panel"]
 [ext_resource type="Resource" path="res://resources/work_types/managing.tres" id="60_managing"]
 [ext_resource type="Resource" path="res://resources/orders/quote_rules.tres" id="61_quote_rules"]
+[ext_resource type="Script" path="res://scripts/reviews/shop_reputation.gd" id="62_reputation"]
+[ext_resource type="Resource" path="res://resources/reviews/review_rules.tres" id="63_review_rules"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -208,6 +210,10 @@ menu = Array[ExtResource("29_recipe")]([ExtResource("8_pizza")])
 [node name="ShopFinances" type="Node" parent="."]
 script = ExtResource("36_finances")
 bills = Array[ExtResource("37_bill")]([ExtResource("38_rent"), ExtResource("39_electricity"), ExtResource("40_gas"), ExtResource("41_water")])
+
+[node name="ShopReputation" type="Node" parent="."]
+script = ExtResource("62_reputation")
+rules = ExtResource("63_review_rules")
 
 [node name="TicketRack" type="Node" parent="."]
 script = ExtResource("7_rack")

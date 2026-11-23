@@ -1,6 +1,6 @@
 class_name ClockPanel
 extends PanelContainer
-## HUD clock: day, time, cash and speed buttons (pause, then each speed). Reports the
+## HUD clock: day, time, cash, the shop's rating and speed buttons (pause, then each speed). Reports the
 ## player's pick.
 
 signal speed_requested(speed: int)
@@ -10,6 +10,7 @@ const NEGATIVE_COLOR := Color(1.0, 0.45, 0.4)
 @onready var _day: Label = %Day
 @onready var _time: Label = %Time
 @onready var _cash: Label = %Cash
+@onready var _rating: Label = %Rating
 @onready var _buttons: HBoxContainer = %SpeedButtons
 
 
@@ -39,6 +40,11 @@ func show_time(day: int, minute_of_day: int) -> void:
 func show_cash(cash: float) -> void:
 	_cash.text = ShopFinances.format_money(cash)
 	_cash.modulate = NEGATIVE_COLOR if cash < -0.005 else Color.WHITE
+
+
+## The shop's rating out of 5 stars.
+func show_rating(rating: float) -> void:
+	_rating.text = "%.1f/5" % rating
 
 
 func show_speed(speed: int) -> void:

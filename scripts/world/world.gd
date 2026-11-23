@@ -2,7 +2,8 @@ extends Node2D
 ## The shop. Sets up the floor, stations and staff, and connects the systems: the manager
 ## quotes each order (no orders come in without one), orders are taken at the register and
 ## print tickets, the WorkManager has pawns work them, finished orders are paid for, late ones are
-## cancelled, and each day closes with a report. Also handles the player's input.
+## cancelled, customers review each order (the rating scales demand), and each day closes
+## with a report. Also handles the player's input.
 
 ## Recipe printed by the debug hotkey (J).
 @export var debug_recipe: Recipe
@@ -25,6 +26,7 @@ var _selected_station: Station = null
 @onready var _clock: ShopClock = $ShopClock
 @onready var _orders: OrderSource = $OrderSource
 @onready var _finances: ShopFinances = $ShopFinances
+@onready var _reputation: ShopReputation = $ShopReputation
 @onready var _hud: Hud = $Hud
 @onready var _build: BuildMode = $BuildMode
 
@@ -67,6 +69,8 @@ func _ready() -> void:
 	_hud.station_close_requested.connect(_select_station.bind(null))
 	_hud.report_closed.connect(_on_report_closed)
 	_work.waiting_orders_changed.connect(_hud.show_waiting_orders)
+	_reputation.rating_changed.connect(_on_rating_changed)
+	_on_rating_changed(_reputation.rating)
 
 	_build.setup(_floor, _entities, _stations, _work.get_pawns())
 	_build.station_built.connect(_on_station_built)
@@ -245,6 +249,7 @@ func _on_order_ready(ticket: Ticket) -> void:
 ## The finished order is picked up and paid for: its stack leaves and frees its spot.
 func _send_out(ticket: Ticket) -> void:
 	_finances.record_sale(ticket.get_price(), ticket.order_items.size(), ticket.get_age(_rack.now_minutes))
+	_reputation.review_order(ticket, _rack.now_minutes)
 	var stack: Item = ticket.stack_base.item if ticket.stack_base != null else null
 	for order_item: OrderItem in ticket.order_items:
 		order_item.item = null
@@ -262,7 +267,14 @@ func _on_ticket_completed(ticket: Ticket) -> void:
 ## The customer gave up: the sale is lost and whatever was made for it is thrown out.
 func _on_ticket_cancelled(ticket: Ticket) -> void:
 	_finances.record_missed(ticket.get_price())
+	_reputation.review_left(false)
 	_work.throw_out_leftovers(ticket)
+
+
+## Reviews move the rating, and the rating scales how often orders come in.
+func _on_rating_changed(rating: float) -> void:
+	_orders.demand_multiplier = _reputation.get_demand_multiplier()
+	_hud.show_rating(rating)
 
 #endregion
 
@@ -280,6 +292,7 @@ func _on_time_changed(_day: int, _minute: int) -> void:
 				price += recipe.price
 			_work.drop_order(job)
 			_finances.record_missed(price)
+			_reputation.review_left(true)
 	_hud.update_ticket_times()
 
 
@@ -295,6 +308,7 @@ func _on_day_started(day: int) -> void:
 		wages += pawn.hourly_wage * hours
 	var open_orders: int = _rack.get_ticket_count() + _work.get_waiting_orders().size()
 	var report: DayReport = _finances.close_day(day - 1, wages, pawns.size(), hours, open_orders)
+	_reputation.close_day(report)
 	if _clock.speed > 0:
 		_clock.toggle_pause()
 	_hud.show_report(report)

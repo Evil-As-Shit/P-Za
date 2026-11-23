@@ -21,6 +21,8 @@ signal order_placed(recipes: Array[Recipe])
 
 ## While false no orders come in (e.g. the shop has no manager).
 var open: bool = true
+## Times the normal order rate (from the shop's rating).
+var demand_multiplier: float = 1.0
 
 var _clock: ShopClock = null
 var _rng := RandomNumberGenerator.new()
@@ -47,7 +49,8 @@ func _process(delta: float) -> void:
 
 ## Average minutes between orders at `minute_of_day`.
 func get_interval_minutes(minute_of_day: int) -> float:
+	var rate: float = maxf(demand_multiplier, 0.01)
 	for rush: Vector2 in rushes:
 		if minute_of_day >= rush.x and minute_of_day < rush.y:
-			return base_interval_minutes / rush_rate_multiplier
-	return base_interval_minutes
+			rate *= rush_rate_multiplier
+	return base_interval_minutes / rate

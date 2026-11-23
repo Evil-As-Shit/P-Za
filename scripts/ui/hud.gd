@@ -117,6 +117,10 @@ func get_shown_station() -> Station:
 	return _station_panel.station if _station_panel.visible else null
 
 
+func show_rating(rating: float) -> void:
+	_clock_panel.show_rating(rating)
+
+
 func show_report(report: DayReport) -> void:
 	_day_report_panel.show_report(report)
 

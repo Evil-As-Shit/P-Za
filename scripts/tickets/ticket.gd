@@ -103,8 +103,7 @@ func get_age(now_minutes: int) -> int:
 	return maxi(now_minutes - printed_at, 0)
 
 
-## Shop minutes past the quote (negative: early). 0 if there was no quote. For reviews
-## later.
+## Shop minutes past the quote (negative: early). 0 if there was no quote.
 func get_quote_miss(now_minutes: int) -> int:
 	if quoted_minutes < 0:
 		return 0
