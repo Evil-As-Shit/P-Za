@@ -96,6 +96,16 @@ func get_sidestep_offset() -> Vector2:
 	return _sidestep_offset
 
 
+## Whether a global point is on the pawn's current sprite frame (for clicking a pawn).
+func has_point(point: Vector2) -> bool:
+	var texture: Texture2D = _sprite.sprite_frames.get_frame_texture(_sprite.animation, _sprite.frame)
+	if texture == null:
+		return false
+	var size: Vector2 = texture.get_size()
+	var rect := Rect2(_sprite.position + _sprite.offset - size / 2.0, size)
+	return rect.has_point(to_local(point))
+
+
 func is_walking() -> bool:
 	return _state == State.WALKING or _state == State.WALKING_TO_STOP or _state == State.WALKING_TO_JOB
 

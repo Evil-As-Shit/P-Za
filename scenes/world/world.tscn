@@ -61,6 +61,7 @@
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="56_task_type"]
 [ext_resource type="Resource" path="res://resources/stations/pizza_prep_table.tres" id="57_prep_table"]
 [ext_resource type="Resource" path="res://resources/tasks/put_away_dough.tres" id="58_put_away_dough"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pawn_panel.tscn" id="59_pawn_panel"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -218,6 +219,9 @@ script = ExtResource("46_hud")
 [node name="ClockPanel" parent="Hud" instance=ExtResource("27_clock_panel")]
 
 [node name="StationPanel" parent="Hud" instance=ExtResource("23_station_panel")]
+visible = false
+
+[node name="PawnPanel" parent="Hud" instance=ExtResource("59_pawn_panel")]
 visible = false
 
 [node name="BuildPanel" parent="Hud" instance=ExtResource("49_build_panel")]

@@ -1,7 +1,7 @@
 class_name Hud
 extends CanvasLayer
-## The on-screen panels: clock and cash, ticket rack, priorities, the selected station and
-## the day report. Keeps them showing the shop's state, applies speed picks and ticket moves
+## The on-screen panels: clock and cash, ticket rack, priorities, the selected station or
+## pawn, and the day report. Keeps them showing the shop's state, applies speed picks and ticket moves
 ## directly, and passes the player's other requests up.
 
 signal priority_change_requested(pawn: Pawn, work_type: WorkType, priority: int)
@@ -19,6 +19,7 @@ var _work_types: Array[WorkType] = []
 @onready var _rack_panel: TicketRackPanel = $TicketRackPanel
 @onready var _priority_panel: PriorityPanel = $PriorityPanel
 @onready var _station_panel: StationPanel = $StationPanel
+@onready var _pawn_panel: PawnPanel = $PawnPanel
 @onready var _clock_panel: ClockPanel = $ClockPanel
 @onready var _day_report_panel: DayReportPanel = $DayReportPanel
 @onready var _build_panel: BuildPanel = $BuildPanel
@@ -49,6 +50,7 @@ func setup(
 	refresh_priorities()
 	_station_panel.role_change_requested.connect(role_change_requested.emit)
 	_station_panel.close_requested.connect(station_close_requested.emit)
+	_pawn_panel.close_requested.connect(_pawn_panel.hide)
 	_day_report_panel.continue_requested.connect(report_closed.emit)
 
 
@@ -82,6 +84,19 @@ func show_station(station: Station) -> void:
 		_station_panel.hide()
 	else:
 		_station_panel.show_station(station)
+
+
+## Shows the pawn in the pawn panel, or hides the panel for null.
+func show_pawn(pawn: Pawn) -> void:
+	if pawn == null:
+		_pawn_panel.hide()
+	else:
+		_pawn_panel.show_pawn(pawn, _work_types)
+
+
+## The pawn shown in the pawn panel, or null.
+func get_shown_pawn() -> Pawn:
+	return _pawn_panel.pawn if _pawn_panel.visible else null
 
 
 ## The station shown in the station panel, or null.

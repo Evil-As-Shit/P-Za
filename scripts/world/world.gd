@@ -101,7 +101,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif not _build.active and event is InputEventMouseButton \
 			and (event as InputEventMouseButton).pressed \
 			and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
-		_select_station(_station_at(get_global_mouse_position()))
+		_select_at(get_global_mouse_position())
 	else:
 		return
 	get_viewport().set_input_as_handled()
@@ -119,6 +119,7 @@ func _setup_station(station: Station) -> void:
 
 func _set_build_mode(on: bool) -> void:
 	_select_station(null)
+	_hud.show_pawn(null)
 	_build.set_active(on)
 	_hud.show_build(on)
 
@@ -148,6 +149,27 @@ func _station_at(point: Vector2) -> Station:
 			if station.has_roles() and station.get_footprint_cells().has(cell):
 				return station
 	return null
+
+
+## Selects the pawn under a point (pawns are drawn over stations), else the station there.
+## Clicking empty floor clears the selection.
+func _select_at(point: Vector2) -> void:
+	var pawn: Pawn = _pawn_at(point)
+	if pawn != null:
+		_select_station(null)
+		_hud.show_pawn(pawn)
+		return
+	_hud.show_pawn(null)
+	_select_station(_station_at(point))
+
+
+## The pawn under a point, or null. Picks the one drawn in front when they overlap.
+func _pawn_at(point: Vector2) -> Pawn:
+	var found: Pawn = null
+	for pawn: Pawn in _work.get_pawns():
+		if pawn.has_point(point) and (found == null or pawn.global_position.y > found.global_position.y):
+			found = pawn
+	return found
 
 
 func _select_station(station: Station) -> void:

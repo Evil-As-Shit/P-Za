@@ -57,7 +57,7 @@ Check with the designer before:
 - **`menu/`**: `Recipe` is a menu item: its steps (task types) and price.
 - **`economy/`**: `ShopFinances` (cash and today's tally), `Bill` (daily running costs), `DayReport` (the end-of-day summary).
 - **`world/`**: `ShopFloor` (floor tiles and the pathfinding grid; furniture blocks cells), `BuildMode` (place, move and sell stations), `ShopClock` (day, time, game speed), `ShopCamera`, `ShopWalls` with `WallStyle` and `WallPiece`.
-- **`ui/`**: `Hud` owns the panels and passes the player's requests up: `ClockPanel`, `TicketRackPanel` (`TicketColumn`, `TicketCard`), `PriorityPanel`, `StationPanel`, `BuildPanel`, `DayReportPanel`.
+- **`ui/`**: `Hud` owns the panels and passes the player's requests up: `ClockPanel`, `TicketRackPanel` (`TicketColumn`, `TicketCard`), `PriorityPanel`, `StationPanel`, `PawnPanel`, `BuildPanel`, `DayReportPanel`.
 
 **How an order flows:** `OrderSource` → register (`world.gd`) prints a `Ticket` on the `TicketRack` → `WorkManager` gives each `OrderItem`'s next `Job` to a pawn, planned by its `TaskBehavior` → the `Pawn` walks its stops and works at a `Station` spot, moving `Item`s → finished items are stacked and handed off → `ShopFinances` takes the payment. Late tickets are cancelled and their leftovers thrown out.
 
