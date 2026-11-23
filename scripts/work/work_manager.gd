@@ -313,6 +313,50 @@ func get_cell(node: Node2D) -> Vector2i:
 	return _floor.global_to_cell(node.global_position)
 
 
+## Cells were just blocked (a station was put down): pawns whose walk crosses them find
+## another way to the same places. A pawn on a job that can't get there any more drops it
+## (see withdraw_job()); a wandering pawn that can't stops and wanders again later.
+func reroute_around(cells: Array[Vector2i]) -> void:
+	for pawn: Pawn in _pawns:
+		var route: Array[PackedVector2Array] = pawn.get_route()
+		if not _route_crosses(route, cells):
+			continue
+		if not pawn.has_job():
+			var wander: PackedVector2Array = route[0]
+			var path: PackedVector2Array = get_walk_path(
+				get_cell(pawn), _floor.global_to_cell(wander[wander.size() - 1]))
+			if path.size() >= 2:
+				pawn.follow_path(path)
+			else:
+				pawn.stop_walking()
+				_wait_then_wander(pawn)
+			continue
+		var new_route: Array[PackedVector2Array] = []
+		var from_cell: Vector2i = get_cell(pawn)
+		for leg: PackedVector2Array in route:
+			if leg.is_empty():
+				new_route.append(leg)
+				continue
+			var to_cell: Vector2i = _floor.global_to_cell(leg[leg.size() - 1])
+			var path: PackedVector2Array = get_walk_path(from_cell, to_cell)
+			if path.is_empty():
+				withdraw_job(pawn.get_job())
+				new_route.clear()
+				break
+			new_route.append(path)
+			from_cell = to_cell
+		if not new_route.is_empty():
+			pawn.set_route(new_route)
+
+
+func _route_crosses(route: Array[PackedVector2Array], cells: Array[Vector2i]) -> bool:
+	for leg: PackedVector2Array in route:
+		for point: Vector2 in leg:
+			if cells.has(_floor.global_to_cell(point)):
+				return true
+	return false
+
+
 ## Walking path between floor cells, or empty if there's no way.
 func get_walk_path(from_cell: Vector2i, to_cell: Vector2i) -> PackedVector2Array:
 	return _floor.get_path_points(from_cell, to_cell)

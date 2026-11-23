@@ -147,6 +147,30 @@ func follow_path(points: PackedVector2Array) -> void:
 	_state = State.WALKING
 
 
+## Stops a walk taken without a job (wandering) where the pawn is, without emitting
+## path_finished.
+func stop_walking() -> void:
+	if has_job() or _state != State.WALKING:
+		return
+	_path.clear()
+	_state = State.IDLE
+	_play_idle()
+
+
+## The paths still to walk: the current one (empty while working), then any after it.
+func get_route() -> Array[PackedVector2Array]:
+	var route: Array[PackedVector2Array] = [_path]
+	route.append_array(_next_paths)
+	return route
+
+
+## Replaces the paths from get_route() with new ones to the same places (e.g. around a
+## station put down in the way). Each path must start where the one before it ends.
+func set_route(route: Array[PackedVector2Array]) -> void:
+	_path = route[0]
+	_next_paths.assign(route.slice(1))
+
+
 ## Looks at their phone while standing idle, until the next walk or job.
 func use_phone() -> void:
 	if _state != State.IDLE:

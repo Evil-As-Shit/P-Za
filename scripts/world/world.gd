@@ -122,6 +122,7 @@ func _set_build_mode(on: bool) -> void:
 ## A station was built, or put down after a move: it's in use again.
 func _on_station_built(station: Station) -> void:
 	_setup_station(station)
+	_work.reroute_around(station.get_footprint_cells())
 	_work.assign_all()
 
 
