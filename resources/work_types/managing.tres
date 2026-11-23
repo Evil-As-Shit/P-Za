@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="WorkType" format=3]
+
+[ext_resource type="Script" path="res://scripts/tasks/work_type.gd" id="1_work_type"]
+
+[resource]
+script = ExtResource("1_work_type")
+id = &"managing"
+display_name = "Managing"

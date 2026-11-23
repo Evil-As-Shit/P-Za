@@ -17,6 +17,8 @@ var target: Item = null
 ## recipe per item, and the shop time they ordered (ShopClock.get_open_minutes()).
 var recipes: Array[Recipe] = []
 var placed_at: int = 0
+## The manager's quoted wait for that order, in shop minutes (-1 if none).
+var quoted_minutes: int = -1
 ## For jobs that put something away (e.g. a folded box): the storage it goes to. Its room
 ## is claimed until it's stored.
 var destination: Station = null

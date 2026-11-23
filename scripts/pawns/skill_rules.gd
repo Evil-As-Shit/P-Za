@@ -20,10 +20,16 @@ extends Resource
 ## How many times the base work time a pawn at `level` takes: slowest_time at 0, 1 at
 ## base_level, fastest_time at max_level, in straight lines between.
 func time_multiplier(level: int) -> float:
+	return by_level(level, slowest_time, 1.0, fastest_time)
+
+
+## A value that changes with skill: `at_zero` at level 0, `at_base` at base_level and
+## `at_max` at max_level, in straight lines between.
+func by_level(level: int, at_zero: float, at_base: float, at_max: float) -> float:
 	var clamped: int = clampi(level, 0, max_level)
 	if clamped <= base_level:
-		return lerpf(slowest_time, 1.0, float(clamped) / base_level)
-	return lerpf(1.0, fastest_time, float(clamped - base_level) / (max_level - base_level))
+		return lerpf(at_zero, at_base, float(clamped) / base_level)
+	return lerpf(at_base, at_max, float(clamped - base_level) / (max_level - base_level))
 
 
 ## Shop minutes of practice to go from `level` to the next.

@@ -1,6 +1,7 @@
 extends Node2D
-## The shop. Sets up the floor, stations and staff, and connects the systems: orders are
-## taken at the register and print tickets, the WorkManager has pawns work them, finished orders are paid for, late ones are
+## The shop. Sets up the floor, stations and staff, and connects the systems: the manager
+## quotes each order (no orders come in without one), orders are taken at the register and
+## print tickets, the WorkManager has pawns work them, finished orders are paid for, late ones are
 ## cancelled, and each day closes with a report. Also handles the player's input.
 
 ## Recipe printed by the debug hotkey (J).
@@ -40,7 +41,7 @@ func _ready() -> void:
 		if child is Pawn:
 			var pawn := child as Pawn
 			pawn.global_position = _floor.cell_to_global(_floor.get_random_walkable_cell())
-			pawn.roll_skills(_work.work_types, rng)
+			pawn.roll_skills(_work.get_skill_types(), rng)
 			_work.add_pawn(pawn)
 
 	_rack.jobs_changed.connect(_work.assign_all)
@@ -55,8 +56,11 @@ func _ready() -> void:
 	_orders.order_placed.connect(_on_order_placed)
 	_work.order_taken.connect(_print_ticket)
 
-	_hud.setup(_clock, _rack, _finances, _work.get_pawns(), _work.work_types)
+	_hud.setup(_clock, _rack, _finances, _work.get_pawns(), _work.work_types, _work.managing)
 	_hud.priority_change_requested.connect(_on_priority_change_requested)
+	_hud.manager_change_requested.connect(_on_manager_change_requested)
+	_work.manager_changed.connect(_on_manager_changed)
+	_on_manager_changed(_work.get_manager())
 	for pawn: Pawn in _work.get_pawns():
 		pawn.skill_leveled_up.connect(_hud.refresh_priorities.unbind(2))
 	_hud.role_change_requested.connect(_on_role_change_requested)
@@ -85,7 +89,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif _build.active and event.is_action_pressed(&"ui_cancel"):
 		_set_build_mode(false)
 	elif event.is_action_pressed(&"debug_queue_job"):
-		_print_ticket([debug_recipe] as Array[Recipe])
+		var recipes: Array[Recipe] = [debug_recipe]
+		_print_ticket(recipes, -1, _work.quote_order(recipes))
 	elif event.is_action_pressed(&"toggle_priorities"):
 		_hud.toggle_priorities()
 	elif event.is_action_pressed(&"toggle_walls"):
@@ -196,20 +201,36 @@ func _on_priority_change_requested(pawn: Pawn, work_type: WorkType, priority: in
 	_hud.refresh_priorities()
 	_work.try_assign(pawn)
 
+
+func _on_manager_change_requested(pawn: Pawn, on: bool) -> void:
+	if on:
+		_work.set_manager(pawn)
+	elif pawn.is_manager:
+		_work.set_manager(null)
+
+
+## The shop only takes orders with a manager on shift.
+func _on_manager_changed(manager: Pawn) -> void:
+	_orders.open = manager != null
+	_hud.show_no_manager(manager == null)
+	_hud.refresh_priorities()
+
 #endregion
 
 
 #region Orders
 
-## A customer orders: they wait at the register until a Cashier pawn takes the order.
+## A customer orders and the manager quotes the wait: they wait at the register until a
+## Cashier pawn takes the order.
 func _on_order_placed(recipes: Array[Recipe]) -> void:
-	_work.take_order(recipes, _rack.now_minutes)
+	_work.take_order(recipes, _rack.now_minutes, _work.quote_order(recipes))
 
 
-## Prints the order's ticket. `placed_at` is when the customer ordered (-1 for now). The
-## debug hotkey prints straight here, skipping the register.
-func _print_ticket(recipes: Array[Recipe], placed_at: int = -1) -> void:
-	var ticket: Ticket = _rack.print_ticket(recipes, placed_at)
+## Prints the order's ticket. `placed_at` is when the customer ordered (-1 for now) and
+## `quoted` the manager's quote (-1 for none). The debug hotkey prints straight here,
+## skipping the register.
+func _print_ticket(recipes: Array[Recipe], placed_at: int = -1, quoted: int = -1) -> void:
+	var ticket: Ticket = _rack.print_ticket(recipes, placed_at, quoted)
 	if auto_make:
 		_rack.move_ticket(ticket, Ticket.Section.MAKE, _rack.get_tickets(Ticket.Section.MAKE).size())
 

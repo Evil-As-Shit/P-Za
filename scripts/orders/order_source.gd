@@ -19,6 +19,9 @@ signal order_placed(recipes: Array[Recipe])
 ## No new orders from this time on (minutes since midnight), so the kitchen can finish.
 @export var last_order_minute: int = 21 * 60
 
+## While false no orders come in (e.g. the shop has no manager).
+var open: bool = true
+
 var _clock: ShopClock = null
 var _rng := RandomNumberGenerator.new()
 
@@ -28,7 +31,7 @@ func setup(clock: ShopClock) -> void:
 
 
 func _process(delta: float) -> void:
-	if _clock == null or menu.is_empty() or delta <= 0.0:
+	if not open or _clock == null or menu.is_empty() or delta <= 0.0:
 		return
 	var now: int = _clock.get_minute_of_day()
 	if now >= last_order_minute:

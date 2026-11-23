@@ -9,8 +9,11 @@ extends Node
 signal order_ready(ticket: Ticket)
 ## A finished step used up ingredients (or a box) costing this much.
 signal ingredients_used(cost: float)
-## A pawn took a customer's order at the register: its ticket should print now.
-signal order_taken(recipes: Array[Recipe], placed_at: int)
+## A pawn took a customer's order at the register: its ticket should print now. `quoted` is
+## the manager's quoted wait in shop minutes (-1 if none).
+signal order_taken(recipes: Array[Recipe], placed_at: int, quoted: int)
+## The manager changed (null: nobody is).
+signal manager_changed(manager: Pawn)
 ## The number of customers waiting at the register changed.
 signal waiting_orders_changed(count: int)
 
@@ -25,6 +28,12 @@ signal waiting_orders_changed(count: int)
 ## Restocking tasks (e.g. folding boxes): a job opens for one whenever its behavior says
 ## it's needed. Pawns only take them when they have nothing else to do.
 @export var restock_tasks: Array[TaskType] = []
+## The manager's skill. Not a priority-grid column: the manager is picked separately.
+@export var managing: WorkType
+## How the manager quotes each order's wait.
+@export var quote_rules: QuoteRules
+## How many recent order jobs the average walk per job is taken over (for quotes).
+@export var walk_samples: int = 50
 @export var idle_time_min: float = 0.5
 @export var idle_time_max: float = 2.0
 ## Chance an idle pawn checks their phone instead of just standing (placeholder).
@@ -49,6 +58,8 @@ var _shop_jobs: Array[Job] = []
 var _bakes: Array[Bake] = []
 ## The timer a pawn standing by an item is waiting on to take it out (see _bakes).
 var _pull_timers: Dictionary[Item, SceneTreeTimer] = {}
+## Shop minutes pawns walked for each recent order job, before starting work (newest last).
+var _walk_minutes: Array[float] = []
 ## Game seconds so far (speed included), for timing bakes.
 var _now: float = 0.0
 
@@ -130,6 +141,60 @@ func add_pawn(pawn: Pawn) -> void:
 
 func get_pawns() -> Array[Pawn]:
 	return _pawns
+
+
+## Every work type pawns have a skill level in: the grid's, plus Managing.
+func get_skill_types() -> Array[WorkType]:
+	var types: Array[WorkType] = []
+	for work_type: WorkType in work_types:
+		if work_type.has_skill:
+			types.append(work_type)
+	if managing != null:
+		types.append(managing)
+	return types
+
+
+## The pawn managing the shop, or null.
+func get_manager() -> Pawn:
+	for pawn: Pawn in _pawns:
+		if pawn.is_manager:
+			return pawn
+	return null
+
+
+## Makes `pawn` the manager, replacing any other; null leaves the shop with none.
+func set_manager(pawn: Pawn) -> void:
+	for each: Pawn in _pawns:
+		each.is_manager = each == pawn
+	manager_changed.emit(pawn)
+
+
+## Shop minutes pawns have recently walked per order job, on average (0 before any).
+## Follows the layout: a spread-out kitchen walks more.
+func get_average_walk_minutes() -> float:
+	if _walk_minutes.is_empty():
+		return 0.0
+	var total: float = 0.0
+	for minutes: float in _walk_minutes:
+		total += minutes
+	return total / _walk_minutes.size()
+
+
+## The manager's quoted wait for an order of `recipes`, in shop minutes, or -1 with no
+## manager. Quoting is Managing practice.
+func quote_order(recipes: Array[Recipe]) -> int:
+	var manager: Pawn = get_manager()
+	if manager == null or quote_rules == null:
+		return -1
+	var estimate := WaitEstimate.new(
+		_pawns, take_order_task, _rack.stack_task, _rack.hand_off_task, get_average_walk_minutes()
+	)
+	var tickets: Array[Ticket] = _rack.get_tickets(Ticket.Section.WAIT)
+	tickets.append_array(_rack.get_tickets(Ticket.Section.MAKE))
+	var minutes: float = estimate.estimate(recipes, tickets, get_waiting_orders())
+	var quote: int = quote_rules.roll_quote(minutes, manager.get_skill(managing), manager.skill_rules)
+	manager.practice(managing, quote_rules.practice_per_quote)
+	return quote
 
 
 func get_stations() -> Array[Station]:
@@ -423,11 +488,12 @@ func on_container_ready(order_item: OrderItem) -> void:
 #region Register
 
 ## A customer orders `recipes` at shop time `placed_at`: they wait at the register until a
-## pawn takes the order (see order_taken).
-func take_order(recipes: Array[Recipe], placed_at: int) -> void:
+## pawn takes the order (see order_taken). `quoted` is the manager's quote (-1 if none).
+func take_order(recipes: Array[Recipe], placed_at: int, quoted: int = -1) -> void:
 	var job := Job.new(take_order_task, null, null)
 	job.recipes = recipes
 	job.placed_at = placed_at
+	job.quoted_minutes = quoted
 	_shop_jobs.append(job)
 	waiting_orders_changed.emit(get_waiting_orders().size())
 	assign_all()
@@ -615,6 +681,10 @@ func _pick_up(job: Job, pawn: Pawn) -> void:
 
 
 func _on_pawn_work_started(job: Job, pawn: Pawn) -> void:
+	if job.ticket != null or not job.recipes.is_empty():
+		_walk_minutes.append(pawn.get_walk_seconds() / ShopClock.minutes_to_seconds(1.0))
+		if _walk_minutes.size() > walk_samples:
+			_walk_minutes.pop_front()
 	if job.task_type.opens_station and job.station != null:
 		job.station.set_opened(job.spot, true)
 	job.task_type.get_behavior().on_work_started(job, pawn, self)
@@ -649,7 +719,7 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 		_shop_jobs.erase(job)
 		if not job.recipes.is_empty():
 			waiting_orders_changed.emit(get_waiting_orders().size())
-			order_taken.emit(job.recipes, job.placed_at)
+			order_taken.emit(job.recipes, job.placed_at, job.quoted_minutes)
 		assign_all()
 	behavior.after_finished(job, self)
 	# A recipe step changes how the item looks (a baking pizza changes once it's done).

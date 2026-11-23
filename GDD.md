@@ -83,7 +83,7 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 - The **ticket rack** is a HUD panel with **Wait** and **Make** columns. Pawns work the Make tickets in order, so dragging and reordering tickets steers the kitchen indirectly.
 - New tickets land in Wait and the player moves them to Make. For now, new tickets go straight to the bottom of Make; the player can still drag them back to Wait.
 - Pulling an in-progress ticket back to Wait stops its pawns. Work done so far is kept and resumes when the ticket returns to Make. A pizza being carried at that moment is set down on the floor.
-- Each ticket shows its order number, items (e.g. "3 Pizza"), status, how many pizzas are boxed, and the shop minutes since it printed (closed hours don't count). Order type and the ETA come later.
+- Each ticket shows its order number, items (e.g. "3 Pizza"), status, how many pizzas are boxed, and the shop minutes since it printed (closed hours don't count), plus the manager's quoted wait (see ETA). Order type comes later.
 - **Patience:** customers wait 45 shop minutes from when they order, including any time waiting at the register (a ticket's age counts from then). The ticket turns yellow at half that and red in the last fifth. A customer whose order was never taken leaves and the sale is lost. If the order isn't at the pickup counter by then, the customer leaves: the ticket is cancelled, the sale is lost, and anything made for it (pizzas, boxes, a dropped dough container) is thrown out by a Hauling pawn at the garbage can.
 - The player never takes or serves orders by hand: pawns take them at the register, and completed orders go out on their own.
 - **Demand (for now):** until customers exist, orders arrive at random while the shop is open: about one every 12 shop minutes, twice as often during the lunch (12:00–13:30) and dinner (18:00–19:30) rushes, and none in the last hour (from 21:00). About 60% are one pizza, 30% two or three, and 10% four to eight (party orders), so roughly 70 orders and 150 pizzas a day. The starting staff keep up between rushes and fall behind during them.
@@ -108,7 +108,7 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 
 ### ETA, reviews and customers
 
-- The player sets the promised wait time with an ETA slider on the HUD. Longer promises ease pressure but cost satisfaction and reviews; missing or beating the promise also affects how customers feel. This builds on patience.
+- **ETA:** there's no ETA slider. The manager quotes each order's wait when it's placed, and the quote shows on the ticket. The quote starts from a queue-aware estimate (the recipe's time, plus the work already on the Make rack spread across the pawns who can do it, adjusted for their skills, plus the recent average walk per job, so a spread-out layout quotes longer), and the manager's error shrinks as their Managing skill grows: up to ±50% of the estimate at level 0, ±15% at level 10 and none at 20 (placeholders). Missing or beating the quote affects satisfaction and reviews. Patience is unchanged.
 - Demand comes from the shop's reviews: good reviews bring more business, bad ones drive it away. Calendar events raise or lower demand on certain days.
 - Delivery uses a driver who leaves the shop and comes back later. Driving is a skill like any other; drivers are regular staff, not a separate hire.
 - Dine-in seating is self-serve: customers order, sit down, and a front-of-house pawn brings the food to their table.
@@ -121,7 +121,7 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 - Experienced pawns want better pay and can ask for raises; unhappiness builds if they don't get one. Pawns quit after being stressed at work for a long time.
 - Hiring comes from a stack of resumes the player sorts through. Better reviews bring better applicants.
 - **Trainees** shadow a veteran to learn safely, at some cost to the veteran's output. Training is a checkbox on the pawn, not a grid column. A trainee shadows anyone doing work the trainee is also assigned, if that pawn's skill is higher.
-- A **manager** must be on shift during open hours. When the shop is quiet and the manager is out of sight, pawns slack off (for example, browsing their phones).
+- A **manager** must be on shift during open hours (a requirement, not optional). The manager is also a regular worker, and needs higher pay to stay satisfied. They quote order wait times (see ETA). The player picks the manager with a checkbox next to each pawn in the priority grid (one at a time). Managing is a skill (0–20) that grows with each order quoted (1 shop minute of practice per quote, placeholder). One starting pawn is the manager. With no manager, the shop doesn't open: no orders come in. When the shop is quiet and the manager is out of sight, pawns slack off (for example, browsing their phones).
 
 ### Time and the day
 

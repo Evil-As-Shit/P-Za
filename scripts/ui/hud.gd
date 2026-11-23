@@ -5,6 +5,8 @@ extends CanvasLayer
 ## directly, and passes the player's other requests up.
 
 signal priority_change_requested(pawn: Pawn, work_type: WorkType, priority: int)
+## The player ticked (on) or unticked a pawn's Manager box.
+signal manager_change_requested(pawn: Pawn, on: bool)
 signal role_change_requested(station: Station, role: StationRole)
 signal station_close_requested
 signal report_closed
@@ -15,6 +17,7 @@ signal sell_requested
 var _rack: TicketRack
 var _pawns: Array[Pawn] = []
 var _work_types: Array[WorkType] = []
+var _managing: WorkType
 
 @onready var _rack_panel: TicketRackPanel = $TicketRackPanel
 @onready var _priority_panel: PriorityPanel = $PriorityPanel
@@ -27,11 +30,12 @@ var _work_types: Array[WorkType] = []
 
 func setup(
 	clock: ShopClock, rack: TicketRack, finances: ShopFinances, pawns: Array[Pawn],
-	work_types: Array[WorkType]
+	work_types: Array[WorkType], managing: WorkType
 ) -> void:
 	_rack = rack
 	_pawns = pawns
 	_work_types = work_types
+	_managing = managing
 
 	_clock_panel.setup(clock.speeds)
 	_clock_panel.speed_requested.connect(clock.set_speed)
@@ -47,6 +51,7 @@ func setup(
 	refresh_rack()
 
 	_priority_panel.priority_change_requested.connect(priority_change_requested.emit)
+	_priority_panel.manager_change_requested.connect(manager_change_requested.emit)
 	refresh_priorities()
 	_station_panel.role_change_requested.connect(role_change_requested.emit)
 	_station_panel.close_requested.connect(station_close_requested.emit)
@@ -65,13 +70,18 @@ func show_waiting_orders(count: int) -> void:
 	_rack_panel.show_waiting_orders(count)
 
 
+## Warns that no orders come in until there's a manager.
+func show_no_manager(shown: bool) -> void:
+	_rack_panel.show_no_manager(shown)
+
+
 ## Updates how long each ticket has waited (and its lateness color).
 func update_ticket_times() -> void:
 	_rack_panel.update_times(_rack.now_minutes)
 
 
 func refresh_priorities() -> void:
-	_priority_panel.show_priorities(_pawns, _work_types)
+	_priority_panel.show_priorities(_pawns, _work_types, _managing)
 
 
 func toggle_priorities() -> void:
@@ -91,7 +101,10 @@ func show_pawn(pawn: Pawn) -> void:
 	if pawn == null:
 		_pawn_panel.hide()
 	else:
-		_pawn_panel.show_pawn(pawn, _work_types)
+		var skill_types: Array[WorkType] = _work_types.duplicate()
+		if _managing != null:
+			skill_types.append(_managing)
+		_pawn_panel.show_pawn(pawn, skill_types)
 
 
 ## The pawn shown in the pawn panel, or null.

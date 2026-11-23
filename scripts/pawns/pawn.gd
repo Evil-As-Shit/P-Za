@@ -26,6 +26,8 @@ const LOWEST_PRIORITY: int = 4
 ## Work type -> skill level (0 to skill_rules.max_level). Only for work types with a skill.
 @export var skills: Dictionary[WorkType, int] = {}
 @export var skill_rules: SkillRules
+## The shop's manager (one at a time): quotes each order's wait. They still work as usual.
+@export var is_manager: bool = false
 
 ## Paid per shop hour, for the whole day, at closing.
 @export var hourly_wage: float = 15.0
@@ -67,6 +69,8 @@ var _sidestep_offset: Vector2 = Vector2.ZERO
 ## Walking speed multiplier right now (crowded_speed while passing someone).
 var _speed_factor: float = 1.0
 var _work_bar_base: Vector2 = Vector2.ZERO
+## Game seconds spent walking for the current job so far (to its stops and work spot).
+var _walk_seconds: float = 0.0
 ## Work type -> shop minutes of practice toward the next skill level.
 var _practice: Dictionary[WorkType, float] = {}
 
@@ -86,6 +90,8 @@ func _process(delta: float) -> void:
 	_avoid_others(delta)
 	match _state:
 		State.WALKING, State.WALKING_TO_STOP, State.WALKING_TO_JOB:
+			if _job != null:
+				_walk_seconds += delta
 			_step_along_path(delta)
 		State.WORKING:
 			_do_work(delta)
@@ -204,6 +210,7 @@ func assign_job(
 ) -> void:
 	_job = job
 	_job.claimed_by = self
+	_walk_seconds = 0.0
 	_on_phone = false
 	_work_target = work_target
 	_next_paths = stop_paths.duplicate()
@@ -267,6 +274,11 @@ func resume_job() -> void:
 
 func get_job() -> Job:
 	return _job
+
+
+## Game seconds spent walking for the current job so far (not waiting at stops).
+func get_walk_seconds() -> float:
+	return _walk_seconds
 
 
 ## The item the pawn is carrying, or null.

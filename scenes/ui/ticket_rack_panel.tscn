@@ -28,6 +28,15 @@ layout_mode = 2
 text = "Tickets"
 horizontal_alignment = 1
 
+[node name="ManagerLabel" type="Label" parent="Margin/Lines"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.5, 0.45, 1)
+theme_override_font_sizes/font_size = 12
+text = "No manager: closed to orders"
+horizontal_alignment = 1
+
 [node name="RegisterLabel" type="Label" parent="Margin/Lines"]
 unique_name_in_owner = true
 visible = false

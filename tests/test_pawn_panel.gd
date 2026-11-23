@@ -22,11 +22,9 @@ func _start() -> void:
 		return
 
 	var panel: PawnPanel = hud.get_node("PawnPanel")
-	var skill_count: int = 0
-	for work_type: WorkType in work.work_types:
-		if work_type.has_skill:
-			skill_count += 1
-	if panel._levels.size() != skill_count:
+	# Every grid skill, plus Managing.
+	var skill_count: int = work.get_skill_types().size()
+	if panel._levels.size() != skill_count or not panel._levels.has(work.managing):
 		fail("panel shows %d skills, expected %d" % [panel._levels.size(), skill_count])
 		return
 

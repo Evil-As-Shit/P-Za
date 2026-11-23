@@ -33,12 +33,7 @@ func judge(minutes_after_done: float) -> Doneness:
 func max_error(level: int, skill_rules: SkillRules) -> float:
 	if skill_rules == null:
 		return error_at_base
-	var clamped: int = clampi(level, 0, skill_rules.max_level)
-	if clamped <= skill_rules.base_level:
-		return lerpf(error_at_zero, error_at_base, float(clamped) / skill_rules.base_level)
-	return lerpf(
-		error_at_base, error_at_max,
-		float(clamped - skill_rules.base_level) / (skill_rules.max_level - skill_rules.base_level))
+	return skill_rules.by_level(level, error_at_zero, error_at_base, error_at_max)
 
 
 ## Shop minutes after it's done that a pawn at `level` thinks it's time to take it out.

@@ -7,6 +7,7 @@ signal move_requested(ticket: Ticket, section: Ticket.Section, index: int)
 @onready var _wait_column: TicketColumn = %WaitColumn
 @onready var _make_column: TicketColumn = %MakeColumn
 @onready var _register_label: Label = %RegisterLabel
+@onready var _manager_label: Label = %ManagerLabel
 
 
 func _ready() -> void:
@@ -26,6 +27,11 @@ func show_rack(
 func show_waiting_orders(count: int) -> void:
 	_register_label.visible = count > 0
 	_register_label.text = "%d waiting at the register" % count
+
+
+## Shows the warning that the shop takes no orders without a manager.
+func show_no_manager(shown: bool) -> void:
+	_manager_label.visible = shown
 
 
 func update_times(now_minutes: int) -> void:

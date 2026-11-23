@@ -1,6 +1,7 @@
 class_name TicketCard
 extends PanelContainer
-## One ticket as shown on the rack HUD: title, status and how long it's been waiting.
+## One ticket as shown on the rack HUD: title, status, how long it's been waiting and the
+## manager's quote.
 ## Turns yellow once half the customer's patience is used, and red near the end.
 
 const LATE_AT: float = 0.5
@@ -33,7 +34,11 @@ func update_time(now_minutes: int) -> void:
 	var count: int = ticket.order_items.size()
 	if count > 1 and not ticket.ready:
 		status += " · %d/%d boxed" % [ticket.get_finished_count(), count]
-	_status.text = "%s · %d min" % [status, ticket.get_age(now_minutes)]
+	var age: int = ticket.get_age(now_minutes)
+	if ticket.quoted_minutes >= 0:
+		_status.text = "%s · %d of ~%d min" % [status, age, ticket.quoted_minutes]
+	else:
+		_status.text = "%s · %d min" % [status, age]
 
 	var used: float = ticket.get_patience_used(now_minutes)
 	if ticket.ready or used < LATE_AT:

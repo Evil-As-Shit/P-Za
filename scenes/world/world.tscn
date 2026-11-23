@@ -62,6 +62,8 @@
 [ext_resource type="Resource" path="res://resources/stations/pizza_prep_table.tres" id="57_prep_table"]
 [ext_resource type="Resource" path="res://resources/tasks/put_away_dough.tres" id="58_put_away_dough"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pawn_panel.tscn" id="59_pawn_panel"]
+[ext_resource type="Resource" path="res://resources/work_types/managing.tres" id="60_managing"]
+[ext_resource type="Resource" path="res://resources/orders/quote_rules.tres" id="61_quote_rules"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -138,6 +140,7 @@ cell = Vector2i(6, 9)
 
 [node name="Pawn" parent="Entities" instance=ExtResource("3_pawn")]
 display_name = "Pawn 1"
+is_manager = true
 priorities = Dictionary[ExtResource("15_work_type"), int]({
 ExtResource("16_dough"): 1,
 ExtResource("16_pizza_making"): 1,
@@ -184,6 +187,8 @@ item_scene = ExtResource("11_item")
 throw_out_task = ExtResource("44_throw_out")
 take_order_task = ExtResource("52_take_order")
 restock_tasks = Array[ExtResource("56_task_type")]([ExtResource("55_fold_box"), ExtResource("58_put_away_dough")])
+managing = ExtResource("60_managing")
+quote_rules = ExtResource("61_quote_rules")
 
 [node name="BuildMode" type="Node" parent="."]
 script = ExtResource("47_build")

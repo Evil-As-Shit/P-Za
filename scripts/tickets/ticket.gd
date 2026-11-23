@@ -22,6 +22,8 @@ var ready: bool = false
 var printed_at: int = 0
 ## Shop minutes the customer waits before giving up, from printing.
 var patience: int = 45
+## The manager's quoted wait, in shop minutes from when the customer ordered (-1 if none).
+var quoted_minutes: int = -1
 
 var _stack_task: TaskType
 var _hand_off_task: TaskType
@@ -99,6 +101,14 @@ func get_price() -> float:
 ## Shop minutes since it printed.
 func get_age(now_minutes: int) -> int:
 	return maxi(now_minutes - printed_at, 0)
+
+
+## Shop minutes past the quote (negative: early). 0 if there was no quote. For reviews
+## later.
+func get_quote_miss(now_minutes: int) -> int:
+	if quoted_minutes < 0:
+		return 0
+	return get_age(now_minutes) - quoted_minutes
 
 
 ## True once the customer has run out of patience. Handed-off orders still go out.

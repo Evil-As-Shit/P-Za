@@ -37,10 +37,12 @@ func _exit_tree() -> void:
 
 ## Prints an order for `recipes` (one entry per item, e.g. three pizzas) into Wait.
 ## `placed_at` is when the customer ordered (their patience runs from then); -1 means now.
-func print_ticket(recipes: Array[Recipe], placed_at: int = -1) -> Ticket:
+## `quoted` is the manager's quoted wait in shop minutes (-1 if none).
+func print_ticket(recipes: Array[Recipe], placed_at: int = -1, quoted: int = -1) -> Ticket:
 	var ticket := Ticket.new(_next_order_number, recipes, stack_task, hand_off_task)
 	ticket.printed_at = now_minutes if placed_at < 0 else placed_at
 	ticket.patience = patience_minutes
+	ticket.quoted_minutes = quoted
 	_next_order_number += 1
 	_wait.append(ticket)
 	changed.emit()

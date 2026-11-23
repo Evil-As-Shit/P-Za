@@ -29,5 +29,6 @@ func _start() -> void:
 func _cell(pawn: Pawn, work_type: WorkType) -> Button:
 	var grid: GridContainer = world.get_node("Hud/PriorityPanel").get_node("%Grid")
 	var row: int = work.get_pawns().find(pawn) + 1
-	var column: int = work.work_types.find(work_type) + 1
+	# After the name and the Manager box.
+	var column: int = work.work_types.find(work_type) + 2
 	return grid.get_child(row * grid.columns + column) as Button
