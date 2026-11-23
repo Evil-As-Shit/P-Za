@@ -19,9 +19,11 @@ func _ready() -> void:
 		rating = rules.starting_rating
 
 
-## A customer got their order and reviews it.
+## A customer got their order and reviews it. Its food quality also moves the rating a
+## little on its own.
 func review_order(ticket: Ticket, now_minutes: int) -> Review:
 	var review: Review = rules.judge_order(ticket, now_minutes)
+	rating = rules.next_rating_for_quality(rating, ticket.get_quality_tier())
 	record(review)
 	return review
 

@@ -22,6 +22,12 @@ var container: Item = null
 var stacked: bool = false
 ## How done it came out of the oven (see DonenessRules), or NONE before that.
 var doneness: DonenessRules.Doneness = DonenessRules.Doneness.NONE
+## Skill levels of the pawns who did its hands-on steps (see TaskType.affects_quality).
+var skill_levels: Array[int] = []
+## Quality points lost to ingredients that weren't fresh.
+var freshness_loss: float = 0.0
+## Its quality once every step is done (see QualityRules), or -1 before that.
+var quality_tier: int = -1
 
 
 func _init(p_ticket: Ticket, p_recipe: Recipe) -> void:

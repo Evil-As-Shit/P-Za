@@ -8,6 +8,8 @@ var _rules: ReviewRules
 var _reviewed: bool = false
 ## The rating after the real order's review, until the day is closed (-1 before and after).
 var _rating_after: float = -1.0
+## The real order's food quality tier, once it's ready.
+var _quality_tier: int = -1
 
 
 func _start() -> void:
@@ -64,6 +66,7 @@ func _start() -> void:
 	manager.set_skill(work.managing, 20)
 	clock.set_speed(6)
 	_reputation.rating_changed.connect(_on_rating_changed)
+	work.order_ready.connect(func(ticket: Ticket) -> void: _quality_tier = ticket.get_quality_tier())
 	var recipes: Array[Recipe] = [world.debug_recipe]
 	world._on_order_placed(recipes)
 
@@ -72,8 +75,7 @@ func _on_rating_changed(rating: float) -> void:
 	if _reviewed:
 		return
 	_reviewed = true
-	# The rating itself is checked against the review's stars below (a 3-star review leaves
-	# 3.0 where it is).
+	# The rating itself is checked against the review's stars and food quality below.
 	var orders: OrderSource = world.get_node("OrderSource")
 	if not is_equal_approx(orders.demand_multiplier, rating / 3.0):
 		fail("after a review the rating is %.2f and demand %.2fx" % [rating, orders.demand_multiplier])
@@ -97,7 +99,9 @@ func _step() -> void:
 	if report == null or report.review_stars.size() != 1 or not is_equal_approx(report.rating, rating):
 		fail("the day report doesn't show today's one review")
 		return
-	var expected: float = _rules.next_rating(_rules.starting_rating, report.review_stars[0])
+	# The order's food quality nudges the rating first, then the review moves it.
+	var nudged: float = _rules.next_rating_for_quality(_rules.starting_rating, _quality_tier)
+	var expected: float = _rules.next_rating(nudged, report.review_stars[0])
 	if not is_equal_approx(rating, expected):
 		fail("a %d-star review moved the rating to %.2f, expected %.2f" % [
 			report.review_stars[0], rating, expected])

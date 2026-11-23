@@ -33,6 +33,9 @@ static var _default_behavior := TaskBehavior.new()
 ## way while the item's next step opens it too (e.g. the prep table's lids stay open from
 ## sauce through cheese).
 @export var opens_station: bool = false
+## If true, the skill of the pawn who does this step counts toward the item's quality (see
+## QualityRules), e.g. stretching or cutting.
+@export var affects_quality: bool = false
 ## How the task is planned and carried out. Empty means the default (see TaskBehavior).
 @export var behavior: TaskBehavior
 

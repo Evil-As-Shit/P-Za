@@ -36,4 +36,5 @@ display_name = "Cut"
 work_type = ExtResource("9_work_type")
 work_minutes = 0.6
 work_frames = Array[Texture2D]([SubResource("AtlasTexture_cut1"), SubResource("AtlasTexture_cut2"), SubResource("AtlasTexture_cut3"), SubResource("AtlasTexture_cut4")])
+affects_quality = true
 behavior = SubResource("Resource_behavior")

@@ -90,6 +90,17 @@ func get_finished_count() -> int:
 	return count
 
 
+## The order's quality: its worst item's tier (see QualityRules.Tier), or -1 until every
+## item is done.
+func get_quality_tier() -> int:
+	var worst: int = -1
+	for order_item: OrderItem in order_items:
+		if order_item.quality_tier < 0:
+			return -1
+		worst = order_item.quality_tier if worst < 0 else mini(worst, order_item.quality_tier)
+	return worst
+
+
 ## What the customer pays for the whole order.
 func get_price() -> float:
 	var recipes: Array[Recipe] = []

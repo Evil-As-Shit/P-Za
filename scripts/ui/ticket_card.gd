@@ -1,7 +1,7 @@
 class_name TicketCard
 extends PanelContainer
-## One ticket as shown on the rack HUD: title, status, how long it's been waiting and the
-## manager's quote.
+## One ticket as shown on the rack HUD: title, status (with the food quality once it's
+## ready), how long it's been waiting and the manager's quote.
 ## Turns yellow once half the customer's patience is used, and red near the end.
 
 const LATE_AT: float = 0.5
@@ -29,6 +29,9 @@ func update_time(now_minutes: int) -> void:
 	var status: String = "Waiting"
 	if ticket.ready:
 		status = "Ready"
+		var tier: int = ticket.get_quality_tier()
+		if tier >= 0:
+			status += " · " + QualityRules.get_tier_name(tier)
 	elif ticket.is_in_progress():
 		status = "In progress"
 	var count: int = ticket.order_items.size()

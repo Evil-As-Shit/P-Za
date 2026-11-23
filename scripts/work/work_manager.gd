@@ -23,6 +23,8 @@ signal waiting_orders_changed(count: int)
 @export var item_scene: PackedScene
 ## Taking leftovers to the garbage.
 @export var throw_out_task: TaskType
+## How good finished items are (see QualityRules).
+@export var quality_rules: QualityRules
 ## Taking a customer's order at the register.
 @export var take_order_task: TaskType
 ## Restocking tasks (e.g. folding boxes): a job opens for one whenever its behavior says
@@ -752,12 +754,15 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 		return
 	if task.ingredient_cost != 0.0:
 		ingredients_used.emit(task.ingredient_cost)
+	if task.affects_quality and job.recipe_step and job.order_item != null:
+		job.order_item.skill_levels.append(pawn.get_skill(task.work_type))
 	var station: Station = job.station
 	var spot: int = job.spot
 	_release(job)
 	if job.ticket != null:
 		# The rack moves the order on, which hands out work.
 		_rack.complete_job(job)
+		_judge_quality(job.order_item)
 	else:
 		_shop_jobs.erase(job)
 		if not job.recipes.is_empty():
@@ -780,6 +785,14 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 		order_ready.emit(job.ticket)
 	if not pawn.has_job():
 		_work_or_wander(pawn)
+
+
+## Sets an order item's quality once every step of it is done.
+func _judge_quality(order_item: OrderItem) -> void:
+	if quality_rules == null or order_item == null or order_item.quality_tier >= 0:
+		return
+	if order_item.is_complete():
+		order_item.quality_tier = quality_rules.get_tier(quality_rules.get_score(order_item))
 
 
 ## The station works the order item's item on its own; when done it takes its new look and

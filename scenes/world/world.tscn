@@ -81,6 +81,7 @@
 [ext_resource type="Resource" path="res://resources/tasks/store_clean_dishes.tres" id="76_store_clean"]
 [ext_resource type="Resource" path="res://resources/tasks/refill_cheese.tres" id="77_refill_cheese"]
 [ext_resource type="Resource" path="res://resources/station_roles/cheese_storage.tres" id="78_cheese_storage"]
+[ext_resource type="Resource" path="res://resources/recipes/quality_rules.tres" id="79_quality"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -229,6 +230,7 @@ script = ExtResource("45_work")
 work_types = Array[ExtResource("15_work_type")]([ExtResource("16_dough"), ExtResource("16_pizza_making"), ExtResource("17_oven"), ExtResource("18_cutting"), ExtResource("18_folding"), ExtResource("19_cashier"), ExtResource("65_cleaning"), ExtResource("19_hauling")])
 item_scene = ExtResource("11_item")
 throw_out_task = ExtResource("44_throw_out")
+quality_rules = ExtResource("79_quality")
 take_order_task = ExtResource("52_take_order")
 restock_tasks = Array[ExtResource("56_task_type")]([ExtResource("55_fold_box"), ExtResource("58_put_away_dough"), ExtResource("68_bring_dishes"), ExtResource("76_store_clean"), ExtResource("69_put_away_dishes"), ExtResource("70_return_bucket"), ExtResource("77_refill_cheese")])
 chore_tasks = Array[ExtResource("56_task_type")]([ExtResource("67_wash")])

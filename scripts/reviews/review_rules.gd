@@ -29,6 +29,18 @@ extends Resource
 @export var over_text: String = "Overcooked"
 @export var perfect_text: String = "Perfectly baked"
 
+@export_group("Food quality")
+## Any Poor item costs `poor_penalty`; an order of all Great items wins back
+## `great_bonus` (see QualityRules).
+@export var poor_penalty: int = 1
+@export var great_bonus: int = 1
+@export var poor_text: String = "Poor food"
+@export var great_text: String = "Great food"
+## Stars each quality tier (Poor to Great) counts as when it moves the rating directly, and
+## how far it moves it (less than a review).
+@export var tier_stars: Array[int] = [2, 3, 4, 5]
+@export_range(0.0, 1.0) var quality_weight: float = 0.02
+
 @export_group("Left")
 @export var never_taken_text: String = "Nobody took my order"
 @export var not_ready_text: String = "Never got my food"
@@ -77,6 +89,14 @@ func judge_order(ticket: Ticket, now_minutes: int) -> Review:
 	if all_perfect:
 		review.compliments.append(perfect_text)
 
+	match ticket.get_quality_tier():
+		QualityRules.Tier.POOR:
+			lost += poor_penalty
+			review.complaints.append(poor_text)
+		QualityRules.Tier.GREAT:
+			lost -= great_bonus
+			review.compliments.append(great_text)
+
 	review.stars = clampi(max_stars - lost, min_stars, max_stars)
 	return review
 
@@ -92,6 +112,14 @@ func judge_left(never_taken: bool) -> Review:
 ## The rating after a review of `stars`.
 func next_rating(rating: float, stars: int) -> float:
 	return lerpf(rating, float(stars), review_weight)
+
+
+## The rating after an order of quality `tier` (see QualityRules.Tier) went out, or as it
+## was for an order with no quality.
+func next_rating_for_quality(rating: float, tier: int) -> float:
+	if tier < 0 or tier >= tier_stars.size():
+		return rating
+	return lerpf(rating, float(tier_stars[tier]), quality_weight)
 
 
 ## How many times the normal order rate a shop with `rating` gets.
