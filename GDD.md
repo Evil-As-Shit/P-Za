@@ -1,53 +1,6 @@
 # Za: Game Design Document
 
-## Instructions for Claude Code
-
-Read this whole file first to get up to speed on the game, then follow these rules.
-
-### Rules
-
-- **Use Godot best practices.** Write idiomatic Godot 4 code that follows the official docs and the GDScript style guide.
-  - Use statically typed GDScript only (no C#).
-  - Build from small, reusable scenes and compose them rather than building deep inheritance.
-  - Follow "signals up, calls down" so child nodes don't reach into their parents.
-  - Use custom `Resource` types for data (recipes, stations, tasks and so on) instead of hard-coding it.
-  - Use autoloads sparingly.
-- **Target Godot 4.7.2 (Forward+).** Use APIs that exist in that version and confirm against `project.godot`. Don't guess.
-- **Don't invent design specifics.** This document is intentionally high-level. If numbers, formulas, systems, assets or schedules aren't covered here, ask the designer instead of making them up.
-- **Use placeholder art and audio** unless the designer says otherwise.
-- **Keep this file current.** When the designer makes a design decision, update the relevant section here, keeping it short and high-level.
-- **Communicate briefly.** Give short, plain-language summaries. Don't add unrequested extras or expand the scope.
-- **Use agents as needed** for research, exploration and independent tasks. Don't spawn agents for small changes.
-
-### Ask first
-
-Check with the designer before:
-- Making or changing any design decision.
-- Adding a third-party plugin, addon or any other dependency. Stay with vanilla Godot unless the designer approves.
-- Doing a large refactor or deleting files.
-
-### Tools
-
-- Godot (Steam install): `C:\Program Files\Steam\steamapps\common\Godot Engine\godot.windows.opt.tools.64.exe`. Running it headless is allowed, to check the project loads and to verify your work before reporting it done. After adding a new `class_name`, run it once with `--headless --import`.
-- Git isn't on PATH. Use SourceTree's bundled copy: `%LOCALAPPDATA%\Atlassian\SourceTree\git_local\cmd\git.exe`.
-- **Tests:** `tests/run_tests.ps1` runs every `tests/test_*.gd` headless (a full day takes seconds). Run it after gameplay changes, and add a test for each new system. Task and wait times are in shop-clock minutes, so changing the day's length doesn't need retuning.
-
-### Workflow
-
-- Commit locally only, and only when the designer asks; the designer pushes with SourceTree. Make small, focused commits with clear messages. Keep `.godot/` out of version control.
-- Plan before building any large feature. Build the smallest playable slice first, then add systems one at a time.
-
-### Project layout
-
-- `scenes/`, `scripts/`, `resources/` (custom `Resource` data), `Assets/` (art, audio, fonts), `tests/`, `docs/` (sprite list), `art_templates/` (drawing guides, ignored by Godot). Organize by feature inside them.
-- Files and folders in `snake_case`; classes and nodes in `PascalCase`.
-
-### Where things live
-
-- `world.gd` only connects the systems. Jobs are assigned and run by `WorkManager` (`scripts/work/`); HUD panels are `Hud` (`scripts/ui/`); building is `BuildMode` (`scripts/world/`).
-- A new kind of task gets a `TaskBehavior` subclass in `scripts/tasks/behaviors/` (what it fetches, where it's done, what happens to the items), set on its `TaskType` resource.
-- A station type is a `StationData` resource (footprint, facings, spots, storage layouts); placed stations are `Station` nodes. Items (pizzas, boxes, containers) are `Item` nodes that can hold other items.
-- Money is `ShopFinances` with `Bill` resources; orders are `Ticket`s on the `TicketRack`.
+Instructions for Claude Code (rules, tools, workflow and a map of the code) are in [`CLAUDE.md`](CLAUDE.md).
 
 ## About this document
 
