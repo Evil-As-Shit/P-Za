@@ -61,7 +61,9 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 - An idle pawn takes work by its grid: priority 1 before 2, and the leftmost column wins a tie. Within a work type, it takes the first open job in Make-rack order. Pawns finish their current job before choosing again.
 - New hires start with everything blank until the player assigns work. Training is a separate checkbox (see Staff).
 - When no manager has line of sight, pawns skip their low-priority work (and slack off).
-- Each task type has a fixed base work time for now. Skill and mood will scale it later.
+- Each task type has a base work time, scaled by the pawn's skill in its column (mood will scale it later).
+- **Skills:** every column except Hauling is a skill, leveled 0–20. Level 10 works at the base time, level 0 takes twice as long and level 20 half as long (straight lines between). Pawns learn by doing: each shop minute worked is practice, and level L to L+1 takes (L+1)×10 minutes. Starting pawns roll 2–8 in each skill. The priority grid shows each pawn's level in the corner of each cell. All numbers are placeholders.
+- **Pawn panel (later):** clicking a pawn opens a panel with their skills (and later mood, traits and pay).
 - Pawns with no work wander and sometimes check their phone (placeholder).
 
 ### Stations, spots and roles

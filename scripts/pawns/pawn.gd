@@ -12,6 +12,8 @@ signal work_started(job: Job)
 signal job_finished(job: Job)
 ## Emitted each frame of work with how far along the job is (0-1).
 signal work_progressed(job: Job, progress: float)
+## Practice raised a skill to a new level.
+signal skill_leveled_up(work_type: WorkType, level: int)
 
 enum State { IDLE, WALKING, WALKING_TO_STOP, WAITING_AT_STOP, WALKING_TO_JOB, WORKING }
 
@@ -21,11 +23,14 @@ const LOWEST_PRIORITY: int = 4
 @export var display_name: String = "Pawn"
 ## Work type -> priority (1 to LOWEST_PRIORITY). Missing or 0 means never.
 @export var priorities: Dictionary[WorkType, int] = {}
+## Work type -> skill level (0 to skill_rules.max_level). Only for work types with a skill.
+@export var skills: Dictionary[WorkType, int] = {}
+@export var skill_rules: SkillRules
 
 ## Paid per shop hour, for the whole day, at closing.
 @export var hourly_wage: float = 15.0
 @export var move_speed: float = 60.0
-## Seconds of work done per second. Skill and mood will change this later.
+## Seconds of work done per second, before skill. Mood will change this later.
 @export var work_speed: float = 1.0
 ## Height above the feet a carried item is held at.
 @export var hold_height: float = 24.0
@@ -62,6 +67,8 @@ var _sidestep_offset: Vector2 = Vector2.ZERO
 ## Walking speed multiplier right now (crowded_speed while passing someone).
 var _speed_factor: float = 1.0
 var _work_bar_base: Vector2 = Vector2.ZERO
+## Work type -> shop minutes of practice toward the next skill level.
+var _practice: Dictionary[WorkType, float] = {}
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
 @onready var _work_bar: ProgressBar = $WorkBar
@@ -294,6 +301,49 @@ func set_priority(work_type: WorkType, priority: int) -> void:
 		priorities[work_type] = mini(priority, LOWEST_PRIORITY)
 
 
+## Skill level in the work type (0 if never set).
+func get_skill(work_type: WorkType) -> int:
+	return skills.get(work_type, 0)
+
+
+func set_skill(work_type: WorkType, level: int) -> void:
+	skills[work_type] = clampi(level, 0, skill_rules.max_level)
+	_practice.erase(work_type)
+
+
+## Shop minutes of practice toward the skill's next level.
+func get_practice(work_type: WorkType) -> float:
+	return _practice.get(work_type, 0.0)
+
+
+## Gives a starting level to each skill the pawn doesn't have a level in yet.
+func roll_skills(work_types: Array[WorkType], rng: RandomNumberGenerator) -> void:
+	for work_type: WorkType in work_types:
+		if work_type.has_skill and not skills.has(work_type):
+			skills[work_type] = skill_rules.roll_start_level(rng)
+
+
+## Work seconds per second on a task of this work type, after skill.
+func get_work_rate(work_type: WorkType) -> float:
+	if work_type == null or not work_type.has_skill or skill_rules == null:
+		return work_speed
+	return work_speed / skill_rules.time_multiplier(get_skill(work_type))
+
+
+## Adds shop minutes of practice to a skill, leveling it up as it fills.
+func practice(work_type: WorkType, minutes: float) -> void:
+	if work_type == null or not work_type.has_skill or skill_rules == null:
+		return
+	var level: int = get_skill(work_type)
+	var total: float = get_practice(work_type) + minutes
+	while level < skill_rules.max_level and total >= skill_rules.minutes_to_next(level):
+		total -= skill_rules.minutes_to_next(level)
+		level += 1
+		skills[work_type] = level
+		skill_leveled_up.emit(work_type, level)
+	_practice[work_type] = total if level < skill_rules.max_level else 0.0
+
+
 func _step_along_path(delta: float) -> void:
 	if _path.is_empty():
 		_on_path_end()
@@ -333,7 +383,9 @@ func _on_path_end() -> void:
 
 
 func _do_work(delta: float) -> void:
-	var done: bool = _job.add_work(work_speed * delta)
+	var work_type: WorkType = _job.task_type.work_type
+	practice(work_type, delta / ShopClock.minutes_to_seconds(1.0))
+	var done: bool = _job.add_work(get_work_rate(work_type) * delta)
 	_update_work_bar()
 	work_progressed.emit(_job, _work_bar.value)
 	if not done:

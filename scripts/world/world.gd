@@ -35,10 +35,12 @@ func _ready() -> void:
 	for child: Node in _entities.get_children():
 		if child is Station:
 			_setup_station(child as Station)
+	var rng := RandomNumberGenerator.new()
 	for child: Node in _entities.get_children():
 		if child is Pawn:
 			var pawn := child as Pawn
 			pawn.global_position = _floor.cell_to_global(_floor.get_random_walkable_cell())
+			pawn.roll_skills(_work.work_types, rng)
 			_work.add_pawn(pawn)
 
 	_rack.jobs_changed.connect(_work.assign_all)
@@ -55,6 +57,8 @@ func _ready() -> void:
 
 	_hud.setup(_clock, _rack, _finances, _work.get_pawns(), _work.work_types)
 	_hud.priority_change_requested.connect(_on_priority_change_requested)
+	for pawn: Pawn in _work.get_pawns():
+		pawn.skill_leveled_up.connect(_hud.refresh_priorities.unbind(2))
 	_hud.role_change_requested.connect(_on_role_change_requested)
 	_hud.station_close_requested.connect(_select_station.bind(null))
 	_hud.report_closed.connect(_on_report_closed)

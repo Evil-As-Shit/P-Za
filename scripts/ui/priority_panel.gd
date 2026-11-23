@@ -1,12 +1,15 @@
 class_name PriorityPanel
 extends PanelContainer
 ## HUD grid of work priorities: one row per pawn, one column per work type. Left-click a
-## cell to cycle blank, 1, 2, 3, 4; right-click cycles the other way.
+## cell to cycle blank, 1, 2, 3, 4; right-click cycles the other way. Each cell's corner
+## shows the pawn's skill level in that work.
 
 signal priority_change_requested(pawn: Pawn, work_type: WorkType, priority: int)
 
 const CELL_SIZE := Vector2(52, 28)
 const FIRST_COLOR := Color(0.45, 0.85, 0.4)
+const SKILL_COLOR := Color(0.65, 0.7, 0.8)
+const SKILL_FONT_SIZE: int = 10
 
 @onready var _grid: GridContainer = %Grid
 
@@ -44,6 +47,20 @@ func _make_cell(pawn: Pawn, work_type: WorkType) -> Button:
 	cell.tooltip_text = "%s: %s" % [
 		work_type.display_name, "priority %d" % priority if priority > 0 else "never"
 	]
+	if work_type.has_skill:
+		var level: int = pawn.get_skill(work_type)
+		var skill := Label.new()
+		skill.text = str(level)
+		skill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		skill.add_theme_font_size_override(&"font_size", SKILL_FONT_SIZE)
+		skill.add_theme_color_override(&"font_color", SKILL_COLOR)
+		skill.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 3)
+		cell.add_child(skill)
+		cell.tooltip_text += "\nSkill %d" % level
+		if level < pawn.skill_rules.max_level:
+			cell.tooltip_text += " (%d/%d min practice to next)" % [
+				int(pawn.get_practice(work_type)), int(pawn.skill_rules.minutes_to_next(level))
+			]
 	cell.gui_input.connect(_on_cell_input.bind(pawn, work_type))
 	return cell
 

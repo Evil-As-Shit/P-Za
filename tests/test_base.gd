@@ -33,6 +33,7 @@ func _process(_delta: float) -> bool:
 		rack = world.get_node("TicketRack")
 		finances = world.get_node("ShopFinances")
 		work = world.get_node("Work")
+		_even_out_skills()
 		_start()
 	elif frame > 2:
 		_step()
@@ -49,6 +50,15 @@ func _start() -> void:
 ## Override: check progress each frame.
 func _step() -> void:
 	pass
+
+
+## Starting skills are random; tests start every pawn at the base level (base work times)
+## so their timing doesn't vary from run to run.
+func _even_out_skills() -> void:
+	for pawn: Pawn in work.get_pawns():
+		for work_type: WorkType in work.work_types:
+			if work_type.has_skill:
+				pawn.set_skill(work_type, pawn.skill_rules.base_level)
 
 
 ## Stops random orders, so the test controls what's ordered.

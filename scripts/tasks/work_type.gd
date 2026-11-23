@@ -5,3 +5,6 @@ extends Resource
 
 @export var id: StringName
 @export var display_name: String
+## If true, pawns have a skill level in this work that sets how fast they do it and grows
+## with practice. Plain carrying (Hauling) has none.
+@export var has_skill: bool = true

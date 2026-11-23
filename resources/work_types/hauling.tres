@@ -6,3 +6,4 @@
 script = ExtResource("1_work_type")
 id = &"hauling"
 display_name = "Hauling"
+has_skill = false
