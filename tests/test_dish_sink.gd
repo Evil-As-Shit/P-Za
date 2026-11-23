@@ -28,7 +28,7 @@ func _start() -> void:
 	_sink = world.get_node("Entities/DishSink")
 	_boards = _sink.get_dish_boards()
 	_dough = world.get_node("Entities/DoughRack")
-	_empties = world.get_node("Entities/EmptyDoughTable")
+	_empties = world.get_node("Entities/EmptyDishesTable")
 	_full_stock = _dough.get_stock()
 	# Three containers were used up: they're dirty at the sink, with room for them in storage.
 	_dough._stock -= 3
@@ -42,7 +42,7 @@ func _start() -> void:
 func _step() -> void:
 	_watch_washing()
 	if _empties.get_stock() > 0:
-		fail("an empty container went to Empty Dough storage while the sink had room")
+		fail("an empty container went to Empty Dishes storage while the sink had room")
 		return
 	match _phase:
 		0:

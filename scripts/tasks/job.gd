@@ -25,6 +25,8 @@ var extra_minutes: float = 0.0
 ## How much was left in the unit last taken from storage (e.g. dough balls in a container
 ## put back partly used), or -1 for a full one. See Station.take_supply().
 var taken_left: int = -1
+## The dish last taken from storage that holds dishes (e.g. Empty Dishes), or null.
+var taken_dish: Dish = null
 ## Dishes a pawn is washing (taken off a sink's dirty drainboard).
 var dishes: Array[Dish] = []
 ## True for the steps of an order item's recipe (not stacking or hand-off).

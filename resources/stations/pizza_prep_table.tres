@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="5_spot"]
 [ext_resource type="Script" path="res://scripts/items/side_item.gd" id="6_side_item"]
 [ext_resource type="Resource" path="res://resources/items/sauce_bucket.tres" id="7_sauce"]
+[ext_resource type="Resource" path="res://resources/storage_layouts/sauce_in_cooler.tres" id="8_cooler"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_closed0"]
 atlas = ExtResource("4_sheet")
@@ -44,19 +45,19 @@ region = Rect2(240, 0, 80, 96)
 script = ExtResource("5_spot")
 work_cell = Vector2i(0, 2)
 item_cell = Vector2i(0, 1)
-work_area = Rect2i(1, 5, 3, 3)
+work_area = Rect2i(1, 9, 6, 6)
 
 [sub_resource type="Resource" id="Resource_spot_b"]
 script = ExtResource("5_spot")
 work_cell = Vector2i(1, 2)
 item_cell = Vector2i(1, 1)
-work_area = Rect2i(5, 5, 3, 3)
+work_area = Rect2i(9, 9, 6, 6)
 
 [sub_resource type="Resource" id="Resource_spot_c"]
 script = ExtResource("5_spot")
 work_cell = Vector2i(2, 2)
 item_cell = Vector2i(2, 1)
-work_area = Rect2i(9, 5, 3, 3)
+work_area = Rect2i(17, 9, 6, 6)
 
 [resource]
 script = ExtResource("1_data")
@@ -68,5 +69,6 @@ facing_textures = Array[Texture2D]([SubResource("AtlasTexture_closed0"), SubReso
 in_use_textures = Array[Texture2D]([SubResource("AtlasTexture_open0"), SubResource("AtlasTexture_open1"), SubResource("AtlasTexture_open2"), SubResource("AtlasTexture_open3")])
 spots = Array[ExtResource("5_spot")]([SubResource("Resource_spot_a"), SubResource("Resource_spot_b"), SubResource("Resource_spot_c")])
 item_offset = Vector2(0, -16)
-side_areas = Array[Rect2i]([Rect2i(4, 6, 1, 1)])
+side_areas = Array[Rect2i]([Rect2i(7, 11, 2, 2)])
 side_items = Array[ExtResource("6_side_item")]([ExtResource("7_sauce")])
+built_in_storage = ExtResource("8_cooler")

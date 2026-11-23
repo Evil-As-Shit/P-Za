@@ -1,16 +1,18 @@
 class_name BringDishesBehavior
 extends TaskBehavior
-## Restocking (a shop job the WorkManager opens while it's needed): an empty ingredient
-## container stored for empties (e.g. Empty Dough, the overflow while the sinks are full) is
-## carried to a dish sink's dirty drainboard. One pawn at a time.
+## Restocking (a shop job the WorkManager opens while it's needed): a dirty dish stored for
+## empties (e.g. Empty Dishes, the overflow while the sinks are full) is carried to a dish
+## sink's dirty drainboard. One pawn at a time.
 
-@export var ingredient: IngredientContainer
+## Storage the dishes wait in.
+@export var empty_kind: StorageKind
+@export var dishes: DishCatalog
 
 
 ## There's an empty one in storage, room for it at a sink, and nobody bringing one already.
 func is_needed(work: WorkManager) -> bool:
 	return (
-		not is_under_way(work) and work.find_supply(ingredient.empty_kind) != null
+		not is_under_way(work) and work.find_supply(empty_kind) != null
 		and work.find_dish_room() != null
 	)
 
@@ -18,7 +20,7 @@ func is_needed(work: WorkManager) -> bool:
 func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 	if is_under_way(work):
 		return false
-	var source: Station = work.find_supply(ingredient.empty_kind)
+	var source: Station = work.find_supply(empty_kind)
 	var sink: Station = work.find_dish_room()
 	if source == null or sink == null:
 		return false
@@ -32,8 +34,9 @@ func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 
 
 func on_supply_taken(job: Job, _station: Station, pawn: Pawn, work: WorkManager) -> void:
-	job.target = IngredientBehavior.spawn_container(ingredient, work, 0)
-	job.target.set_lid(null)
+	if job.taken_dish == null:
+		return
+	job.target = dishes.spawn(job.taken_dish, work, false)
 	pawn.hold_item(job.target)
 
 
@@ -41,14 +44,15 @@ func on_supply_taken(job: Job, _station: Station, pawn: Pawn, work: WorkManager)
 func on_work_started(job: Job, pawn: Pawn, _work: WorkManager) -> void:
 	var item: Item = pawn.release_item()
 	if item == null:
+		job.destination.get_dish_boards().unclaim_dirty_room()
 		return
 	item.queue_free()
 	job.target = null
-	job.destination.get_dish_boards().add_dirty(ingredient.dish)
+	job.destination.get_dish_boards().add_dirty(job.taken_dish)
 
 
-## Interrupted: the room at the sink is handed back. An empty container already taken is set
-## down where the pawn is, and put away again later (see PutAwayContainerBehavior).
+## Interrupted: the room at the sink is handed back. A dish already taken is set down where
+## the pawn is, and put away again later (see PutAwayContainerBehavior, ReturnBucketBehavior).
 func on_withdrawn(job: Job, work: WorkManager) -> void:
 	if job.destination != null and is_instance_valid(job.destination):
 		job.destination.get_dish_boards().unclaim_dirty_room()

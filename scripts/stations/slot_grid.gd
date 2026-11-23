@@ -1,11 +1,11 @@
 class_name SlotGrid
 extends RefCounted
 ## Station surfaces are split into slots: SLOTS_PER_CELL × SLOTS_PER_CELL per floor cell,
-## each an 8×4 px diamond. Slot areas (Rect2i, in slots) are given at facing 0 from the
+## each a 4×2 px diamond. Slot areas (Rect2i, in slots) are given at facing 0 from the
 ## station origin cell's back corner, like StationSpot cells, and turn with the station.
 ## Their centers fall on whole pixels.
 
-const SLOTS_PER_CELL: int = 4
+const SLOTS_PER_CELL: int = 8
 
 
 ## The slot area covering a whole floor cell (a footprint cell at facing 0).

@@ -15,7 +15,7 @@ Guide sheets for drawing are in [`art_templates/`](../art_templates). See [How t
 - Pizza box: `box_sheet.png`, on a 32×16 grid. Left column: closed box (row 1), open box back with lid on the back-left edge (rows 2–3), its front edge (row 4). Right column, turned a quarter: closed box (row 1), front edge with the lid standing on the front-right edge (rows 2–3, drawn over the pizza), open box back (row 4). Items worked from in front use the left column (mirrored for a pawn down-left); from behind, the right column (mirrored for a pawn up-right), so the lid always faces away from the pawn. The pieces are `resources/items/box/*.tres`, paired in `resources/items/rotated_art.tres`.
 - Work-spot marker (pink iso circle): `work_spot_sheet.png`, drawn on the 3×3 guide with the station in the middle cell and the circle on the pawn's side (frames: down-left, up-left, up-right, down-right). Shown on the floor where pawns stand at a selected station.
 - Sauce bucket: `sauce_bucket_small.png`, 32×16 cells like the pizza stages. Sauce levels full to nearly empty in row 1 (4 frames) and row 2 frame 1, drawn under the see-through bucket in row 4 frame 1. Takes 1 surface slot. `resources/items/sauce_bucket.tres`.
-- Pizza cutter (placeholder): `pizza_cutter.png`, two 32×64 item frames: handle toward a pawn down-right (lying up-left to down-right), then turned for a pawn behind (handle up-left), paired in `rotated_art.tres`. Takes 1×2 surface slots between a Boxing table's pizzas. `resources/items/pizza_cutter.tres`.
+- Pizza cutter (placeholder): `pizza_cutter.png`, two 32×64 item frames: handle toward a pawn down-right (lying up-left to down-right), then turned for a pawn behind (handle up-left), paired in `rotated_art.tres`. Takes 2×4 surface slots between a Boxing table's pizzas. `resources/items/pizza_cutter.tres`.
 - Dough container (lid, inside/back, front edge; 32×16 cells stacked in that order, same anchor): `dough_container.png`. Holds 6 dough balls.
 - Box rack, original one-facing art: `box_rack_sheet.png` (no longer used; replaced by the placeholder below)
 - Pickup counter (1×1, one facing): `Object_Spritesheet.png` at (128, 0). In game the counter currently uses the numbered rotation-test cubes on row 2 (four facings, "1|2" to "4|1") to check rotation.
@@ -130,7 +130,7 @@ Standard work-surface height, so tables and counters are consistent. Cells left 
 
 ### `surface_slots_guide.png`
 
-Same layout as the 1×1 guide (one 32×64 cell per facing). The tabletop, 16 px up, is split into the 4×4 grid of surface slots (8×4 px diamonds) that items take on stations. Orange is a spot's usual work area (3×3, against the pawn's edge, leaving a strip on the worker's left and at the back), and the red pixel is where its item is anchored. Pizzas, boxes and dough containers are 3×3; draw small things (a cutter, a sauce bucket) to fit the slots they'll take.
+Same layout as the 1×1 guide (one 32×64 cell per facing). The tabletop, 16 px up, is split into surface slots that items take on stations: an 8×8 grid per cell in the game (4×2 px diamonds), drawn on the guide as a 4×4 grid of 8×4 px diamonds (2×2 game slots each). A spot's work area is 6×6 game slots, centered on the cell (half a guide slot in from every edge); the guide's orange 3×3 area predates that and sits in the front corner. Pizzas, boxes and dough containers are 6×6 (24×12 px); draw small things (a cutter, a sauce bucket) to fit the slots they'll take.
 
 ### `item_16x16_guide.png`
 

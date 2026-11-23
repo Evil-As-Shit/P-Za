@@ -7,11 +7,11 @@
 [ext_resource type="Resource" path="res://resources/station_roles/boxing.tres" id="5_boxing"]
 [ext_resource type="Resource" path="res://resources/station_roles/pickup.tres" id="6_pickup"]
 [ext_resource type="Resource" path="res://resources/station_roles/dough_storage.tres" id="7_dough"]
-[ext_resource type="Resource" path="res://resources/station_roles/empty_dough_storage.tres" id="8_empty"]
+[ext_resource type="Resource" path="res://resources/station_roles/empty_dishes_storage.tres" id="8_empty"]
 [ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="9_spot"]
 [ext_resource type="Script" path="res://scripts/stations/storage_layout.gd" id="10_layout"]
 [ext_resource type="Resource" path="res://resources/storage_layouts/dough_on_table.tres" id="11_dough_layout"]
-[ext_resource type="Resource" path="res://resources/storage_layouts/empty_dough_on_table.tres" id="12_empty_layout"]
+[ext_resource type="Resource" path="res://resources/storage_layouts/empty_dishes_on_table.tres" id="12_empty_layout"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_table"]
 atlas = ExtResource("3_sheet")
@@ -21,7 +21,7 @@ region = Rect2(0, 0, 32, 48)
 script = ExtResource("9_spot")
 work_cell = Vector2i(0, 1)
 item_cell = Vector2i(0, 0)
-work_area = Rect2i(1, 1, 3, 3)
+work_area = Rect2i(1, 1, 6, 6)
 
 [resource]
 script = ExtResource("1_data")
@@ -31,5 +31,5 @@ footprint = Vector2i(1, 1)
 facing_textures = Array[Texture2D]([SubResource("AtlasTexture_table"), SubResource("AtlasTexture_table"), SubResource("AtlasTexture_table"), SubResource("AtlasTexture_table")])
 spots = Array[ExtResource("9_spot")]([SubResource("Resource_spot")])
 item_offset = Vector2(0, -16)
-side_areas = Array[Rect2i]([Rect2i(0, 0, 1, 4)])
+side_areas = Array[Rect2i]([Rect2i(0, 0, 1, 8)])
 storage_layouts = Array[ExtResource("10_layout")]([ExtResource("11_dough_layout"), ExtResource("12_empty_layout")])

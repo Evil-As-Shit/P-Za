@@ -3,11 +3,11 @@
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="1_task"]
 [ext_resource type="Resource" path="res://resources/work_types/hauling.tres" id="2_work_type"]
 [ext_resource type="Script" path="res://scripts/tasks/behaviors/put_away_dish_behavior.gd" id="3_behavior"]
-[ext_resource type="Resource" path="res://resources/items/dough_container.tres" id="4_dough"]
+[ext_resource type="Resource" path="res://resources/items/dishes.tres" id="4_dishes"]
 
 [sub_resource type="Resource" id="Resource_behavior"]
 script = ExtResource("3_behavior")
-ingredient = ExtResource("4_dough")
+dishes = ExtResource("4_dishes")
 
 [resource]
 script = ExtResource("1_task")

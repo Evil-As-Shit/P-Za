@@ -51,6 +51,10 @@ extends Resource
 ## How each kind of thing this station can store is stacked on it. Storage roles need a
 ## layout for their kind. Pawns fetch and drop off stored things at spot 0.
 @export var storage_layouts: Array[StorageLayout] = []
+## Storage built into the station, used whatever its role unless the role stores something
+## itself (e.g. the prep table's cooler of spare sauce buckets). A layout with no textures
+## or piles drawn keeps it hidden.
+@export var built_in_storage: StorageLayout
 ## Makes the station a dish sink: drainboards for dirty and clean dishes, and basins.
 @export var dish_sink: DishSink
 

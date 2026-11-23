@@ -7,5 +7,5 @@
 script = ExtResource("1_script")
 display_name = "Pizza Cutter"
 texture = ExtResource("2_art")
-slot_size = Vector2i(1, 2)
+slot_size = Vector2i(2, 4)
 faces_worker = true

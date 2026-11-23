@@ -34,7 +34,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/priority_panel.tscn" id="20_priority_panel"]
 [ext_resource type="Resource" path="res://resources/station_roles/box_storage.tres" id="30_box_storage"]
 [ext_resource type="Resource" path="res://resources/station_roles/dough_storage.tres" id="31_dough_storage"]
-[ext_resource type="Resource" path="res://resources/station_roles/empty_dough_storage.tres" id="32_empty_dough"]
+[ext_resource type="Resource" path="res://resources/station_roles/empty_dishes_storage.tres" id="32_empty_dishes"]
 [ext_resource type="Resource" path="res://resources/stations/small_table.tres" id="33_small_table"]
 [ext_resource type="Resource" path="res://resources/tasks/stack_box.tres" id="34_stack_box"]
 [ext_resource type="Resource" path="res://resources/tasks/hand_off.tres" id="35_hand_off"]
@@ -72,6 +72,7 @@
 [ext_resource type="Resource" path="res://resources/tasks/wash_dishes.tres" id="67_wash"]
 [ext_resource type="Resource" path="res://resources/tasks/bring_dishes.tres" id="68_bring_dishes"]
 [ext_resource type="Resource" path="res://resources/tasks/put_away_dishes.tres" id="69_put_away_dishes"]
+[ext_resource type="Resource" path="res://resources/tasks/return_bucket.tres" id="70_return_bucket"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -117,10 +118,10 @@ cell = Vector2i(3, 5)
 facing = 3
 role = ExtResource("31_dough_storage")
 
-[node name="EmptyDoughTable" parent="Entities" instance=ExtResource("5_station")]
+[node name="EmptyDishesTable" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("33_small_table")
 cell = Vector2i(3, 7)
-role = ExtResource("32_empty_dough")
+role = ExtResource("32_empty_dishes")
 
 [node name="BoxingTable" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("6_table")
@@ -200,7 +201,7 @@ work_types = Array[ExtResource("15_work_type")]([ExtResource("16_dough"), ExtRes
 item_scene = ExtResource("11_item")
 throw_out_task = ExtResource("44_throw_out")
 take_order_task = ExtResource("52_take_order")
-restock_tasks = Array[ExtResource("56_task_type")]([ExtResource("55_fold_box"), ExtResource("58_put_away_dough"), ExtResource("68_bring_dishes"), ExtResource("69_put_away_dishes")])
+restock_tasks = Array[ExtResource("56_task_type")]([ExtResource("55_fold_box"), ExtResource("58_put_away_dough"), ExtResource("68_bring_dishes"), ExtResource("69_put_away_dishes"), ExtResource("70_return_bucket")])
 chore_tasks = Array[ExtResource("56_task_type")]([ExtResource("67_wash")])
 managing = ExtResource("60_managing")
 quote_rules = ExtResource("61_quote_rules")

@@ -4,5 +4,5 @@
 
 [resource]
 script = ExtResource("1_kind")
-id = &"empty_dough"
-display_name = "Empty Dough"
+id = &"empty_dishes"
+display_name = "Empty Dishes"

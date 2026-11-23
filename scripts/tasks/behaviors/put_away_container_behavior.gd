@@ -73,7 +73,7 @@ func on_work_started(job: Job, pawn: Pawn, _work: WorkManager) -> void:
 	if job.destination.get_dish_boards() != null:
 		job.destination.get_dish_boards().add_dirty(ingredient.dish)
 	else:
-		job.destination.add_stock(left if left > 0 else -1)
+		job.destination.add_stock(left if left > 0 else -1, ingredient.dish if left == 0 else null)
 
 
 ## Interrupted: the room at storage and the container's units are handed back. The

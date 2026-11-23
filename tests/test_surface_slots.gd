@@ -1,32 +1,40 @@
 extends "res://tests/test_base.gd"
-## Surface slots (see SlotGrid): at every facing, on the stations with work areas, each spot's
-## item sits on whole pixels, nudged from its cell's middle toward the pawn who works it, and
-## items on a station draw back to front. Stations without work areas keep their items in the
-## middle of the cell.
+## Surface slots (see SlotGrid): at every facing, each spot's item sits on whole pixels in the
+## middle of its cell (work areas are centered, with room all round), and items on a station
+## draw back to front. A one-spot Boxing table has no room for the pizza cutter.
 
-const CONFIGURED := ["PrepTable", "BoxingTable", "PickupCounter", "EmptyDoughTable"]
-const UNCHANGED := ["SmallOven", "Register", "DoughRack"]
+const BOXING := preload("res://resources/station_roles/boxing.tres")
+
+const STATIONS := [
+	"PrepTable", "BoxingTable", "PickupCounter", "EmptyDishesTable", "SmallOven", "Register",
+	"DoughRack",
+]
 
 
 func _start() -> void:
 	stop_random_orders()
 	var shop_floor: ShopFloor = world.get_node("ShopFloor")
-	for station_name: String in CONFIGURED + UNCHANGED:
+	for station_name: String in STATIONS:
 		var station: Station = world.get_node("Entities/" + station_name)
 		var start_facing: int = station.facing
 		for facing: int in station.data.get_facings():
 			station.facing = facing
 			station.place(shop_floor)
-			var problem: String = _check(station, shop_floor, CONFIGURED.has(station_name))
+			var problem: String = _check(station, shop_floor)
 			if problem != "":
 				fail("%s at facing %d: %s" % [station_name, facing, problem])
 				return
 		station.facing = start_facing
 		station.place(shop_floor)
-	pass_test("items sit on whole pixels in their work areas and draw back to front")
+	var counter: Station = world.get_node("Entities/PickupCounter")
+	counter.set_role(BOXING)
+	if not counter.get_side_items().is_empty():
+		fail("a one-spot Boxing table got a pizza cutter")
+		return
+	pass_test("items sit on whole pixels in the middle of their cells and draw back to front")
 
 
-func _check(station: Station, shop_floor: ShopFloor, configured: bool) -> String:
+func _check(station: Station, shop_floor: ShopFloor) -> String:
 	var items: Array[Item] = []
 	for spot: int in station.get_spot_count():
 		var at: Vector2 = station._item_positions[spot]
@@ -36,13 +44,7 @@ func _check(station: Station, shop_floor: ShopFloor, configured: bool) -> String
 		var cell_middle: Vector2 = shop_floor.cell_to_global(
 			station.data.get_item_cell(station.cell, station.facing, spot)
 		) + lift
-		# Compared on the floor, where the pawn stands.
-		var pawn_at: Vector2 = shop_floor.cell_to_global(station.get_work_cell(spot)) + lift
-		if configured:
-			var nearer: float = cell_middle.distance_to(pawn_at) - at.distance_to(pawn_at)
-			if nearer <= 0.0 or at.distance_to(cell_middle) > 5.0:
-				return "spot %d item at %s isn't nudged toward its pawn from %s" % [spot, at, cell_middle]
-		elif at != cell_middle:
+		if at != cell_middle:
 			return "spot %d item moved off its cell's middle (%s, not %s)" % [spot, at, cell_middle]
 		if station.get_item(spot) == null:
 			var item: Item = work.spawn_item(null)

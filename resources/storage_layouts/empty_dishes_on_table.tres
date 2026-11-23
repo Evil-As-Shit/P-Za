@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/stations/storage_layout.gd" id="1_layout"]
 [ext_resource type="Texture2D" path="res://resources/items/dough_container_back.tres" id="2_back"]
 [ext_resource type="Texture2D" path="res://resources/items/dough_container_front.tres" id="3_front"]
-[ext_resource type="Resource" path="res://resources/storage_kinds/empty_dough.tres" id="4_kind"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/empty_dishes.tres" id="4_kind"]
 
 [resource]
 script = ExtResource("1_layout")
@@ -12,3 +12,4 @@ textures = Array[Texture2D]([ExtResource("2_back"), ExtResource("3_front")])
 piles_at_spots = true
 per_pile = 8
 pile_step = 2.0
+holds_dishes = true

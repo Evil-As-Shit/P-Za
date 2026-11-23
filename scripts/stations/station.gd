@@ -55,6 +55,9 @@ var _room_claimed: int = 0
 ## How much is left in each partly used unit in stock (e.g. a dough container put back
 ## with 4 balls); the rest of the stock is full. Taken out first.
 var _partial: Array[int] = []
+## For storage that holds dishes (see StorageLayout.holds_dishes): each unit's dish, bottom
+## of the stock first.
+var _stock_dishes: Array[Dish] = []
 ## One array of unit nodes per pile, bottom to top. Inside piles first, then on-top piles.
 var _pile_units: Array[Array] = []
 var _origin_center: Vector2 = Vector2.ZERO
@@ -490,6 +493,13 @@ func put_side_item(item: Item, size: Vector2i) -> bool:
 	return false
 
 
+## Takes `item` out of the side areas (e.g. an empty sauce bucket a pawn carries off). The
+## node stays where it is until the caller moves it.
+func take_side_item(item: Item) -> void:
+	_side_items.erase(item)
+	item.station = null
+
+
 func _is_side_free(area: Rect2i) -> bool:
 	for taken: Rect2i in _side_items.values():
 		if taken.intersects(area):
@@ -516,19 +526,23 @@ func _set_out_role_side_items() -> void:
 	_role_side_items.clear()
 	if role == null:
 		return
+	# A role's side items are left out where they don't fit (e.g. no cutter on a one-spot
+	# table).
 	for kind: SideItem in role.side_items:
-		var item: Item = _set_out_side_item(kind)
+		var item: Item = _set_out_side_item(kind, false)
 		if item != null:
 			_role_side_items.append(item)
 
 
-## Makes a side item of `kind` and puts it in the side areas. Returns null if there's no room.
-func _set_out_side_item(kind: SideItem) -> Item:
+## Makes a side item of `kind` and puts it in the side areas. Returns null if there's no room
+## (with a warning if `warn`).
+func _set_out_side_item(kind: SideItem, warn: bool = true) -> Item:
 	var item := ITEM_SCENE.instantiate() as Item
 	_item_slot.add_child(item)
 	kind.set_up(item)
 	if not put_side_item(item, kind.slot_size):
-		push_warning("%s has no room for its %s" % [data.display_name, kind.display_name])
+		if warn:
+			push_warning("%s has no room for its %s" % [data.display_name, kind.display_name])
 		item.queue_free()
 		return null
 	return item
@@ -616,14 +630,17 @@ func get_work_target(spot: int) -> Vector2:
 	return _floor.cell_to_global(data.get_item_cell(cell, facing, spot))
 
 
-## Kind of thing the station stores (from its role), or null if it isn't storage.
+## Kind of thing the station stores (from its role, or else its built-in storage), or null
+## if it stores nothing.
 func get_stored_kind() -> StorageKind:
-	return role.stores if role != null else null
+	var layout: StorageLayout = get_storage_layout()
+	return layout.kind if layout != null else null
 
 
 func get_storage_layout() -> StorageLayout:
-	var kind: StorageKind = get_stored_kind()
-	return data.get_storage_layout(kind) if kind != null else null
+	if role != null and role.stores != null:
+		return data.get_storage_layout(role.stores)
+	return data.built_in_storage
 
 
 ## A dish sink's drainboards, or null if the station isn't a sink.
@@ -667,18 +684,26 @@ func unclaim_supply() -> void:
 
 
 ## Removes a claimed unit from stock and returns how much is left in it: -1 for a full one,
-## or the count put back with it (see add_stock()). Partly used ones go out first.
+## or the count put back with it (see add_stock()). Partly used ones go out first. For
+## storage that holds dishes, get_top_dish() beforehand says which one this is.
 ## Placeholder until deliveries: storage that starts full refills the moment it runs out.
 func take_supply() -> int:
 	_stock_claimed -= 1
 	_stock -= 1
 	var left: int = _partial.pop_back() if not _partial.is_empty() else -1
+	if not _stock_dishes.is_empty():
+		_stock_dishes.pop_back()
 	var layout: StorageLayout = get_storage_layout()
-	if _stock == 0 and layout != null and layout.starts_full:
+	if _stock == 0 and layout != null and layout.starts_full and layout.refills:
 		_stock = _get_capacity()
 		_partial.clear()
 	_update_piles()
 	return left
+
+
+## The dish the next take_supply() takes, for storage that holds dishes; else null.
+func get_top_dish() -> Dish:
+	return _stock_dishes.back() if not _stock_dishes.is_empty() else null
 
 
 func _get_capacity() -> int:
@@ -707,16 +732,20 @@ func unclaim_room() -> void:
 
 ## Stores a unit in a claimed place. `left` is how much is still in it, for a partly used
 ## one (e.g. a dough container with 4 of its 6 balls); -1 for a full one. Storage that clears
-## when full (see StorageLayout.clears_when_full) does so the moment it fills.
-func add_stock(left: int = -1) -> void:
+## when full (see StorageLayout.clears_when_full) does so the moment it fills. `dish` is the
+## unit, for storage that holds dishes (see StorageLayout.holds_dishes).
+func add_stock(left: int = -1, dish: Dish = null) -> void:
 	_room_claimed -= 1
 	_stock += 1
 	if left >= 0:
 		_partial.append(left)
 	var layout: StorageLayout = get_storage_layout()
+	if dish != null and layout != null and layout.holds_dishes:
+		_stock_dishes.append(dish)
 	if layout != null and layout.clears_when_full and _stock >= _get_capacity():
 		_stock = 0
 		_partial.clear()
+		_stock_dishes.clear()
 	_update_piles()
 
 
@@ -750,8 +779,10 @@ func _build_piles(keep_stock: bool = false) -> void:
 	if keep_stock:
 		_stock = mini(kept, _get_capacity())
 		_partial.resize(mini(_partial.size(), _stock))
+		_stock_dishes.resize(mini(_stock_dishes.size(), _stock))
 	else:
 		_partial.clear()
+		_stock_dishes.clear()
 		if layout.starts_full:
 			_stock = _get_capacity()
 	_update_piles()
@@ -795,10 +826,20 @@ func _make_pile(layout: StorageLayout, parent: Node2D, base: Vector2, index: int
 	return pile
 
 
-## Shows the first `_stock` units, filling piles in order, bottom up.
+## Shows the first `_stock` units, filling piles in order, bottom up. A unit that's a dish
+## is drawn with its dish's art.
 func _update_piles() -> void:
 	var shown: int = 0
 	for pile: Array in _pile_units:
 		for unit: Node2D in pile:
 			unit.visible = shown < _stock
+			if unit.visible and shown < _stock_dishes.size():
+				_show_dish_unit(unit, _stock_dishes[shown])
 			shown += 1
+
+
+## Draws a stored unit as `dish`: its back and front art on the unit's first two sprites.
+func _show_dish_unit(unit: Node2D, dish: Dish) -> void:
+	var textures: Array[Texture2D] = [dish.back_texture, dish.front_texture]
+	for i: int in unit.get_child_count():
+		(unit.get_child(i) as Sprite2D).texture = textures[i] if i < textures.size() else null

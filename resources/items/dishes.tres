@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="DishCatalog" format=3]
+
+[ext_resource type="Script" path="res://scripts/items/dish_catalog.gd" id="1_catalog"]
+[ext_resource type="Script" path="res://scripts/items/ingredient_container.gd" id="2_ingredient"]
+[ext_resource type="Script" path="res://scripts/items/portion_container.gd" id="3_portion"]
+[ext_resource type="Resource" path="res://resources/items/dough_container.tres" id="4_dough"]
+[ext_resource type="Resource" path="res://resources/items/sauce_bucket.tres" id="5_sauce"]
+
+[resource]
+script = ExtResource("1_catalog")
+ingredient_containers = Array[ExtResource("2_ingredient")]([ExtResource("4_dough")])
+portion_containers = Array[ExtResource("3_portion")]([ExtResource("5_sauce")])

@@ -571,6 +571,9 @@ func throw_out_leftovers(ticket: Ticket) -> void:
 			if not leftovers.has(outer):
 				leftovers.append(outer)
 	for child: Node in _entities.get_children():
+		# Loose portion containers (e.g. a sauce bucket) aren't leftovers; they're put back.
+		if child is Item and (child as Item).portions != null:
+			continue
 		if child is Item and not leftovers.has(child) and not _is_shop_job_target(child as Item):
 			leftovers.append(child as Item)
 	for item: Item in leftovers:
@@ -618,6 +621,7 @@ func _on_pawn_stop_reached(job: Job, pawn: Pawn) -> void:
 				return
 			_pick_up(job, pawn)
 		JobStop.Action.TAKE_SUPPLY:
+			job.taken_dish = stop.station.get_top_dish()
 			job.taken_left = stop.station.take_supply()
 			behavior.on_supply_taken(job, stop.station, pawn, self)
 		_:

@@ -25,8 +25,14 @@ extends Resource
 ## Pixels each stacked unit sits above the one below it.
 @export var pile_step: float = 2.0
 ## Placeholder until deliveries: the station starts full when assigned this storage, and
-## refills the moment it runs out.
+## (with `refills`) refills the moment it runs out.
 @export var starts_full: bool = false
+## With `starts_full`: refills the moment it runs out. Off for storage only washed dishes
+## refill (e.g. the prep table's sauce cooler).
+@export var refills: bool = true
+## Units are dishes of different kinds (e.g. Empty Dishes), each drawn with its own dish's
+## art (see Dish) instead of `textures`.
+@export var holds_dishes: bool = false
 ## The station is cleared the moment it fills up (no layout uses this since the dish sink).
 @export var clears_when_full: bool = false
 

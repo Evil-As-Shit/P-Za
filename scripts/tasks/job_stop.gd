@@ -19,6 +19,10 @@ enum Action {
 	DROP_DISH,
 	## Take a clean dish off a dish sink's clean drainboard.
 	TAKE_DISH,
+	## Take a side item (e.g. an empty sauce bucket) off a station's side areas.
+	TAKE_SIDE,
+	## Set the carried side item out in a station's side areas.
+	SET_SIDE,
 }
 
 var action: Action
@@ -26,7 +30,8 @@ var action: Action
 var cell: Vector2i
 var station: Station = null
 var spot: int = -1
-## The ingredient container a unit is taken from (TAKE_UNIT).
+## The ingredient container a unit is taken from (TAKE_UNIT), or the side item taken
+## (TAKE_SIDE).
 var container: Item = null
 ## The clean dish taken (TAKE_DISH).
 var dish: Dish = null
@@ -82,6 +87,21 @@ static func take_dish(p_sink: Station, p_dish: Dish) -> JobStop:
 	)
 	stop.station = p_sink
 	stop.dish = p_dish
+	return stop
+
+
+## Taking `p_item` off its station's side areas, standing at `p_cell`.
+static func take_side(p_item: Item, p_cell: Vector2i) -> JobStop:
+	var stop := JobStop.new(Action.TAKE_SIDE, p_cell)
+	stop.station = p_item.station
+	stop.container = p_item
+	return stop
+
+
+## Setting the carried item out in `p_station`'s side areas, standing at `p_cell`.
+static func set_side(p_station: Station, p_cell: Vector2i) -> JobStop:
+	var stop := JobStop.new(Action.SET_SIDE, p_cell)
+	stop.station = p_station
 	return stop
 
 

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="StorageLayout" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/storage_layout.gd" id="1_layout"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/sauce.tres" id="2_kind"]
+
+[resource]
+script = ExtResource("1_layout")
+kind = ExtResource("2_kind")
+piles = Array[Vector3]([Vector3(0, 0, 0)])
+per_pile = 1
+starts_full = true
+refills = false

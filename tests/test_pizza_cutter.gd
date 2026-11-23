@@ -16,7 +16,7 @@ func _start() -> void:
 		fail("the boxing table should start with one cutter, has %d side items" % cutters.size())
 		return
 	var cutter: Item = cutters[0]
-	if table._side_items[cutter] != Rect2i(4, 1, 1, 2):
+	if table._side_items[cutter] != Rect2i(7, 1, 2, 4):
 		fail("the cutter isn't between the table's two pizza spots: %s" % table._side_items[cutter])
 		return
 	var shop_floor: ShopFloor = world.get_node("ShopFloor")

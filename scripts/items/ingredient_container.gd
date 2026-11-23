@@ -7,7 +7,7 @@ extends Resource
 @export var display_name: String
 ## Storage kind for full containers (e.g. Dough).
 @export var full_kind: StorageKind
-## Storage kind for empty containers (e.g. Empty Dough), the overflow while no dish sink
+## Storage kind for empty containers (e.g. Empty Dishes), the overflow while no dish sink
 ## has room.
 @export var empty_kind: StorageKind
 ## An empty one as a dish: washed at a dish sink, then put away full again.

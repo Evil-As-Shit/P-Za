@@ -83,7 +83,7 @@ func on_stop_reached(job: Job, stop: JobStop, pawn: Pawn, work: WorkManager) -> 
 			if stop.action == JobStop.Action.DROP_DISH:
 				stop.station.get_dish_boards().add_dirty(ingredient.dish)
 			else:
-				stop.station.add_stock()
+				stop.station.add_stock(-1, ingredient.dish)
 			work.assign_all()
 
 
