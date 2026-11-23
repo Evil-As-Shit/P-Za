@@ -43,11 +43,11 @@ func _start() -> void:
 		fail("an oven fit on top of the prep table")
 		return
 	# Free floor in a corner: fits, and the tool stays ready for another.
-	_build.hover(Vector2i(10, 9))
+	_build.hover(Vector2i(11, 0))
 	if not _build.confirm():
-		fail("an oven didn't fit on free floor at (10, 9)")
+		fail("an oven didn't fit on free floor at (11, 0)")
 		return
-	if world._stations.size() != station_count + 1 or _floor.is_walkable(Vector2i(10, 9)):
+	if world._stations.size() != station_count + 1 or _floor.is_walkable(Vector2i(11, 0)):
 		fail("the new oven wasn't set up")
 		return
 	if not _build.has_ghost():
@@ -72,13 +72,13 @@ func _start() -> void:
 	# Sell the oven we built: it's gone and its cell is free again.
 	var built: Station = null
 	for station: Station in world._stations:
-		if station.cell == Vector2i(10, 9):
+		if station.cell == Vector2i(11, 0):
 			built = station
 	if built == null or not _build.pick_up(built) or not _build.sell():
 		fail("couldn't pick up and sell the new oven")
 		return
 	if world._stations.has(built) or work.get_stations().has(built) \
-			or not _floor.is_walkable(Vector2i(10, 9)):
+			or not _floor.is_walkable(Vector2i(11, 0)):
 		fail("the sold oven is still in use or still blocks its cell")
 		return
 	if _build.sell():

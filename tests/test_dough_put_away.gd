@@ -15,7 +15,7 @@ func _start() -> void:
 	clock.set_speed(6)
 	rack.patience_minutes = 100000
 	rack.patience_past_quote = 100000
-	_rack = world.get_node("Entities/DoughRack")
+	_rack = dough_storage()
 	_start_stock = _rack.get_stock()
 	order_pizzas(1)
 

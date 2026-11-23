@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="StationData" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/station_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/stations/walk_in.gd" id="2_walk_in"]
+[ext_resource type="Resource" path="res://resources/walls/plain_wall.tres" id="3_walls"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/placeholder/walk_in_floor.png" id="5_floor"]
+
+[sub_resource type="Resource" id="Resource_walk_in"]
+script = ExtResource("2_walk_in")
+door_cell = Vector2i(2, 3)
+wall_style = ExtResource("3_walls")
+floor_texture = ExtResource("5_floor")
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Walk-in 5x4"
+footprint = Vector2i(5, 4)
+walk_in = SubResource("Resource_walk_in")

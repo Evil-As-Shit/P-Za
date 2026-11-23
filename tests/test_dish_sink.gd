@@ -27,7 +27,7 @@ func _start() -> void:
 	rack.patience_past_quote = 100000
 	_sink = world.get_node("Entities/DishSink")
 	_boards = _sink.get_dish_boards()
-	_dough = world.get_node("Entities/DoughRack")
+	_dough = dough_storage()
 	_empties = world.get_node("Entities/EmptyDishesTable")
 	_full_stock = _dough.get_stock()
 	# Three containers were used up: they're dirty at the sink, with room for them in storage.

@@ -35,9 +35,12 @@ func _ready() -> void:
 	_camera.position = _floor.cell_to_global(_floor.get_used_rect().get_center())
 	_walls.build(_floor)
 	_work.setup(_floor, _entities, _rack)
-	for child: Node in _entities.get_children():
-		if child is Station:
-			_setup_station(child as Station)
+	# Walk-ins first, so the stations inside them know they're in one.
+	for walk_ins_first: bool in [true, false]:
+		for child: Node in _entities.get_children():
+			var station := child as Station
+			if station != null and (station.data.walk_in != null) == walk_ins_first:
+				_setup_station(station)
 	var rng := RandomNumberGenerator.new()
 	for child: Node in _entities.get_children():
 		if child is Pawn:
@@ -98,6 +101,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_hud.toggle_priorities()
 	elif event.is_action_pressed(&"toggle_walls"):
 		_walls.cycle_view_mode()
+		for station: Station in _stations:
+			station.set_wall_view(_walls.view_mode)
 	elif event.is_action_pressed(&"toggle_pause"):
 		_clock.toggle_pause()
 	elif event.is_action_pressed(&"speed_1"):
@@ -117,12 +122,39 @@ func _unhandled_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
+## Puts a station to work: its cells (or a walk-in's walls) block pawns, and a walk-in's
+## floor is off limits to wandering. A station inside a walk-in can take roles that need
+## one; one outside loses them.
 func _setup_station(station: Station) -> void:
 	station.place(_floor)
-	for cell: Vector2i in station.get_footprint_cells():
+	station.set_wall_view(_walls.view_mode)
+	for cell: Vector2i in station.get_blocked_cells():
 		_floor.set_cell_blocked(cell, true)
+	_set_walls_up(station, true)
+	station.in_walk_in = _walk_in_around(station) != null
+	if station.role != null and station.role.needs_walk_in and not station.in_walk_in:
+		station.set_role(null)
 	_stations.append(station)
 	_work.add_station(station)
+
+
+## Puts a walk-in's walls up (or takes them down), and keeps wandering pawns off its floor.
+func _set_walls_up(station: Station, up: bool) -> void:
+	for edge: Vector4i in station.get_wall_edges():
+		_floor.set_edge_blocked(Vector2i(edge.x, edge.y), Vector2i(edge.z, edge.w), up)
+	if station.data.walk_in != null:
+		for cell: Vector2i in station.get_footprint_cells():
+			_floor.set_no_wander(cell, up)
+
+
+## The walk-in in use that the station stands inside, or null.
+func _walk_in_around(station: Station) -> Station:
+	if station.data.walk_in != null:
+		return null
+	for other: Station in _stations:
+		if station.get_footprint_cells().all(other.is_room_cell):
+			return other
+	return null
 
 
 #region Stations
@@ -137,15 +169,22 @@ func _set_build_mode(on: bool) -> void:
 ## A station was built, or put down after a move: it's in use again.
 func _on_station_built(station: Station) -> void:
 	_setup_station(station)
-	_work.reroute_around(station.get_footprint_cells())
+	# Pawns walking across a walk-in's footprint may now be walking through its walls.
+	var cells: Array[Vector2i] = station.get_blocked_cells()
+	if station.data.walk_in != null:
+		cells = station.get_footprint_cells()
+	_work.reroute_around(cells)
 	_work.assign_all()
 
 
 ## A station was picked up to move: nobody uses it until it's put down, and pawns using it
 ## stop (what's on it comes along).
 func _on_station_move_started(station: Station) -> void:
-	for cell: Vector2i in station.get_footprint_cells():
+	for cell: Vector2i in station.get_blocked_cells():
 		_floor.set_cell_blocked(cell, false)
+	_set_walls_up(station, false)
+	if station == _selected_station:
+		_select_station(null)
 	_stations.erase(station)
 	_work.remove_station(station)
 
@@ -197,6 +236,8 @@ func _select_station(station: Station) -> void:
 ## Pawns using the station stop: what they were fetching or bringing may not be stored there
 ## any more. Their jobs keep their progress and are offered again, under the new role.
 func _on_role_change_requested(station: Station, role: StationRole) -> void:
+	if role != null and not station.get_available_roles().has(role):
+		return
 	if role != station.role:
 		station.set_role(role)
 		_work.interrupt_jobs_at(station)

@@ -7,7 +7,7 @@ const BOXING := preload("res://resources/station_roles/boxing.tres")
 
 const STATIONS := [
 	"PrepTable", "BoxingTable", "PickupCounter", "EmptyDishesTable", "SmallOven", "Register",
-	"DoughRack",
+	"BoxRack",
 ]
 
 

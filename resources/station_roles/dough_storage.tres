@@ -8,3 +8,4 @@ script = ExtResource("1_role")
 id = &"dough_storage"
 display_name = "Dough"
 stores = ExtResource("2_kind")
+needs_walk_in = true

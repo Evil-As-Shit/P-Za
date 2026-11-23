@@ -57,6 +57,9 @@ extends Resource
 @export var built_in_storage: StorageLayout
 ## Makes the station a dish sink: drainboards for dirty and clean dishes, and basins.
 @export var dish_sink: DishSink
+## Makes the station a walk-in cooler: walls, a door and shelves, with open floor inside.
+## It has no art of its own and turns to any facing.
+@export var walk_in: WalkIn
 
 
 ## Rotates a map-grid offset by `facing` quarter turns.
@@ -89,6 +92,27 @@ func get_footprint_cells(origin: Vector2i, facing: int) -> Array[Vector2i]:
 		for y: int in footprint.y:
 			cells.append(origin + rotate_offset(Vector2i(x, y), facing))
 	return cells
+
+
+## Footprint cells pawns can't walk on: all of them, or none for a walk-in (its walls stand
+## on edges, see get_wall_edges()).
+func get_blocked_cells(origin: Vector2i, facing: int) -> Array[Vector2i]:
+	if walk_in == null:
+		return get_footprint_cells(origin, facing)
+	return []
+
+
+## A walk-in's walls on the map: each as (cell x, cell y, outside x, outside y), the two
+## cells it stands between. Empty for other stations.
+func get_wall_edges(origin: Vector2i, facing: int) -> Array[Vector4i]:
+	var edges: Array[Vector4i] = []
+	if walk_in == null:
+		return edges
+	for edge: Vector4i in walk_in.get_wall_edges(footprint):
+		var cell: Vector2i = origin + rotate_offset(Vector2i(edge.x, edge.y), facing)
+		var outside: Vector2i = origin + rotate_offset(Vector2i(edge.z, edge.w), facing)
+		edges.append(Vector4i(cell.x, cell.y, outside.x, outside.y))
+	return edges
 
 
 func get_work_cell(origin: Vector2i, facing: int, spot: int) -> Vector2i:
@@ -148,7 +172,7 @@ func can_rotate() -> bool:
 ## The facing whose art is drawn for `facing`: itself, or its mirror image (flipped, see
 ## is_mirrored()). -1 if there's no art for it.
 func get_art_facing(facing: int) -> int:
-	if _has_art(facing):
+	if walk_in != null or _has_art(facing):
 		return facing
 	if mirror_facings and _has_art(3 - facing):
 		return 3 - facing

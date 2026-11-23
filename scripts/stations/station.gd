@@ -34,6 +34,9 @@ const CANVAS_MARGIN: int = 16
 ## Assigned role, for stations that take one (see StationData.roles). Null means unused.
 @export var role: StationRole = null
 
+## True while it stands inside a walk-in (set by the owner when it's put to work).
+var in_walk_in: bool = false
+
 var _footprint: Array[Vector2i] = []
 var _item_positions: Array[Vector2] = []
 ## Floor-level depth (y) of each spot's work area, for drawing items back to front.
@@ -80,6 +83,8 @@ var _canvas: SubViewport = null
 var _canvas_origin := Vector2.ZERO
 ## A dish sink's drainboards (see StationData.dish_sink), or null.
 var _dish_boards: DishBoards = null
+## A walk-in's room, with its shelves (see StationData.walk_in), or null.
+var _room: WalkInRoom = null
 
 ## All the station's art and what's on it, in draw order. Positions are floor positions,
 ## also inside the canvas.
@@ -147,7 +152,8 @@ func place(shop_floor: ShopFloor) -> void:
 
 	# The footprint's middle, at the front (its parts sort on their own, see SORT_OFFSET).
 	global_position = Vector2(centroid.x, front_y + SORT_OFFSET)
-	if _footprint.size() == 1:
+	# A walk-in has no art of its own (its room's parts sort on their own), so no canvas.
+	if _footprint.size() == 1 or data.walk_in != null:
 		_layers.global_position = global_position
 	elif _canvas == null:
 		_make_canvas()
@@ -165,6 +171,7 @@ func place(shop_floor: ShopFloor) -> void:
 	_origin_center = shop_floor.cell_to_global(cell)
 	_build_piles(_placed)
 	_place_dish_boards()
+	_place_room()
 	_placed = true
 	_place_work_spot_markers()
 	# On the tabletop, over the middle of the footprint.
@@ -247,6 +254,47 @@ func get_work_cells() -> Array[Vector2i]:
 	for spot: int in get_spot_count():
 		cells.append(get_work_cell(spot))
 	return cells
+
+
+## Footprint cells pawns can't walk on (none for a walk-in: its floor is open).
+func get_blocked_cells() -> Array[Vector2i]:
+	return data.get_blocked_cells(cell, facing)
+
+
+## A walk-in's walls, each between two cells (see StationData.get_wall_edges()).
+func get_wall_edges() -> Array[Vector4i]:
+	return data.get_wall_edges(cell, facing)
+
+
+## True if this is a walk-in and `at` is on its floor.
+func is_room_cell(at: Vector2i) -> bool:
+	return data.walk_in != null and _footprint.has(at)
+
+
+## The roles the player can give it here: a role that needs a walk-in only inside one.
+func get_available_roles() -> Array[StationRole]:
+	var roles: Array[StationRole] = []
+	for each: StationRole in data.roles:
+		if in_walk_in or not each.needs_walk_in:
+			roles.append(each)
+	return roles
+
+
+## Draws a walk-in's walls to match the shop's (see ShopWalls.ViewMode).
+func set_wall_view(mode: ShopWalls.ViewMode) -> void:
+	if _room != null:
+		_room.set_view_mode(mode)
+
+
+func _place_room() -> void:
+	if data.walk_in == null:
+		return
+	if _room == null:
+		_room = WalkInRoom.new()
+		_room.name = "Room"
+		_room.walk_in = data.walk_in
+		add_child(_room)
+	_room.arrange(_floor, data.footprint, cell, facing)
 
 
 ## Shows the role name on the station (only for stations that take roles).

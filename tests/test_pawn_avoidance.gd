@@ -1,9 +1,9 @@
-﻿extends "res://tests/test_base.gd"
+extends "res://tests/test_base.gd"
 ## Two pawns walking head-on along the same row step aside and pass each other instead of
 ## overlapping, slow down while passing, and settle back to their paths once clear.
 
 const PAWN_SCENE := preload("res://scenes/pawns/pawn.tscn")
-const ROW: int = 11
+const ROW: int = 4
 
 var _a: Pawn
 var _b: Pawn

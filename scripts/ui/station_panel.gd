@@ -24,7 +24,7 @@ func show_station(p_station: Station) -> void:
 		_roles.remove_child(child)
 		child.queue_free()
 	var choices: Array[StationRole] = [null]
-	choices.append_array(station.data.roles)
+	choices.append_array(station.get_available_roles())
 	for choice: StationRole in choices:
 		var button := Button.new()
 		button.text = choice.display_name if choice != null else "None (unused)"

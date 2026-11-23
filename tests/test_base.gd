@@ -66,6 +66,15 @@ func stop_random_orders() -> void:
 	(world.get_node("OrderSource") as Node).process_mode = Node.PROCESS_MODE_DISABLED
 
 
+## The dough storage pawns take from and put back to first: the walk-in's first Dough shelf.
+func dough_storage() -> Station:
+	var dough: StorageKind = load("res://resources/storage_kinds/dough.tres")
+	for station: Station in work.get_stations():
+		if station.get_stored_kind() == dough:
+			return station
+	return null
+
+
 ## Prints an order of `count` pizzas (straight into Make) and returns its ticket.
 func order_pizzas(count: int) -> Ticket:
 	var recipes: Array[Recipe] = []

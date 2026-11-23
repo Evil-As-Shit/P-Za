@@ -12,3 +12,6 @@ extends Resource
 ## Set out in the station's side areas while it has this role (e.g. a Boxing table's pizza
 ## cutter), and taken away when the role changes.
 @export var side_items: Array[SideItem] = []
+## Only offered to a station standing inside a walk-in (e.g. Dough storage). One moved out
+## loses it.
+@export var needs_walk_in: bool = false
