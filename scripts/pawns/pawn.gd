@@ -112,6 +112,11 @@ func has_point(point: Vector2) -> bool:
 	return rect.has_point(to_local(point))
 
 
+## True while at the work spot, working the job.
+func is_working() -> bool:
+	return _state == State.WORKING
+
+
 func is_walking() -> bool:
 	return _state == State.WALKING or _state == State.WALKING_TO_STOP or _state == State.WALKING_TO_JOB
 
@@ -409,7 +414,7 @@ func _do_work(delta: float) -> void:
 	practice(work_type, delta / ShopClock.minutes_to_seconds(1.0))
 	var done: bool = _job.add_work(get_work_rate(work_type) * delta)
 	_update_work_bar()
-	work_progressed.emit(_job, _work_bar.value)
+	work_progressed.emit(_job, _job.get_progress())
 	if not done:
 		return
 	var job: Job = _job
@@ -420,8 +425,7 @@ func _do_work(delta: float) -> void:
 
 
 func _update_work_bar() -> void:
-	var required: float = _job.get_work_required()
-	_work_bar.value = 1.0 if required <= 0.0 else _job.work_done / required
+	_work_bar.value = _job.get_progress()
 
 
 func _face(direction: Vector2) -> void:

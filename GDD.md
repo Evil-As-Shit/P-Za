@@ -73,6 +73,7 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
   - Work: Prep (making pizzas), Boxing (boxes, unloading, cutting), Pickup (hand-off).
   - Storage: Boxes (folded), Flat Boxes, Dough (full dough containers), Empty Dough (empty containers). A box pallet holds Flat Boxes from the start.
   - Or unused. A station either works or stores. Ovens and the garbage can keep a fixed purpose.
+  - Changing a station's role stops the pawns using it (like picking it up); their jobs keep their progress and go elsewhere.
 - Each station type sets how each stored kind stacks on it (racks have shelf positions; tables stack on each spot).
 - For now, Flat Boxes and Dough storage start full and refill the moment they run out (until deliveries exist); Boxes storage starts empty and is filled only by folding, and Empty Dough storage clears the moment it fills (until there's a cleaning station).
 - Later zone work: storage priority (like RimWorld stockpiles), then painted front/back-of-house areas.

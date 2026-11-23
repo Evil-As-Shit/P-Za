@@ -38,8 +38,8 @@ func _step() -> void:
 		if rack.get_ticket_count() != 1:
 			fail("an order printed with no register to take it")
 			return
-		if finances._today.orders_missed != 1:
-			fail("missed orders is %d, expected 1" % finances._today.orders_missed)
+		if finances.get_today().orders_missed != 1:
+			fail("missed orders is %d, expected 1" % finances.get_today().orders_missed)
 			return
 		pass_test("order taken at the register by %s; with no register the customer left" % _taken_by.display_name)
 

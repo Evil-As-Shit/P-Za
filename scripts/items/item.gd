@@ -4,6 +4,9 @@ extends Node2D
 ## another item (e.g. a pizza in a box). Its node position is the center of its floor
 ## cell, or the surface it rests on.
 
+## Turned versions of item art (e.g. a box with its lid on the other edge).
+@export var rotated_art: RotatedArt
+
 ## Station it's sitting on, or null.
 var station: Station = null
 ## Which of the station's spots, or -1.
@@ -14,9 +17,6 @@ var container: Item = null
 var busy: bool = false
 ## Set if this is an ingredient container (e.g. a dough tub); its contents are the units.
 var ingredient: IngredientContainer = null
-
-## Turned versions of item art (e.g. a box with its lid on the other edge).
-@export var rotated_art: RotatedArt
 
 var _mirrored: bool = false
 ## True while shown with its turned art (see RotatedArt).

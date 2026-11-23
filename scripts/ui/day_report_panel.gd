@@ -1,7 +1,7 @@
 class_name DayReportPanel
 extends PanelContainer
-## End-of-day summary: orders, ticket times, reviews and the money in and out. Shown at closing
-## while the game is paused; Continue starts the next day.
+## End-of-day summary: orders, ticket times, reviews and the money in and out. Shown at
+## closing while the game is paused; Continue starts the next day.
 
 signal continue_requested
 

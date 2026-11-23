@@ -92,10 +92,10 @@ func get_finished_count() -> int:
 
 ## What the customer pays for the whole order.
 func get_price() -> float:
-	var price: float = 0.0
+	var recipes: Array[Recipe] = []
 	for order_item: OrderItem in order_items:
-		price += order_item.recipe.price
-	return price
+		recipes.append(order_item.recipe)
+	return Recipe.get_total_price(recipes)
 
 
 ## Shop minutes since it printed.

@@ -3,8 +3,6 @@ extends RefCounted
 ## One step of an order, claimed and worked by a single pawn at one station.
 ## Progress is kept if the job is dropped and picked up again later.
 
-signal completed
-
 var task_type: TaskType
 var ticket: Ticket
 ## The order item the job works on or moves (e.g. one pizza). For a hand-off, the stack's
@@ -63,7 +61,10 @@ func add_work(amount: float) -> bool:
 	if is_complete():
 		return true
 	work_done += amount
-	if is_complete():
-		completed.emit()
-		return true
-	return false
+	return is_complete()
+
+
+## How far along the work is (0-1). Jobs that need no work are done.
+func get_progress() -> float:
+	var required: float = get_work_required()
+	return 1.0 if required <= 0.0 else minf(work_done / required, 1.0)

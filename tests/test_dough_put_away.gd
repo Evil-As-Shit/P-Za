@@ -15,7 +15,7 @@ func _start() -> void:
 	clock.set_speed(6)
 	rack.patience_minutes = 100000
 	_rack = world.get_node("Entities/DoughRack")
-	_start_stock = _rack._stock
+	_start_stock = _rack.get_stock()
 	order_pizzas(1)
 
 
@@ -49,7 +49,7 @@ func _bucket_put_away(expected: Array[int]) -> bool:
 	for item: Item in work.get_floor_items():
 		if item.ingredient != null:
 			return false
-	return _rack._stock == _start_stock and _rack.get_partial_stock() == expected
+	return _rack.get_stock() == _start_stock and _rack.get_partial_stock() == expected
 
 
 func _stretch_waiting() -> bool:

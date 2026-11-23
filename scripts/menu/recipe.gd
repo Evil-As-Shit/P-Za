@@ -12,6 +12,14 @@ extends Resource
 @export var stage_textures: Array[Texture2D] = []
 
 
+## What a customer pays for an order of `recipes` (one entry per item).
+static func get_total_price(recipes: Array[Recipe]) -> float:
+	var total: float = 0.0
+	for recipe: Recipe in recipes:
+		total += recipe.price
+	return total
+
+
 ## Look of the item once `steps_done` steps are finished.
 func get_stage_texture(steps_done: int) -> Texture2D:
 	if stage_textures.is_empty():

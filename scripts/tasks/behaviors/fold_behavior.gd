@@ -23,13 +23,13 @@ enum Part { FOLD, PUT_AWAY }
 ## There's supply to work, room for the result, and nobody doing it already.
 func is_needed(work: WorkManager) -> bool:
 	return (
-		not _is_under_way(work) and work.find_supply(supply) != null
+		not is_under_way(work) and work.find_supply(supply) != null
 		and work.find_room(stores) != null
 	)
 
 
 func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
-	if _is_under_way(work):
+	if is_under_way(work):
 		return false
 	var source: Station = work.find_supply(supply)
 	var destination: Station = work.find_room(stores)
@@ -101,11 +101,3 @@ func on_withdrawn(job: Job, work: WorkManager) -> void:
 		job.target.queue_free()
 	job.target = null
 	work.cancel_shop_job(job)
-
-
-## True if a pawn is folding or putting away right now.
-func _is_under_way(work: WorkManager) -> bool:
-	for job: Job in work.get_shop_jobs():
-		if job.task_type.get_behavior() == self:
-			return true
-	return false

@@ -67,9 +67,11 @@ func _add_cell_walls(cell: Vector2i, sides: Array[Side]) -> void:
 		_add(center, BACK_CORNER_ANCHOR, style.back_corner_short if back_short else style.back_corner)
 	else:
 		if back_left:
-			_add(center, SIDE_ANCHOR[Side.BACK_LEFT], style.back_left_short if back_short else style.back_left)
+			var piece: WallPiece = style.back_left_short if back_short else style.back_left
+			_add(center, SIDE_ANCHOR[Side.BACK_LEFT], piece)
 		if back_right:
-			_add(center, SIDE_ANCHOR[Side.BACK_RIGHT], style.back_right_short if back_short else style.back_right)
+			var piece: WallPiece = style.back_right_short if back_short else style.back_right
+			_add(center, SIDE_ANCHOR[Side.BACK_RIGHT], piece)
 
 	if front_left and front_right:
 		_add(center, FRONT_CORNER_ANCHOR, style.front_corner_short if front_short else style.front_corner)

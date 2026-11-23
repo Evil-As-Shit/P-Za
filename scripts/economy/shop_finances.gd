@@ -17,6 +17,11 @@ func _ready() -> void:
 	cash = starting_cash
 
 
+## Today's tally so far (wages and bills are added at closing).
+func get_today() -> DayReport:
+	return _today
+
+
 ## An order went out: `revenue` for `pizzas` items, `minutes` after it printed.
 func record_sale(revenue: float, pizzas: int, minutes: int) -> void:
 	_today.orders_served += 1

@@ -1,8 +1,8 @@
 class_name Hud
 extends CanvasLayer
 ## The on-screen panels: clock and cash, ticket rack, priorities, the selected station or
-## pawn, and the day report. Keeps them showing the shop's state, applies speed picks and ticket moves
-## directly, and passes the player's other requests up.
+## pawn, and the day report. Keeps them showing the shop's state, applies speed picks and
+## ticket moves directly, and passes the player's other requests up.
 
 signal priority_change_requested(pawn: Pawn, work_type: WorkType, priority: int)
 ## The player ticked (on) or unticked a pawn's Manager box.
@@ -101,10 +101,11 @@ func show_pawn(pawn: Pawn) -> void:
 	if pawn == null:
 		_pawn_panel.hide()
 	else:
-		var skill_types: Array[WorkType] = _work_types.duplicate()
+		# The grid's work types, plus Managing (the panel lists those with a skill).
+		var work_types: Array[WorkType] = _work_types.duplicate()
 		if _managing != null:
-			skill_types.append(_managing)
-		_pawn_panel.show_pawn(pawn, skill_types)
+			work_types.append(_managing)
+		_pawn_panel.show_pawn(pawn, work_types)
 
 
 ## The pawn shown in the pawn panel, or null.

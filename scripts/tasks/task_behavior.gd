@@ -23,6 +23,15 @@ func is_needed(_work: WorkManager) -> bool:
 	return false
 
 
+## True if a shop job of this behavior is under way (e.g. a pawn is folding a box), for
+## tasks only one pawn does at a time.
+func is_under_way(work: WorkManager) -> bool:
+	for job: Job in work.get_shop_jobs():
+		if job.task_type.get_behavior() == self:
+			return true
+	return false
+
+
 ## Gives the pawn the job if there's a spot they can reach (with any stops on the way).
 func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 	var carried: Item = get_carried(job)

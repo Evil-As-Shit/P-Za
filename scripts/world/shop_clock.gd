@@ -8,15 +8,15 @@ signal time_changed(day: int, minute_of_day: int)
 signal day_started(day: int)
 signal speed_changed(speed: int)
 
+## Game seconds per shop minute when no clock is running (a 30-minute, 12-hour day).
+const DEFAULT_SECONDS_PER_MINUTE: float = 2.5
+
 ## Real minutes one day lasts at 1x speed.
 @export var day_length_minutes: float = 30.0
 @export_range(0, 23) var open_hour: int = 10
 @export_range(1, 24) var close_hour: int = 22
 ## Game speeds the player can pick. 0 is paused.
 @export var speeds: Array[int] = [0, 1, 3, 6]
-
-## Game seconds per shop minute when no clock is running (a 30-minute, 12-hour day).
-const DEFAULT_SECONDS_PER_MINUTE: float = 2.5
 
 ## The clock in play, so durations given in shop minutes can be converted anywhere.
 static var _current: ShopClock = null
@@ -30,13 +30,13 @@ var _elapsed: float = 0.0
 var _last_minute: int = -1
 
 
+func _enter_tree() -> void:
+	_current = self
+
+
 func _ready() -> void:
 	set_speed(1)
 	day_started.emit(day)
-
-
-func _enter_tree() -> void:
-	_current = self
 
 
 func _exit_tree() -> void:

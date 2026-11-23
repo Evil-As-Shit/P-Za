@@ -256,7 +256,9 @@ func _try_jobs(pawn: Pawn, jobs: Array[Job], max_priority: int) -> bool:
 			if pawn.get_priority(work_type) != priority:
 				continue
 			for job: Job in jobs:
-				if job.task_type.work_type == work_type and job.task_type.get_behavior().try_start(pawn, job, self):
+				if job.task_type.work_type != work_type:
+					continue
+				if job.task_type.get_behavior().try_start(pawn, job, self):
 					return true
 	return false
 
@@ -635,7 +637,10 @@ func _on_pull_time(bake: Bake, pawn: Pawn, job: Job, timer: SceneTreeTimer) -> v
 	# The pawn may have been stopped meanwhile (and maybe come back on a new timer), and the
 	# item thrown out.
 	var item: Item = bake.item
-	if not is_instance_valid(item) or _pull_timers.get(item) != timer or _waiting_for.get(item) != pawn or pawn.get_job() != job:
+	if (
+		not is_instance_valid(item) or _pull_timers.get(item) != timer
+		or _waiting_for.get(item) != pawn or pawn.get_job() != job
+	):
 		return
 	_pull_timers.erase(item)
 	_waiting_for.erase(item)
@@ -712,15 +717,16 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	var spot: int = job.spot
 	_release(job)
 	if job.ticket != null:
+		# The rack moves the order on, which hands out work.
 		_rack.complete_job(job)
-	if task.opens_station and station != null and not _next_step_opens_station(job.order_item):
-		station.set_opened(spot, false)
 	else:
 		_shop_jobs.erase(job)
 		if not job.recipes.is_empty():
 			waiting_orders_changed.emit(get_waiting_orders().size())
 			order_taken.emit(job.recipes, job.placed_at, job.quoted_minutes)
 		assign_all()
+	if task.opens_station and station != null and not _next_step_opens_station(job.order_item):
+		station.set_opened(spot, false)
 	behavior.after_finished(job, self)
 	# A recipe step changes how the item looks (a baking pizza changes once it's done).
 	# Prep steps run alongside the others and don't.

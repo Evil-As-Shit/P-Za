@@ -135,7 +135,7 @@ func place(shop_floor: ShopFloor) -> void:
 	var mirrored: bool = data.is_mirrored(facing)
 	_art_corner = corner
 	_line_up(_sprite, data.get_texture(facing, _is_in_use()), left, bottom, mirrored)
-	_line_up(_cover, data.get_cover_texture(facing, _working.has(true)), left, bottom, mirrored)
+	_line_up(_cover, data.get_cover_texture(facing, is_working()), left, bottom, mirrored)
 	if _canvas != null:
 		_fit_canvas()
 	_art_top = bottom
@@ -195,7 +195,8 @@ func _place_work_spot_markers() -> void:
 		var side: Vector2i = get_pawn_side(spot)
 		marker.texture = WORK_SPOT_SHEET
 		marker.region_enabled = true
-		marker.region_rect = Rect2(Vector2(maxi(WORK_SPOT_SIDES.find(side), 0) * WORK_SPOT_FRAME.x, 0), WORK_SPOT_FRAME)
+		var frame: int = maxi(WORK_SPOT_SIDES.find(side), 0)
+		marker.region_rect = Rect2(Vector2(frame * WORK_SPOT_FRAME.x, 0), WORK_SPOT_FRAME)
 		marker.centered = false
 		marker.offset = -WORK_SPOT_CENTER
 		marker.visible = shown
@@ -292,6 +293,11 @@ func show_work(spot: int, progress: float) -> void:
 		_update_cover()
 
 
+## True while the station works an item on its own at any spot (e.g. baking).
+func is_working() -> bool:
+	return _working.has(true)
+
+
 func hide_work(spot: int) -> void:
 	_work_bars[spot].hide()
 	if _working[spot]:
@@ -301,7 +307,7 @@ func hide_work(spot: int) -> void:
 
 func _update_cover() -> void:
 	_line_up(
-		_cover, data.get_cover_texture(facing, _working.has(true)),
+		_cover, data.get_cover_texture(facing, is_working()),
 		_art_corner.x, _art_corner.y, data.is_mirrored(facing)
 	)
 
@@ -490,6 +496,11 @@ func get_storage_layout() -> StorageLayout:
 	return data.get_storage_layout(kind) if kind != null else null
 
 
+## Stored units (promised or not).
+func get_stock() -> int:
+	return _stock
+
+
 ## True if one unit of `kind` is in stock and not already promised to a pawn.
 func has_supply(kind: StorageKind) -> bool:
 	return kind != null and get_stored_kind() == kind and _stock - _stock_claimed > 0
@@ -563,9 +574,10 @@ func get_partial_stock() -> Array[int]:
 	return _partial.duplicate()
 
 
-## Lays out the piles for the stored kind. With `keep_stock` (after a move) the stock and
-## any places still promised to pawns stay; otherwise it starts full or empty (see
-## StorageLayout.starts_full) until there are deliveries.
+## Lays out the piles for the stored kind. With `keep_stock` (after a move) the stock stays;
+## otherwise it starts full or empty (see StorageLayout.starts_full) until there are
+## deliveries. Units and places promised to pawns stay promised until they hand them back
+## (a role change interrupts them, see world.gd).
 func _build_piles(keep_stock: bool = false) -> void:
 	for pile: Array in _pile_units:
 		for unit: Node2D in pile:
@@ -573,9 +585,6 @@ func _build_piles(keep_stock: bool = false) -> void:
 	_pile_units.clear()
 	var kept: int = _stock
 	_stock = 0
-	if not keep_stock:
-		_stock_claimed = 0
-		_room_claimed = 0
 	var layout: StorageLayout = get_storage_layout()
 	if layout == null:
 		return

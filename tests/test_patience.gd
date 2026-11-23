@@ -6,7 +6,6 @@ const PATIENCE: int = 8
 
 var _ticket: Ticket
 var _cancelled: bool = false
-var _cancelled_at: int = -1
 
 
 func _start() -> void:
@@ -22,7 +21,6 @@ func _start() -> void:
 
 func _on_cancelled(ticket: Ticket) -> void:
 	_cancelled = ticket == _ticket
-	_cancelled_at = frame
 
 
 func _step() -> void:
@@ -35,7 +33,7 @@ func _step() -> void:
 		if child is Item:
 			fail("a leftover item is still lying on the floor")
 			return
-	if finances._today.orders_missed != 1:
-		fail("missed orders is %d, expected 1" % finances._today.orders_missed)
+	if finances.get_today().orders_missed != 1:
+		fail("missed orders is %d, expected 1" % finances.get_today().orders_missed)
 		return
 	pass_test("cancelled after %d min, leftovers thrown out" % PATIENCE)

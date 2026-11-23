@@ -1,7 +1,7 @@
 class_name ClockPanel
 extends PanelContainer
-## HUD clock: day, time, cash, the shop's rating and speed buttons (pause, then each speed). Reports the
-## player's pick.
+## HUD clock: day, time, cash, the shop's rating and speed buttons (pause, then each
+## speed). Reports the player's pick.
 
 signal speed_requested(speed: int)
 

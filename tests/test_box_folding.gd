@@ -21,10 +21,10 @@ func _start() -> void:
 	clock.set_speed(6)
 	_rack = world.get_node("Entities/BoxRack")
 	_pallet = world.get_node("Entities/BoxPallet")
-	if _rack._stock != 0:
-		fail("box storage should start empty, has %d" % _rack._stock)
+	if _rack.get_stock() != 0:
+		fail("box storage should start empty, has %d" % _rack.get_stock())
 		return
-	if _pallet._stock == 0:
+	if _pallet.get_stock() == 0:
 		fail("the pallet should start with flat boxes")
 		return
 
@@ -73,7 +73,7 @@ func _step() -> void:
 	match _phase:
 		0:
 			# Folding ahead: box storage fills up from the pallet.
-			if _rack._stock < 16:
+			if _rack.get_stock() < 16:
 				return
 			if not _saw_fold_at_pallet or not _saw_put_away:
 				fail("boxes were stored without being folded at the pallet and carried over")

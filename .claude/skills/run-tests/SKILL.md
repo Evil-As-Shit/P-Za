@@ -14,7 +14,7 @@ Always use the project's runner; don't call Godot on tests by hand unless debugg
 ```
 
 - **Always pass `-Quiet`** unless the user wants to see every passing test. Passing lines are noise.
-- **Pick the smallest set that covers the change.** Filter by name (it matches part of the file name, e.g. `oven` → `test_pizza_oven.gd`). Test names follow the system they cover: `register`, `prep_table`, `pizza_oven`, `box_folding`, `dough_put_away`, `patience`, `pawn_avoidance`, `build_mode`, `camera`, `multi_order`, `single_order`, `empty_bucket`, `move_busy`, `station_in_the_way`, `visual_draw_order`.
+- **Pick the smallest set that covers the change.** Filter by name (it matches part of the file name, e.g. `oven` → `test_pizza_oven.gd`). Test names follow the system they cover: `register`, `manager`, `reviews`, `prep_table`, `pizza_oven`, `doneness`, `box_folding`, `dough_put_away`, `empty_bucket`, `patience`, `skills`, `pawn_panel`, `priority_skill_refresh`, `pawn_avoidance`, `build_mode`, `move_busy`, `role_change`, `station_in_the_way`, `camera`, `multi_order`, `single_order`, `full_day`, `visual_draw_order`.
 - **Run the full suite** before saying a feature is done, or when a change touches shared code (work manager, pawns, tickets, world). It takes about 20 seconds (most of it `test_visual_draw_order`), so run it in the foreground. Use `run_in_background` only if it starts taking minutes.
 - `test_full_day` is the smoke test: a whole simulated shop day. It catches stalls and deadlocks. Treat its served/missed numbers as information, not a target (the user isn't tuning balance yet).
 - `test_visual_*` tests open a window to check rendered pixels; the runner handles that. They can fail if the machine has no display.

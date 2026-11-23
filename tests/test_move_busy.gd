@@ -40,7 +40,7 @@ func _step() -> void:
 	# The box rack, while a pawn is folding a box for it (its room is set aside).
 	var box_rack: Station = world.get_node("Entities/BoxRack")
 	if not _moved_rack and box_rack._room_claimed > 0:
-		_rack_stock = box_rack._stock
+		_rack_stock = box_rack.get_stock()
 		_pick_up(box_rack)
 		if box_rack._room_claimed != 0:
 			fail("the interrupted folder's room on the rack wasn't handed back")
@@ -48,17 +48,15 @@ func _step() -> void:
 	match _phase:
 		0:
 			# A prep table with a pizza on it and a pawn working there.
-			for path: String in ["Entities/PrepTable"]:
-				var prep: Station = world.get_node(path)
-				if prep.has_items() and _pawn_working_at(prep) != null:
-					_pick_up(prep)
-					_phase = 1
-					return
+			var prep: Station = world.get_node("Entities/PrepTable")
+			if prep.has_items() and _pawn_working_at(prep) != null:
+				_pick_up(prep)
+				_phase = 1
 		1:
 			# An oven baking.
 			for path: String in ["Entities/SmallOven", "Entities/SmallOven2"]:
 				var oven: Station = world.get_node(path)
-				if oven._working.has(true):
+				if oven.is_working():
 					_pick_up(oven)
 					_phase = 2
 					return
@@ -100,8 +98,8 @@ func _while_held() -> void:
 		_moved_prep = true
 	elif _held.name == "BoxRack":
 		_moved_rack = true
-		if _held._stock != _rack_stock:
-			fail("the rack had %d boxes before the move and %d after" % [_rack_stock, _held._stock])
+		if _held.get_stock() != _rack_stock:
+			fail("the rack had %d boxes before the move and %d after" % [_rack_stock, _held.get_stock()])
 			return
 	else:
 		_moved_oven = true
@@ -125,7 +123,7 @@ func _put_down_elsewhere(from: Vector2i) -> bool:
 func _pawn_working_at(station: Station) -> Pawn:
 	for pawn: Pawn in work.get_pawns():
 		var job: Job = pawn.get_job()
-		if job != null and job.station == station and pawn._state == Pawn.State.WORKING:
+		if job != null and job.station == station and pawn.is_working():
 			return pawn
 	return null
 

@@ -72,8 +72,10 @@ func _on_rating_changed(rating: float) -> void:
 	if _reviewed:
 		return
 	_reviewed = true
+	# The rating itself is checked against the review's stars below (a 3-star review leaves
+	# 3.0 where it is).
 	var orders: OrderSource = world.get_node("OrderSource")
-	if is_equal_approx(rating, 3.0) or not is_equal_approx(orders.demand_multiplier, rating / 3.0):
+	if not is_equal_approx(orders.demand_multiplier, rating / 3.0):
 		fail("after a review the rating is %.2f and demand %.2fx" % [rating, orders.demand_multiplier])
 		return
 	var label: Label = world.get_node("Hud/ClockPanel").get_node("%Rating")
@@ -94,6 +96,11 @@ func _step() -> void:
 	var report: DayReport = panel.report
 	if report == null or report.review_stars.size() != 1 or not is_equal_approx(report.rating, rating):
 		fail("the day report doesn't show today's one review")
+		return
+	var expected: float = _rules.next_rating(_rules.starting_rating, report.review_stars[0])
+	if not is_equal_approx(rating, expected):
+		fail("a %d-star review moved the rating to %.2f, expected %.2f" % [
+			report.review_stars[0], rating, expected])
 		return
 	pass_test("synthetic reviews scored as expected; a real order got %d stars (rating %.2f, demand %.2fx)" % [report.review_stars[0], rating, rating / 3.0])
 

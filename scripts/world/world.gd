@@ -1,9 +1,9 @@
 extends Node2D
 ## The shop. Sets up the floor, stations and staff, and connects the systems: the manager
 ## quotes each order (no orders come in without one), orders are taken at the register and
-## print tickets, the WorkManager has pawns work them, finished orders are paid for, late ones are
-## cancelled, customers review each order (the rating scales demand), and each day closes
-## with a report. Also handles the player's input.
+## print tickets, the WorkManager has pawns work them, finished orders are paid for, late
+## ones are cancelled, customers review each order (the rating scales demand), and each day
+## closes with a report. Also handles the player's input.
 
 ## Recipe printed by the debug hotkey (J).
 @export var debug_recipe: Recipe
@@ -48,7 +48,6 @@ func _ready() -> void:
 
 	_rack.jobs_changed.connect(_work.assign_all)
 	_rack.job_withdrawn.connect(_work.withdraw_job)
-	_rack.ticket_completed.connect(_on_ticket_completed)
 	_rack.ticket_cancelled.connect(_on_ticket_cancelled)
 	_work.order_ready.connect(_on_order_ready)
 	_work.ingredients_used.connect(_finances.record_ingredients)
@@ -193,8 +192,13 @@ func _select_station(station: Station) -> void:
 	_hud.show_station(station)
 
 
+## Pawns using the station stop: what they were fetching or bringing may not be stored there
+## any more. Their jobs keep their progress and are offered again, under the new role.
 func _on_role_change_requested(station: Station, role: StationRole) -> void:
-	station.set_role(role)
+	if role != station.role:
+		station.set_role(role)
+		_work.interrupt_jobs_at(station)
+	# Refreshed even when unchanged, so the picked role's button stays pressed.
 	if station == _selected_station:
 		_hud.show_station(station)
 	_work.assign_all()
@@ -260,10 +264,6 @@ func _send_out(ticket: Ticket) -> void:
 	_rack.send_out(ticket)
 
 
-func _on_ticket_completed(ticket: Ticket) -> void:
-	print("Ticket %s complete" % ticket.get_title())
-
-
 ## The customer gave up: the sale is lost and whatever was made for it is thrown out.
 func _on_ticket_cancelled(ticket: Ticket) -> void:
 	_finances.record_missed(ticket.get_price())
@@ -287,11 +287,8 @@ func _on_time_changed(_day: int, _minute: int) -> void:
 	# Customers still waiting at the register give up after the same patience.
 	for job: Job in _work.get_waiting_orders():
 		if _rack.now_minutes - job.placed_at >= _rack.patience_minutes:
-			var price: float = 0.0
-			for recipe: Recipe in job.recipes:
-				price += recipe.price
 			_work.drop_order(job)
-			_finances.record_missed(price)
+			_finances.record_missed(Recipe.get_total_price(job.recipes))
 			_reputation.review_left(true)
 	_hud.update_ticket_times()
 

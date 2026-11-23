@@ -1,8 +1,8 @@
 extends "res://tests/test_base.gd"
 ## The prep table: a 3x2 Prep station with three spots along its cutting board. Its lids
 ## open while a pizza there gets its ingredients (from the start of sauce to the end of
-## cheese, without closing in between) and close after, not while dough is stretched. Pizzas are made on
-## it, and an order of three goes out.
+## cheese, without closing in between) and close after, not while dough is stretched.
+## Pizzas are made on it, and an order of three goes out.
 
 var _table: Station
 var _closed: Texture2D
@@ -37,7 +37,7 @@ func _step() -> void:
 	for pawn: Pawn in work.get_pawns():
 		var job: Job = pawn.get_job()
 		if job != null and job.station == _table and job.task_type.opens_station \
-				and pawn._state == Pawn.State.WORKING:
+				and pawn.is_working():
 			topping = true
 	# A pizza on the table between two ingredient steps (sauced, waiting for cheese).
 	for order_item: OrderItem in _ticket.order_items:
@@ -48,6 +48,8 @@ func _step() -> void:
 			topping = true
 	var expected: Texture2D = _open if topping else _closed
 	if _table._sprite.texture != expected:
+		# Rare failure (about 1 run in 500): say what was going on, to track it down.
+		_print_state()
 		fail("the lids are %s while %s" % [
 			"open" if _table._sprite.texture == _open else "closed",
 			"a pizza is getting its ingredients" if topping else "no pizza is getting ingredients"])
@@ -57,6 +59,24 @@ func _step() -> void:
 	for spot: int in _table.get_spot_count():
 		if _table.get_item(spot) != null:
 			_spots_used[spot] = true
+
+
+## Prints the table's spots, the order's pizzas and each pawn's job.
+func _print_state() -> void:
+	print("  table opened %s" % [_table._opened])
+	for spot: int in _table.get_spot_count():
+		print("  spot %d: %s, reserved %s" % [spot, _table.get_item(spot), _table.is_reserved(spot)])
+	for order_item: OrderItem in _ticket.order_items:
+		var job: Job = order_item.current_job
+		print("  pizza at step %d (%s), on %s spot %d" % [
+			order_item.step_index, job.task_type.id if job != null else &"done",
+			order_item.item.station if order_item.item != null else null,
+			order_item.item.spot if order_item.item != null else -1])
+	for pawn: Pawn in work.get_pawns():
+		var job: Job = pawn.get_job()
+		if job != null:
+			print("  %s: %s at %s spot %d, working %s" % [
+				pawn.display_name, job.task_type.id, job.station, job.spot, pawn.is_working()])
 
 
 func _on_completed(ticket: Ticket) -> void:

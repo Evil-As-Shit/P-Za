@@ -4,11 +4,14 @@ extends "res://tests/test_base.gd"
 ## 0, 0.5 at level 10 and none at 20: too early is under (taken out mid-bake), too late is
 ## over. Left in the oven with nobody to take it out, it burns.
 
-const OVEN := preload("res://resources/work_types/oven.tres")
-var _rules: DonenessRules = preload("res://resources/tasks/bake_doneness.tres")
-
 enum Phase { PERFECT, UNDER, OVER }
 
+const OVEN := preload("res://resources/work_types/oven.tres")
+const UNDER := DonenessRules.Doneness.UNDER
+const PERFECT := DonenessRules.Doneness.PERFECT
+const OVER := DonenessRules.Doneness.OVER
+
+var _rules: DonenessRules = preload("res://resources/tasks/bake_doneness.tres")
 var _phase: Phase = Phase.PERFECT
 var _ticket: Ticket
 ## Each pawn's Oven priority (by pawn order) while it's turned off. Not keyed by pawn: a
@@ -20,8 +23,7 @@ var _ordered_at: int = 0
 func _start() -> void:
 	stop_random_orders()
 	var skill_rules: SkillRules = work.get_pawns()[0].skill_rules
-	var D := DonenessRules.Doneness
-	for check: Array in [[-0.1, D.UNDER], [0.0, D.PERFECT], [1.0, D.PERFECT], [1.1, D.OVER]]:
+	for check: Array in [[-0.1, UNDER], [0.0, PERFECT], [1.0, PERFECT], [1.1, OVER]]:
 		if _rules.judge(check[0]) != check[1]:
 			fail("taken out %.1f min after done judged %d, expected %d" % [check[0], _rules.judge(check[0]), check[1]])
 			return

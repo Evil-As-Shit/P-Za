@@ -13,7 +13,7 @@ extends TaskBehavior
 ## An empty one left out (if the pawn who emptied it couldn't carry it off) goes to storage
 ## for empties instead, whenever there's room.
 func is_needed(work: WorkManager) -> bool:
-	if _is_under_way(work):
+	if is_under_way(work):
 		return false
 	var container: Item = _find_idle_container(work)
 	return container != null and _find_storage(container, work) != null
@@ -31,7 +31,7 @@ func get_spots(job: Job, _work: WorkManager) -> Array[WorkSpot]:
 
 
 func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
-	if _is_under_way(work):
+	if is_under_way(work):
 		return false
 	var container: Item = _find_idle_container(work)
 	if container == null:
@@ -106,8 +106,9 @@ func _find_idle_container(work: WorkManager) -> Item:
 
 ## Storage with room for it: for empties if it's empty, for full ones otherwise.
 func _find_storage(container: Item, work: WorkManager) -> Station:
-	var kind: StorageKind = ingredient.empty_kind if container.get_units().is_empty() else ingredient.full_kind
-	return work.find_room(kind)
+	if container.get_units().is_empty():
+		return work.find_room(ingredient.empty_kind)
+	return work.find_room(ingredient.full_kind)
 
 
 ## True if a pizza in Make still needs this ingredient's step, or a pawn is doing it.
@@ -127,10 +128,3 @@ func _is_wanted(work: WorkManager) -> bool:
 func _uses_ingredient(job: Job) -> bool:
 	var behavior: TaskBehavior = job.task_type.get_behavior()
 	return behavior is IngredientBehavior and (behavior as IngredientBehavior).ingredient == ingredient
-
-
-func _is_under_way(work: WorkManager) -> bool:
-	for job: Job in work.get_shop_jobs():
-		if job.task_type.get_behavior() == self:
-			return true
-	return false
