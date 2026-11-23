@@ -24,6 +24,8 @@ const ORIGIN := Vector2i(5, 5)
 const RING: int = 2
 ## Probe frame: the cell's center is this far from its top-left corner.
 const PROBE_CENTER := Vector2(19, 56)
+## Real seconds before the test gives up (rendering can stall, e.g. with no frames drawn).
+const TIMEOUT_SECONDS: float = 90.0
 
 var _view: SubViewport
 var _floor: ShopFloor
@@ -61,6 +63,14 @@ func _initialize() -> void:
 	probe_sprite.offset = -PROBE_CENTER
 	_probe.add_child(probe_sprite)
 	_run.call_deferred()
+
+
+## Gives up if the frames it waits for never come, so a stall fails instead of hanging.
+func _process(_delta: float) -> bool:
+	if Time.get_ticks_msec() / 1000.0 > TIMEOUT_SECONDS:
+		print("FAIL timed out after %d s waiting for frames to draw" % TIMEOUT_SECONDS)
+		quit(1)
+	return false
 
 
 func _run() -> void:
