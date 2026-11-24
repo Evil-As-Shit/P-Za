@@ -1,7 +1,8 @@
 extends "res://tests/test_base.gd"
 ## Reviews: every customer reviews their order (1-5 stars, minus a star or two for each
-## problem), customers who leave give 1 star, the rating leans toward recent reviews and
-## scales demand, and the day report lists today's reviews.
+## problem), customers who leave give 1 star, the rating leans toward recent reviews, each
+## review grows or shrinks popularity, both scale demand, and the day report lists today's
+## reviews.
 
 var _reputation: ShopReputation
 var _rules: ReviewRules
@@ -16,8 +17,12 @@ func _start() -> void:
 	stop_random_orders()
 	_reputation = world.get_node("ShopReputation")
 	_rules = _reputation.rules
-	if not is_equal_approx(_reputation.rating, 1.0):
-		fail("the rating starts at %.2f, expected 1.0" % _reputation.rating)
+	if not is_equal_approx(_reputation.rating, 3.0) or not is_zero_approx(_reputation.popularity):
+		fail("the shop starts at rating %.2f, popularity %.1f; expected 3.0 and 0" % [
+			_reputation.rating, _reputation.popularity])
+		return
+	if not is_equal_approx(_reputation.get_demand_multiplier(), 1.0 / 3.0):
+		fail("a new shop gets %.2fx demand, expected a third" % _reputation.get_demand_multiplier())
 		return
 
 	# Quoted 10 min, perfect pizzas: 5 stars at 8 min, 4 at 15 (late), 2 at 25 (very late
@@ -57,8 +62,19 @@ func _start() -> void:
 	if not is_equal_approx(_rules.next_rating(3.0, 5), 3.1):
 		fail("a 5-star review moved 3.0 to %.3f, expected 3.1" % _rules.next_rating(3.0, 5))
 		return
-	if not is_equal_approx(_rules.demand_multiplier(4.5), 1.5):
-		fail("rating 4.5 gives %.2fx demand, expected 1.5x" % _rules.demand_multiplier(4.5))
+	if not is_equal_approx(_rules.demand_multiplier(4.5, 100.0), 1.5):
+		fail("rating 4.5 gives %.2fx demand, expected 1.5x" % _rules.demand_multiplier(4.5, 100.0))
+		return
+
+	# Popularity: -2..+2 per review by stars, kept within 0..100; it sets the share of full
+	# demand from a third at 0 up to all of it at 100.
+	for check: Array in [[50.0, 5, 52.0], [50.0, 3, 50.0], [50.0, 1, 48.0], [0.0, 1, 0.0], [99.0, 5, 100.0]]:
+		var next: float = _rules.next_popularity(check[0], check[1])
+		if not is_equal_approx(next, check[2]):
+			fail("a %d-star review moved popularity %.0f to %.1f, expected %.0f" % [check[1], check[0], next, check[2]])
+			return
+	if not is_equal_approx(_rules.demand_multiplier(3.0, 50.0), 2.0 / 3.0):
+		fail("half popularity gives %.2fx demand, expected 0.67x" % _rules.demand_multiplier(3.0, 50.0))
 		return
 
 	# A real order: going out leaves a review, which moves the rating and demand.
@@ -77,12 +93,17 @@ func _on_rating_changed(rating: float) -> void:
 	_reviewed = true
 	# The rating itself is checked against the review's stars and food quality below.
 	var orders: OrderSource = world.get_node("OrderSource")
-	if not is_equal_approx(orders.demand_multiplier, rating / 3.0):
+	var expected_demand: float = _rules.demand_multiplier(rating, _reputation.popularity)
+	if not is_equal_approx(orders.demand_multiplier, expected_demand):
 		fail("after a review the rating is %.2f and demand %.2fx" % [rating, orders.demand_multiplier])
 		return
 	var label: Label = world.get_node("Hud/ClockPanel").get_node("%Rating")
 	if label.text != "%.1f/5" % rating:
 		fail("the HUD shows rating '%s', expected %.1f/5" % [label.text, rating])
+		return
+	var pop_label: Label = world.get_node("Hud/ClockPanel").get_node("%Popularity")
+	if pop_label.text != "Pop %d/100" % roundi(_reputation.popularity):
+		fail("the HUD shows popularity '%s' at %.1f" % [pop_label.text, _reputation.popularity])
 		return
 	_rating_after = rating
 
@@ -106,7 +127,13 @@ func _step() -> void:
 		fail("a %d-star review moved the rating to %.2f, expected %.2f" % [
 			report.review_stars[0], rating, expected])
 		return
-	pass_test("synthetic reviews scored as expected; a real order got %d stars (rating %.2f, demand %.2fx)" % [report.review_stars[0], rating, rating / 3.0])
+	var expected_pop: float = _rules.next_popularity(_rules.starting_popularity, report.review_stars[0])
+	if not is_equal_approx(report.popularity, expected_pop):
+		fail("a %d-star review left popularity %.1f, expected %.1f" % [
+			report.review_stars[0], report.popularity, expected_pop])
+		return
+	pass_test("synthetic reviews scored as expected; a real order got %d stars (rating %.2f, popularity %.0f, demand %.2fx)" % [
+		report.review_stars[0], rating, report.popularity, _reputation.get_demand_multiplier()])
 
 
 func _make_ticket(doneness: Array[DonenessRules.Doneness]) -> Ticket:

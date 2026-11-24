@@ -1,6 +1,6 @@
 class_name ClockPanel
 extends PanelContainer
-## HUD clock: weekday and day, time, cash, the shop's rating, a RUSH tag while rushing, and
+## HUD clock: weekday and day, time, cash, the shop's rating and popularity, a RUSH tag while rushing, and
 ## speed buttons (pause, then each speed). Reports the player's picks.
 
 signal speed_requested(speed: int)
@@ -11,6 +11,7 @@ const NEGATIVE_COLOR := Color(1.0, 0.45, 0.4)
 @onready var _time: Label = %Time
 @onready var _cash: Label = %Cash
 @onready var _rating: Label = %Rating
+@onready var _popularity: Label = %Popularity
 @onready var _rush: Label = %Rush
 @onready var _buttons: HBoxContainer = %SpeedButtons
 
@@ -46,6 +47,11 @@ func show_cash(cash: float) -> void:
 ## The shop's rating out of 5 stars.
 func show_rating(rating: float) -> void:
 	_rating.text = "%.1f/5" % rating
+
+
+## How well known the shop is, out of `max_popularity`.
+func show_popularity(popularity: float, max_popularity: float) -> void:
+	_popularity.text = "Pop %d/%d" % [roundi(popularity), roundi(max_popularity)]
 
 
 ## Shows the RUSH tag while the shop is rushing.

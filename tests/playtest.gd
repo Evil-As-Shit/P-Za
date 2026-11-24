@@ -222,9 +222,9 @@ func _step() -> void:
 		report.orders_served, report.pizzas_served, report.orders_missed, _turned_away,
 		gave_up_at_register, _cancelled, report.orders_open,
 	])
-	print("  avg ticket %.1f min, longest %d | stars %.2f, rating %.2f | sales %s supplies %s wages %s bills %s profit %s cash %s" % [
+	print("  avg ticket %.1f min, longest %d | stars %.2f, rating %.2f, popularity %.0f | sales %s supplies %s wages %s bills %s profit %s cash %s" % [
 		report.get_average_minutes(), report.get_longest_minutes(), report.get_average_stars(),
-		report.rating, ShopFinances.format_money(report.revenue),
+		report.rating, report.popularity, ShopFinances.format_money(report.revenue),
 		ShopFinances.format_money(report.supplies), ShopFinances.format_money(report.wages),
 		ShopFinances.format_money(report.get_bills_total()),
 		ShopFinances.format_money(report.get_profit()), ShopFinances.format_money(report.cash_after),

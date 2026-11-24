@@ -213,6 +213,10 @@ func show_rating(rating: float) -> void:
 	_clock_panel.show_rating(rating)
 
 
+func show_popularity(popularity: float, max_popularity: float) -> void:
+	_clock_panel.show_popularity(popularity, max_popularity)
+
+
 func show_rush(rushing: bool) -> void:
 	_clock_panel.show_rush(rushing)
 

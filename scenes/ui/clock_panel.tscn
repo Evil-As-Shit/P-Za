@@ -49,6 +49,13 @@ mouse_filter = 1
 text = "3.0/5"
 horizontal_alignment = 2
 
+[node name="Popularity" type="Label" parent="Margin/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Popularity (how well known the shop is; good reviews grow it, bad ones shrink it)"
+mouse_filter = 1
+text = "Pop 0/100"
+
 [node name="Rush" type="Label" parent="Margin/Row"]
 unique_name_in_owner = true
 visible = false

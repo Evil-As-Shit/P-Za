@@ -30,6 +30,8 @@ var complaints: Dictionary[String, int] = {}
 var compliments: Dictionary[String, int] = {}
 ## The shop's rating at closing.
 var rating: float = 0.0
+## The shop's popularity at closing.
+var popularity: float = 0.0
 
 
 func get_average_stars() -> float:

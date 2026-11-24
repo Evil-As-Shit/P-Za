@@ -1,7 +1,7 @@
 class_name ReviewRules
 extends Resource
-## How customers review an order, how reviews move the shop's rating, and how the rating
-## scales demand. A review starts at the top and loses stars for each problem; customers
+## How customers review an order, how reviews move the shop's rating and popularity, and how
+## those scale demand. A review starts at the top and loses stars for each problem; customers
 ## who leave without their food give the lowest. All numbers are placeholders.
 
 @export var max_stars: int = 5
@@ -52,6 +52,15 @@ extends Resource
 @export_range(0.0, 1.0) var review_weight: float = 0.05
 ## Rating at which orders come at the normal rate; demand scales with rating / this.
 @export var normal_rating: float = 3.0
+
+@export_group("Popularity")
+## How well known the shop is, from 0 (new) to `max_popularity`. Word of mouth: each review
+## moves it by `popularity_per_star[stars - 1]`, so good reviews grow it and bad ones shrink it.
+@export var starting_popularity: float = 0.0
+@export var max_popularity: float = 100.0
+@export var popularity_per_star: Array[float] = [-2.0, -1.0, 0.0, 1.0, 2.0]
+## Share of the normal order rate an unknown shop (0 popularity) gets; full popularity gets all.
+@export_range(0.0, 1.0) var popularity_floor: float = 1.0 / 3.0
 
 
 ## The review for an order that was ready `ticket.get_age(now_minutes)` after ordering (the
@@ -123,6 +132,18 @@ func next_rating_for_quality(rating: float, tier: int) -> float:
 	return lerpf(rating, float(tier_stars[tier]), quality_weight)
 
 
-## How many times the normal order rate a shop with `rating` gets.
-func demand_multiplier(rating: float) -> float:
-	return rating / normal_rating if normal_rating > 0.0 else 1.0
+## The popularity after a review of `stars`.
+func next_popularity(popularity: float, stars: int) -> float:
+	var index: int = stars - 1
+	if index < 0 or index >= popularity_per_star.size():
+		return popularity
+	return clampf(popularity + popularity_per_star[index], 0.0, max_popularity)
+
+
+## How many times the normal order rate a shop with `rating` and `popularity` gets: the
+## popularity sets the share of full demand (from `popularity_floor` up), and the rating
+## scales it by rating / `normal_rating`.
+func demand_multiplier(rating: float, popularity: float) -> float:
+	var known: float = clampf(popularity / max_popularity, 0.0, 1.0) if max_popularity > 0.0 else 1.0
+	var by_rating: float = rating / normal_rating if normal_rating > 0.0 else 1.0
+	return lerpf(popularity_floor, 1.0, known) * by_rating

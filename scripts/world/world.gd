@@ -99,6 +99,8 @@ func _ready() -> void:
 	_hud.setup_social(_social)
 	_reputation.rating_changed.connect(_on_rating_changed)
 	_on_rating_changed(_reputation.rating)
+	_reputation.popularity_changed.connect(_on_popularity_changed)
+	_on_popularity_changed(_reputation.popularity)
 
 	# The day runs from the first shift (or prep) to the last (or closing). Staff not on
 	# shift as it starts are at home.
@@ -430,10 +432,15 @@ func _on_ticket_cancelled(ticket: Ticket) -> void:
 	_lobby.ticket_done(ticket)
 
 
-## Reviews move the rating, and the rating scales how often orders come in.
+## Reviews move the rating and popularity, which scale how often orders come in.
 func _on_rating_changed(rating: float) -> void:
 	_orders.demand_multiplier = _reputation.get_demand_multiplier()
 	_hud.show_rating(rating)
+
+
+func _on_popularity_changed(popularity: float) -> void:
+	_orders.demand_multiplier = _reputation.get_demand_multiplier()
+	_hud.show_popularity(popularity, _reputation.rules.max_popularity)
 
 #endregion
 

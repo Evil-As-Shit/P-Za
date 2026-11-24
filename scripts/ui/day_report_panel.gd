@@ -71,6 +71,7 @@ func _add_reviews() -> void:
 			"Reviews", "%d (average %.1f/5)" % [report.review_stars.size(), report.get_average_stars()]
 		)
 	_add_line("Shop rating", "%.1f/5" % report.rating)
+	_add_line("Popularity", "%d" % roundi(report.popularity))
 	for text: String in DayReport.get_top(report.complaints, TOP_COUNT):
 		_add_line("  " + text, "×%d" % report.complaints[text], "", BAD)
 	for text: String in DayReport.get_top(report.compliments, TOP_COUNT):
