@@ -251,7 +251,9 @@ ExtResource("19_hauling"): 3
 [node name="Pawn2" parent="Entities" instance=ExtResource("3_pawn")]
 display_name = "Pawn 2"
 priorities = Dictionary[ExtResource("15_work_type"), int]({
-ExtResource("17_oven"): 2,
+ExtResource("16_dough"): 2,
+ExtResource("16_pizza_making"): 2,
+ExtResource("17_oven"): 1,
 ExtResource("18_cutting"): 1,
 ExtResource("18_folding"): 1,
 ExtResource("19_cashier"): 1,
@@ -273,6 +275,9 @@ ExtResource("19_hauling"): 3
 [node name="Pawn4" parent="Entities" instance=ExtResource("3_pawn")]
 display_name = "Pawn 4"
 priorities = Dictionary[ExtResource("15_work_type"), int]({
+ExtResource("17_oven"): 1,
+ExtResource("18_cutting"): 2,
+ExtResource("18_folding"): 3,
 ExtResource("19_cashier"): 1,
 ExtResource("65_cleaning"): 2,
 ExtResource("19_hauling"): 1
@@ -309,6 +314,7 @@ script = ExtResource("26_clock")
 [node name="OrderSource" type="Node" parent="."]
 script = ExtResource("28_orders")
 menu = Array[ExtResource("29_recipe")]([ExtResource("8_pizza")])
+base_interval_minutes = 15.0
 
 [node name="ShopFinances" type="Node" parent="."]
 script = ExtResource("36_finances")

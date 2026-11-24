@@ -27,6 +27,10 @@ var _clean_rack: Station
 var _dough_rack: Station
 var _phase: int = 0
 var _since: int = 0
+## Cases of each supply Wednesday's delivery brought.
+var _ordered: Dictionary[SupplyItem, int] = {}
+## Sauce the bulk bucket should hold once the last case is poured.
+var _sauce_after: int = 0
 
 
 func _start() -> void:
@@ -58,13 +62,13 @@ func _start() -> void:
 		fail("a full shop got a delivery")
 		return
 
-	# Stock gets used up: 6 cheese bags, a bundle of flat boxes, 30 sauce portions and all the
-	# dough.
+	# Stock gets used up: 6 cheese bags, a bundle of flat boxes, a case and a half of sauce and
+	# all the dough.
 	for i: int in 6:
 		_take_unit(_cheese_rack)
 	for i: int in BOXES.units_per_case:
 		_take_unit(_box_pallet)
-	_bulk_sauce._bulk_left -= 30
+	_bulk_sauce._bulk_left -= SAUCE.units_per_case + SAUCE.units_per_case / 2
 	_bulk_dough._bulk_left = 0
 	# A washed dough container waits on the Clean Dishes rack, with room for it on the rack.
 	_take_unit(_dough_rack)
@@ -74,20 +78,29 @@ func _start() -> void:
 	if _deliveries.deliver(2) != 0.0:
 		fail("a delivery came on a Tuesday")
 		return
+	# Whole cases up to each target: 2 cheese, 1 box bundle, 2 sauce, and enough dough to fill
+	# the tub.
+	for supply: SupplyItem in SUPPLIES.items:
+		var short: int = _deliveries.get_target(supply) - _deliveries.get_stock(supply)
+		_ordered[supply] = ceili(float(short) / supply.units_per_case)
+	if _ordered[CHEESE] != 2 or _ordered[BOXES] != 1 or _ordered[SAUCE] != 2 or _ordered[DOUGH] < 1:
+		fail("unexpected shortfall in cases: %s" % [_ordered])
+		return
+	var expected: float = 0.0
+	for supply: SupplyItem in SUPPLIES.items:
+		expected += _ordered[supply] * supply.get_case_price()
 	var cash_before: float = finances.cash
 	var cost: float = _deliveries.deliver(3)
-	# 2 cheese cases ($45), 1 box bundle ($7.20), 2 sauce cases ($8), 5 dough cases ($4.80).
-	var expected: float = 2 * 45.0 + 7.2 + 2 * 8.0 + 5 * 4.8
 	if not is_equal_approx(cost, expected) or not is_equal_approx(cash_before - finances.cash, expected) \
 			or not is_equal_approx(finances.get_today().supplies, expected):
 		fail("Wednesday's delivery cost %.2f (cash down %.2f), expected %.2f" % [
 			cost, cash_before - finances.cash, expected])
 		return
-	var cases: DockCases = _dock.get_dock_cases()
-	if cases.count(CHEESE) != 2 or cases.count(BOXES) != 1 or cases.count(SAUCE) != 2 \
-			or cases.count(DOUGH) != 5:
-		fail("the delivery pallet doesn't hold the cases ordered")
-		return
+	for supply: SupplyItem in SUPPLIES.items:
+		if _count_cases(supply) != _ordered[supply]:
+			fail("the delivery pallets hold %d %s cases, expected %d" % [
+				_count_cases(supply), supply.display_name, _ordered[supply]])
+			return
 	for supply: SupplyItem in SUPPLIES.items:
 		if _deliveries.get_stock(supply) < _deliveries.get_target(supply):
 			fail("%s is still short with its cases on the pallet" % supply.display_name)
@@ -96,15 +109,14 @@ func _start() -> void:
 
 
 func _step() -> void:
-	var cases: DockCases = _dock.get_dock_cases()
 	match _phase:
 		0:
 			# The dough container can't be filled until dough is poured into the tub.
-			if cases.count(DOUGH) == 5 and _bulk_dough.get_bulk_left() == 0 and _clean_rack.get_stock() != 1:
+			if _count_cases(DOUGH) == _ordered[DOUGH] and _bulk_dough.get_bulk_left() == 0 and _clean_rack.get_stock() != 1:
 				fail("the dough container left the rack while the bulk dough tub was empty")
 				return
 			# Everything but one sauce case is put away; that one has no room yet.
-			if cases.count(SAUCE) != 1 or cases.count(CHEESE) + cases.count(BOXES) + cases.count(DOUGH) > 0:
+			if _count_cases(SAUCE) != 1 or _count_cases(CHEESE) + _count_cases(BOXES) + _count_cases(DOUGH) > 0:
 				return
 			if _clean_rack.get_stock() != 0 or _dough_rack.get_stock() != _dough_rack.get_capacity():
 				return
@@ -112,32 +124,48 @@ func _step() -> void:
 			if _cheese_rack.get_stock() != _cheese_rack.get_capacity():
 				fail("the cheese cases weren't put away in full")
 				return
-			if _bulk_dough.get_bulk_left() != 30 - _dough_fill():
-				fail("the bulk dough tub has %d, expected 30 poured less one fill" % _bulk_dough.get_bulk_left())
+			var dough_poured: int = _ordered[DOUGH] * DOUGH.units_per_case
+			if _bulk_dough.get_bulk_left() != dough_poured - _dough_fill():
+				fail("the bulk dough tub has %d, expected %d poured less one fill" % [
+					_bulk_dough.get_bulk_left(), dough_poured])
 				return
-			if _bulk_sauce.get_bulk_left() != 90:
-				fail("the bulk sauce bucket has %d, expected 90" % _bulk_sauce.get_bulk_left())
+			var sauce_expected: int = _bulk_sauce.get_bulk_capacity() - SAUCE.units_per_case / 2
+			if _bulk_sauce.get_bulk_left() != sauce_expected:
+				fail("the bulk sauce bucket has %d, expected %d" % [_bulk_sauce.get_bulk_left(), sauce_expected])
 				return
 			_since = frame
 			_phase = 1
 		1:
 			# The last sauce case waits on the pallet for room.
-			if cases.count(SAUCE) != 1:
+			if _count_cases(SAUCE) != 1:
 				fail("a sauce case was put away with no room for it")
 				return
 			if frame - _since < WAIT_FRAMES:
 				return
 			# Some sauce is used: now there's room.
-			_bulk_sauce.use_fill()
+			while _bulk_sauce.get_bulk_room() < SAUCE.units_per_case:
+				_bulk_sauce.use_fill()
+			_sauce_after = _bulk_sauce.get_bulk_left() + SAUCE.units_per_case
 			work.assign_all()
 			_phase = 2
 		2:
-			if cases.has_cases():
-				return
-			if _bulk_sauce.get_bulk_left() != 90:
-				fail("the bulk sauce bucket has %d after the last case, expected 90" % _bulk_sauce.get_bulk_left())
+			for supply: SupplyItem in SUPPLIES.items:
+				if _count_cases(supply) > 0:
+					return
+			if _bulk_sauce.get_bulk_left() != _sauce_after:
+				fail("the bulk sauce bucket has %d after the last case, expected %d" % [
+					_bulk_sauce.get_bulk_left(), _sauce_after])
 				return
 			pass_test("Wednesday's delivery was paid for and put away; a case waited for room")
+
+
+## Cases of `supply` waiting on any delivery pallet.
+func _count_cases(supply: SupplyItem) -> int:
+	var count: int = 0
+	for station: Station in work.get_stations():
+		if station.get_dock_cases() != null:
+			count += station.get_dock_cases().count(supply)
+	return count
 
 
 ## Portions one dough container takes from the bulk dough tub.

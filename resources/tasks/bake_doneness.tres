@@ -4,3 +4,4 @@
 
 [resource]
 script = ExtResource("1_rules")
+perfect_minutes = 2.0

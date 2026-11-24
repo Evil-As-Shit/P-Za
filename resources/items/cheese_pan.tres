@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("1_pan")
 display_name = "Cheese"
-portions = 10
+portions = 30
 refill_at = 3
 bag_kind = ExtResource("2_kind")
 bag_texture = ExtResource("3_bag")

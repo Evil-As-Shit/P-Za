@@ -45,7 +45,7 @@ const SIDESTEP_REACH: float = 2.5
 
 ## Paid per shop hour, for the whole day, at closing.
 @export var hourly_wage: float = 15.0
-@export var move_speed: float = 60.0
+@export var move_speed: float = 75.0
 ## Seconds of work done per second, before skill, mood and the rush.
 @export var work_speed: float = 1.0
 ## Height above the feet a carried item is held at.

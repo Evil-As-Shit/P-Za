@@ -15,6 +15,6 @@ display_name = "Cheese"
 unit_name = "bags"
 storage_kind = ExtResource("3_where")
 units_per_case = 3
-portions_per_unit = 10
+portions_per_unit = 30
 price_per_portion = 1.5
 case_texture = SubResource("AtlasTexture_case")

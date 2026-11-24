@@ -4,3 +4,5 @@
 
 [resource]
 script = ExtResource("1_rules")
+start_min = 4
+start_max = 10

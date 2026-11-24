@@ -5,4 +5,4 @@
 [resource]
 script = ExtResource("1_bill")
 display_name = "Rent"
-per_day = 170.0
+per_day = 120.0
