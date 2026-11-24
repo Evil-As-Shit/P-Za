@@ -36,6 +36,10 @@ const SIDESTEP_REACH: float = 2.5
 @export var skill_rules: SkillRules
 ## How mood works (see PawnMood). Null: no mood.
 @export var mood_rules: MoodRules
+## The traits pawns roll from (see roll_traits()).
+@export var trait_rules: TraitRules
+## Personality traits (see PawnTrait). Set with set_traits() once in play.
+@export var traits: Array[PawnTrait] = []
 ## The shop's manager (one at a time): quotes each order's wait. They still work as usual.
 @export var is_manager: bool = false
 
@@ -104,6 +108,7 @@ func _ready() -> void:
 		mood.breakdown_started.connect(breakdown_started.emit)
 		mood.breakdown_ended.connect(breakdown_ended.emit)
 		mood.break_ended.connect(break_ended.emit)
+	set_traits(traits)
 	_play_idle()
 	_place_hold_point()
 
@@ -383,9 +388,34 @@ func roll_skills(work_types: Array[WorkType], rng: RandomNumberGenerator) -> voi
 			skills[work_type] = skill_rules.roll_start_level(rng)
 
 
-## Work seconds per second on a task of this work type, after skill, mood and the rush.
+## Gives the pawn random traits if they have none yet (see TraitRules).
+func roll_traits(rng: RandomNumberGenerator) -> void:
+	if traits.is_empty() and trait_rules != null:
+		set_traits(trait_rules.roll(rng))
+
+
+func set_traits(new_traits: Array[PawnTrait]) -> void:
+	traits = new_traits.duplicate()
+	if mood != null:
+		mood.stress_gain = 1.0
+		for each: PawnTrait in traits:
+			mood.stress_gain *= each.stress_gain
+
+
+## How much more (or less) often than usual they check their phone while idle, from traits.
+func get_slack() -> float:
+	var slack: float = 1.0
+	for each: PawnTrait in traits:
+		slack *= each.slack
+	return slack
+
+
+## Work seconds per second on a task of this work type, after skill, traits, mood and the
+## rush.
 func get_work_rate(work_type: WorkType) -> float:
 	var rate: float = work_speed
+	for each: PawnTrait in traits:
+		rate *= each.work_speed
 	if mood != null:
 		rate *= mood.get_speed_multiplier()
 	if work_type == null or not work_type.has_skill or skill_rules == null:

@@ -54,9 +54,12 @@ func refresh() -> void:
 	_mood_bar.value = mood.mood
 	_fill.bg_color = BAND_COLORS[mood.get_band()]
 	_status.text = get_status(pawn)
-	tooltip_text = "%s\nMood %d (%s)\nStress %d\nEnergy %d" % [
+	var trait_names: PackedStringArray = []
+	for each: PawnTrait in pawn.traits:
+		trait_names.append(each.display_name)
+	tooltip_text = "%s\nMood %d (%s)\nStress %d\nEnergy %d\nTraits: %s" % [
 		pawn.display_name, roundi(mood.mood), mood.get_band_name(), roundi(mood.stress),
-		roundi(mood.energy),
+		roundi(mood.energy), ", ".join(trait_names) if not trait_names.is_empty() else "none",
 	]
 
 

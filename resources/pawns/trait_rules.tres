@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="TraitRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/pawns/trait_rules.gd" id="1_rules"]
+[ext_resource type="Script" path="res://scripts/pawns/pawn_trait.gd" id="2_trait"]
+[ext_resource type="Resource" path="res://resources/pawns/traits/calm.tres" id="3_calm"]
+[ext_resource type="Resource" path="res://resources/pawns/traits/nervous.tres" id="4_nervous"]
+[ext_resource type="Resource" path="res://resources/pawns/traits/hard_worker.tres" id="5_hard"]
+[ext_resource type="Resource" path="res://resources/pawns/traits/lazy.tres" id="6_lazy"]
+
+[resource]
+script = ExtResource("1_rules")
+traits = Array[ExtResource("2_trait")]([ExtResource("3_calm"), ExtResource("4_nervous"), ExtResource("5_hard"), ExtResource("6_lazy")])

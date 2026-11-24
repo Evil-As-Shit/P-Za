@@ -52,10 +52,11 @@ func _step() -> void:
 	pass
 
 
-## Starting skills are random; tests start every pawn at the base level (base work times)
-## so their timing doesn't vary from run to run.
+## Starting skills and traits are random; tests start every pawn at the base level with no
+## traits (base work times) so their timing doesn't vary from run to run.
 func _even_out_skills() -> void:
 	for pawn: Pawn in work.get_pawns():
+		pawn.set_traits([])
 		for work_type: WorkType in work.work_types:
 			if work_type.has_skill:
 				pawn.set_skill(work_type, pawn.skill_rules.base_level)

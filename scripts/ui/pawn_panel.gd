@@ -1,7 +1,7 @@
 class_name PawnPanel
 extends PanelContainer
-## HUD panel for the selected pawn: their mood, stress, energy, breaks and mood effects, and
-## their skills, each with its level and practice toward the next level. Later traits and
+## HUD panel for the selected pawn: their traits, mood, stress, energy, breaks and mood
+## effects, and their skills, each with its level and practice toward the next level. Later
 ## pay too.
 
 signal close_requested
@@ -17,6 +17,7 @@ var _bars: Dictionary[WorkType, ProgressBar] = {}
 @onready var _title: Label = %Title
 @onready var _skills: GridContainer = %Skills
 @onready var _close: Button = %Close
+@onready var _traits: Label = %Traits
 @onready var _mood_value: Label = %MoodValue
 @onready var _mood_bar: ProgressBar = %MoodBar
 @onready var _stress_value: Label = %StressValue
@@ -39,6 +40,7 @@ func _process(_delta: float) -> void:
 func show_pawn(p_pawn: Pawn, work_types: Array[WorkType]) -> void:
 	pawn = p_pawn
 	_title.text = pawn.display_name
+	_show_traits()
 	for child: Node in _skills.get_children():
 		_skills.remove_child(child)
 		child.queue_free()
@@ -66,6 +68,17 @@ func show_pawn(p_pawn: Pawn, work_types: Array[WorkType]) -> void:
 	_update_mood()
 	_update_skills()
 	show()
+
+
+## "Traits: Calm, Lazy", with what each does on hover.
+func _show_traits() -> void:
+	var names: PackedStringArray = []
+	var details: PackedStringArray = []
+	for each: PawnTrait in pawn.traits:
+		names.append(each.display_name)
+		details.append("%s: %s" % [each.display_name, each.description])
+	_traits.text = "Traits: " + (", ".join(names) if not names.is_empty() else "none")
+	_traits.tooltip_text = "\n".join(details)
 
 
 func _update_mood() -> void:

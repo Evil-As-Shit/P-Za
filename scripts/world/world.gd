@@ -53,6 +53,7 @@ func _ready() -> void:
 			var pawn := child as Pawn
 			pawn.global_position = _floor.cell_to_global(_floor.get_random_walkable_cell())
 			pawn.roll_skills(_work.get_skill_types(), rng)
+			pawn.roll_traits(rng)
 			_work.add_pawn(pawn)
 
 	_rack.jobs_changed.connect(_work.assign_all)

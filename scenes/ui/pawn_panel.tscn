@@ -35,6 +35,14 @@ focus_mode = 0
 text = "×"
 flat = true
 
+[node name="Traits" type="Label" parent="Margin/Lines"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 1
+theme_override_font_sizes/font_size = 11
+text = "Traits: none"
+autowrap_mode = 3
+
 [node name="Mood" type="GridContainer" parent="Margin/Lines"]
 layout_mode = 2
 theme_override_constants/h_separation = 8

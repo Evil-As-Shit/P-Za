@@ -20,6 +20,8 @@ var mood: float = 50.0
 var stress: float = 0.0
 ## 0-100. Drains on a job, refills on breaks and overnight.
 var energy: float = 100.0
+## Multiplies how fast stress builds (from traits, e.g. Calm).
+var stress_gain: float = 1.0
 
 var _rushing: bool = false
 ## Worked a job during the current rush.
@@ -56,7 +58,7 @@ func tick(minutes: float, has_job: bool, resting_at_table: bool = false) -> void
 	if is_on_breakdown() or resting or not _rushing:
 		stress -= rules.stress_ease_per_minute * minutes
 	elif has_job:
-		stress += rules.stress_rise_per_minute * minutes
+		stress += rules.stress_rise_per_minute * minutes * stress_gain
 		_worked_rush = true
 	stress = clampf(stress, 0.0, 100.0)
 	if resting_at_table:

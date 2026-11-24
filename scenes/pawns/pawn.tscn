@@ -4,6 +4,7 @@
 [ext_resource type="SpriteFrames" path="res://resources/pawns/pawn_sprite_frames.tres" id="2_frames"]
 [ext_resource type="Resource" path="res://resources/pawns/skill_rules.tres" id="3_skill_rules"]
 [ext_resource type="Resource" path="res://resources/pawns/mood_rules.tres" id="4_mood_rules"]
+[ext_resource type="Resource" path="res://resources/pawns/trait_rules.tres" id="5_trait_rules"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.12, 0.12, 0.14, 0.9)
@@ -16,6 +17,7 @@ y_sort_enabled = true
 script = ExtResource("1_pawn")
 skill_rules = ExtResource("3_skill_rules")
 mood_rules = ExtResource("4_mood_rules")
+trait_rules = ExtResource("5_trait_rules")
 
 [node name="Body" type="Node2D" parent="."]
 

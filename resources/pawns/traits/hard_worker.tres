@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="PawnTrait" format=3]
+
+[ext_resource type="Script" path="res://scripts/pawns/pawn_trait.gd" id="1_trait"]
+
+[resource]
+script = ExtResource("1_trait")
+display_name = "Hard worker"
+description = "Works 10% faster and checks their phone half as often."
+group = &"work"
+work_speed = 1.1
+slack = 0.5

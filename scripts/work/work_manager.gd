@@ -964,7 +964,7 @@ func _work_or_wander(pawn: Pawn) -> void:
 func _wait_then_wander(pawn: Pawn) -> void:
 	var wait: float = randf_range(idle_time_min, idle_time_max)
 	# During a breakdown or a standing break they stay on their phone.
-	if pawn.is_off_work() or randf() < phone_chance:
+	if pawn.is_off_work() or randf() < phone_chance * pawn.get_slack():
 		pawn.use_phone()
 		wait = randf_range(phone_time_min, phone_time_max)
 	get_tree().create_timer(wait).timeout.connect(_send_to_random_cell.bind(pawn))
