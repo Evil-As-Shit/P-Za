@@ -148,6 +148,10 @@ func show_rating(rating: float) -> void:
 	_clock_panel.show_rating(rating)
 
 
+func show_rush(rushing: bool) -> void:
+	_clock_panel.show_rush(rushing)
+
+
 func show_report(report: DayReport) -> void:
 	_day_report_panel.show_report(report)
 

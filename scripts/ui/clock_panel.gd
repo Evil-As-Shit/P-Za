@@ -1,7 +1,7 @@
 class_name ClockPanel
 extends PanelContainer
-## HUD clock: weekday and day, time, cash, the shop's rating, the Supplies button and speed
-## buttons (pause, then each speed). Reports the player's picks.
+## HUD clock: weekday and day, time, cash, the shop's rating, a RUSH tag while rushing, the
+## Supplies button and speed buttons (pause, then each speed). Reports the player's picks.
 
 signal speed_requested(speed: int)
 ## The Supplies button was toggled on (show the supply panel) or off.
@@ -13,6 +13,7 @@ const NEGATIVE_COLOR := Color(1.0, 0.45, 0.4)
 @onready var _time: Label = %Time
 @onready var _cash: Label = %Cash
 @onready var _rating: Label = %Rating
+@onready var _rush: Label = %Rush
 @onready var _buttons: HBoxContainer = %SpeedButtons
 @onready var _supplies: Button = %Supplies
 
@@ -57,6 +58,11 @@ func show_cash(cash: float) -> void:
 ## The shop's rating out of 5 stars.
 func show_rating(rating: float) -> void:
 	_rating.text = "%.1f/5" % rating
+
+
+## Shows the RUSH tag while the shop is rushing.
+func show_rush(rushing: bool) -> void:
+	_rush.visible = rushing
 
 
 func show_speed(speed: int) -> void:

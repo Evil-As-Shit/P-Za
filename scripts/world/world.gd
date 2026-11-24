@@ -83,6 +83,7 @@ func _ready() -> void:
 	_hud.setup_supplies(_deliveries)
 	_hud.supply_target_change_requested.connect(_deliveries.set_target)
 	_work.waiting_orders_changed.connect(_hud.show_waiting_orders)
+	_work.rush_changed.connect(_hud.show_rush)
 	_reputation.rating_changed.connect(_on_rating_changed)
 	_on_rating_changed(_reputation.rating)
 

@@ -14,6 +14,8 @@ signal order_taken(job: Job)
 signal manager_changed(manager: Pawn)
 ## The number of customers waiting at the register changed.
 signal waiting_orders_changed(count: int)
+## The shop started or stopped rushing (see is_rushing()).
+signal rush_changed(rushing: bool)
 
 ## Columns of the priority grid, left to right. On a priority tie, pawns pick leftmost.
 @export var work_types: Array[WorkType] = []
@@ -43,6 +45,13 @@ signal waiting_orders_changed(count: int)
 @export_range(0.0, 1.0) var phone_chance: float = 0.3
 @export var phone_time_min: float = 3.0
 @export var phone_time_max: float = 6.0
+@export_group("Rush")
+## The shop rushes when unfinished tickets on the rack outnumber this many per pawn, or any
+## ticket is past its quote (placeholder).
+@export var rush_tickets_per_pawn: float = 2.0
+## Shop minutes without being busy before a rush ends (placeholder).
+@export var rush_end_minutes: float = 5.0
+@export_group("")
 
 var _floor: ShopFloor
 var _entities: Node2D
@@ -65,6 +74,9 @@ var _pull_timers: Dictionary[Item, SceneTreeTimer] = {}
 var _walk_minutes: Array[float] = []
 ## Game seconds so far (speed included), for timing bakes.
 var _now: float = 0.0
+var _rushing: bool = false
+## Shop minutes the shop has gone without being busy during a rush.
+var _calm_minutes: float = 0.0
 
 
 ## An item a station works on its own (see TaskType.unattended).
@@ -82,6 +94,47 @@ class Bake:
 
 func _process(delta: float) -> void:
 	_now += delta
+	_update_rush(delta / ShopClock.minutes_to_seconds(1.0))
+
+
+## True while the shop is rushing: pawns work faster, but it stresses them (see PawnMood).
+func is_rushing() -> bool:
+	return _rushing
+
+
+## Starts a rush as soon as the shop is busy, and ends it after rush_end_minutes calm.
+func _update_rush(minutes: float) -> void:
+	if _is_busy():
+		_calm_minutes = 0.0
+		if not _rushing:
+			_set_rushing(true)
+	elif _rushing:
+		_calm_minutes += minutes
+		if _calm_minutes >= rush_end_minutes:
+			_set_rushing(false)
+
+
+func _set_rushing(rushing: bool) -> void:
+	_rushing = rushing
+	_calm_minutes = 0.0
+	for pawn: Pawn in _pawns:
+		pawn.set_rushing(rushing)
+	rush_changed.emit(rushing)
+
+
+## Busy: more unfinished tickets than rush_tickets_per_pawn per pawn, or any past its quote.
+func _is_busy() -> bool:
+	if _rack == null or _pawns.is_empty():
+		return false
+	var open: int = 0
+	for section: Ticket.Section in [Ticket.Section.WAIT, Ticket.Section.MAKE]:
+		for ticket: Ticket in _rack.get_tickets(section):
+			if ticket.ready:
+				continue
+			if ticket.get_quote_miss(_rack.now_minutes) > 0:
+				return true
+			open += 1
+	return open > rush_tickets_per_pawn * _pawns.size()
 
 
 ## Call once before adding stations and pawns. Items are spawned under `entities`.
@@ -138,7 +191,9 @@ func add_pawn(pawn: Pawn) -> void:
 	pawn.work_started.connect(_on_pawn_work_started.bind(pawn))
 	pawn.job_finished.connect(_on_pawn_job_finished.bind(pawn))
 	pawn.work_progressed.connect(_on_pawn_work_progressed.bind(pawn))
+	pawn.breakdown_ended.connect(_on_pawn_breakdown_ended.bind(pawn))
 	pawn.shop_floor = _floor
+	pawn.set_rushing(_rushing)
 	_pawns.append(pawn)
 	_wait_then_wander(pawn)
 
@@ -236,6 +291,8 @@ func assign_all() -> void:
 func try_assign(pawn: Pawn, max_priority: int = Pawn.LOWEST_PRIORITY) -> bool:
 	if pawn.has_job():
 		return true
+	if pawn.is_on_breakdown():
+		return false
 	var jobs: Array[Job] = _rack.get_open_jobs()
 	for job: Job in _shop_jobs:
 		if job.claimed_by == null and not job.on_hold:
@@ -763,7 +820,7 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 			_work_or_wander(pawn)
 		return
 	if task.affects_quality and job.recipe_step and job.order_item != null:
-		job.order_item.skill_levels.append(pawn.get_skill(task.work_type))
+		job.order_item.skill_levels.append(pawn.get_quality_level(task.work_type))
 	var station: Station = job.station
 	var spot: int = job.spot
 	_release(job)
@@ -897,7 +954,8 @@ func _work_or_wander(pawn: Pawn) -> void:
 
 func _wait_then_wander(pawn: Pawn) -> void:
 	var wait: float = randf_range(idle_time_min, idle_time_max)
-	if randf() < phone_chance:
+	# During a breakdown they stay on their phone.
+	if pawn.is_on_breakdown() or randf() < phone_chance:
 		pawn.use_phone()
 		wait = randf_range(phone_time_min, phone_time_max)
 	get_tree().create_timer(wait).timeout.connect(_send_to_random_cell.bind(pawn))
@@ -906,10 +964,19 @@ func _wait_then_wander(pawn: Pawn) -> void:
 func _send_to_random_cell(pawn: Pawn) -> void:
 	if pawn.has_job():
 		return
+	if pawn.is_on_breakdown():
+		_wait_then_wander(pawn)
+		return
 	var path: PackedVector2Array = get_walk_path(get_cell(pawn), _floor.get_random_walkable_cell())
 	if path.size() < 2:
 		_wait_then_wander(pawn)
 		return
 	pawn.follow_path(path)
+
+
+## Back from a breakdown: they look for work again. (Their idle loop is still running, so
+## it isn't restarted here.)
+func _on_pawn_breakdown_ended(_pawn: Pawn) -> void:
+	assign_all()
 
 #endregion

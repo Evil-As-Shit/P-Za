@@ -1,7 +1,7 @@
 class_name PawnPanel
 extends PanelContainer
-## HUD panel for the selected pawn: their skills, each with its level and practice toward
-## the next level. Later it will show mood, traits and pay too.
+## HUD panel for the selected pawn: their mood, stress and mood effects, and their skills,
+## each with its level and practice toward the next level. Later traits and pay too.
 
 signal close_requested
 
@@ -16,6 +16,11 @@ var _bars: Dictionary[WorkType, ProgressBar] = {}
 @onready var _title: Label = %Title
 @onready var _skills: GridContainer = %Skills
 @onready var _close: Button = %Close
+@onready var _mood_value: Label = %MoodValue
+@onready var _mood_bar: ProgressBar = %MoodBar
+@onready var _stress_value: Label = %StressValue
+@onready var _stress_bar: ProgressBar = %StressBar
+@onready var _effects: Label = %Effects
 
 
 func _ready() -> void:
@@ -24,6 +29,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if visible and pawn != null:
+		_update_mood()
 		_update_skills()
 
 
@@ -54,8 +60,32 @@ func show_pawn(p_pawn: Pawn, work_types: Array[WorkType]) -> void:
 		_skills.add_child(bar)
 		_levels[work_type] = level
 		_bars[work_type] = bar
+	_update_mood()
 	_update_skills()
 	show()
+
+
+func _update_mood() -> void:
+	var mood: PawnMood = pawn.mood
+	if mood == null:
+		_mood_value.text = "-"
+		_mood_bar.value = 0.0
+		_stress_value.text = "-"
+		_stress_bar.value = 0.0
+		_effects.text = ""
+		return
+	_mood_value.text = "%d %s" % [roundi(mood.mood), mood.get_band_name()]
+	_mood_bar.value = mood.mood
+	_mood_bar.tooltip_text = "Heading toward %d" % roundi(mood.get_target())
+	_stress_value.text = str(roundi(mood.stress))
+	_stress_bar.value = mood.stress
+	var lines: PackedStringArray = []
+	if mood.is_on_breakdown():
+		lines.append("Having a breakdown (no work)")
+	var effects: Dictionary[MoodEffect, float] = mood.get_effects()
+	for effect: MoodEffect in effects:
+		lines.append("%s %+d (%d min)" % [effect.display_name, roundi(effect.mood), ceili(effects[effect])])
+	_effects.text = "\n".join(lines) if not lines.is_empty() else "No mood effects"
 
 
 func _update_skills() -> void:

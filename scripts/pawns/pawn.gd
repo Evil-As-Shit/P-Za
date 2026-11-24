@@ -14,6 +14,9 @@ signal job_finished(job: Job)
 signal work_progressed(job: Job, progress: float)
 ## Practice raised a skill to a new level.
 signal skill_leveled_up(work_type: WorkType, level: int)
+## Mood fell too low: the pawn takes no new jobs until breakdown_ended.
+signal breakdown_started
+signal breakdown_ended
 
 enum State { IDLE, WALKING, WALKING_TO_STOP, WAITING_AT_STOP, WALKING_TO_JOB, WORKING }
 
@@ -29,13 +32,15 @@ const SIDESTEP_REACH: float = 2.5
 ## Work type -> skill level (0 to skill_rules.max_level). Only for work types with a skill.
 @export var skills: Dictionary[WorkType, int] = {}
 @export var skill_rules: SkillRules
+## How mood works (see PawnMood). Null: no mood.
+@export var mood_rules: MoodRules
 ## The shop's manager (one at a time): quotes each order's wait. They still work as usual.
 @export var is_manager: bool = false
 
 ## Paid per shop hour, for the whole day, at closing.
 @export var hourly_wage: float = 15.0
 @export var move_speed: float = 60.0
-## Seconds of work done per second, before skill. Mood will change this later.
+## Seconds of work done per second, before skill, mood and the rush.
 @export var work_speed: float = 1.0
 ## Height above the feet a carried item is held at.
 @export var hold_height: float = 24.0
@@ -57,6 +62,8 @@ const SIDESTEP_REACH: float = 2.5
 ## The floor the pawn walks on (set by its owner), so it doesn't step aside into a wall or
 ## furniture. Null means anywhere.
 var shop_floor: ShopFloor = null
+## Mood, stress and mood effects (null without mood_rules).
+var mood: PawnMood = null
 
 var _state: State = State.IDLE
 var _path: PackedVector2Array = PackedVector2Array()
@@ -90,11 +97,17 @@ var _practice: Dictionary[WorkType, float] = {}
 
 func _ready() -> void:
 	add_to_group(&"pawns")
+	if mood_rules != null:
+		mood = PawnMood.new(mood_rules)
+		mood.breakdown_started.connect(breakdown_started.emit)
+		mood.breakdown_ended.connect(breakdown_ended.emit)
 	_play_idle()
 	_place_hold_point()
 
 
 func _process(delta: float) -> void:
+	if mood != null:
+		mood.tick(delta / ShopClock.minutes_to_seconds(1.0), has_job())
 	_avoid_others(delta)
 	match _state:
 		State.WALKING, State.WALKING_TO_STOP, State.WALKING_TO_JOB:
@@ -367,11 +380,34 @@ func roll_skills(work_types: Array[WorkType], rng: RandomNumberGenerator) -> voi
 			skills[work_type] = skill_rules.roll_start_level(rng)
 
 
-## Work seconds per second on a task of this work type, after skill.
+## Work seconds per second on a task of this work type, after skill, mood and the rush.
 func get_work_rate(work_type: WorkType) -> float:
+	var rate: float = work_speed
+	if mood != null:
+		rate *= mood.get_speed_multiplier()
 	if work_type == null or not work_type.has_skill or skill_rules == null:
-		return work_speed
-	return work_speed / skill_rules.time_multiplier(get_skill(work_type))
+		return rate
+	return rate / skill_rules.time_multiplier(get_skill(work_type))
+
+
+## The skill level a hands-on step of this work type counts as for quality: the pawn's
+## level, raised or lowered by mood.
+func get_quality_level(work_type: WorkType) -> int:
+	var level: int = get_skill(work_type)
+	if mood != null:
+		level += mood.get_quality_levels()
+	return clampi(level, 0, skill_rules.max_level) if skill_rules != null else maxi(level, 0)
+
+
+## True during a breakdown (see PawnMood): no new jobs.
+func is_on_breakdown() -> bool:
+	return mood != null and mood.is_on_breakdown()
+
+
+## The shop started or stopped rushing.
+func set_rushing(rushing: bool) -> void:
+	if mood != null:
+		mood.set_rushing(rushing)
 
 
 ## Adds shop minutes of practice to a skill, leveling it up as it fills.

@@ -62,9 +62,9 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 - An idle pawn takes work by its grid: priority 1 before 2, and the leftmost column wins a tie. Within a work type, it takes the first open job in Make-rack order. Pawns finish their current job before choosing again.
 - New hires start with everything blank until the player assigns work. Training is a separate checkbox (see Staff).
 - When no manager has line of sight, pawns skip their low-priority work (and slack off).
-- Each task type has a base work time, scaled by the pawn's skill in its column (mood will scale it later).
+- Each task type has a base work time, scaled by the pawn's skill in its column and by their mood and the rush (see Staff).
 - **Skills:** every column except Hauling is a skill, leveled 0–20. Level 10 works at the base time, level 0 takes twice as long and level 20 half as long (straight lines between). Pawns learn by doing: each shop minute worked is practice, and level L to L+1 takes (L+1)×10 minutes. Starting pawns roll 2–8 in each skill. The priority grid shows each pawn's level in the corner of each cell. All numbers are placeholders.
-- **Pawn panel:** clicking a pawn opens a panel with their skills: each level and a bar of practice toward the next. Mood, traits and pay come later.
+- **Pawn panel:** clicking a pawn opens a panel with their mood, stress and mood effects, and their skills: each level and a bar of practice toward the next. Traits and pay come later.
 - **Selecting:** a click selects whatever is drawn in front at that pixel (a pawn, an item or any station); see-through parts of the art aren't clickable. Clicking an item (on a station, the floor or in someone's hands) shows its name and quality: a pizza shows its tier so far while it's being made, then its final tier; an ingredient shows the ingredients' quality, and a container what's left in it. Freshness will show here once it's tracked.
 - Pawns with no work wander and sometimes check their phone (placeholder).
 
@@ -130,7 +130,10 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 
 ### Staff, mood and traits
 
-- Pawns have moods driven by things like stress, fatigue, pay and how they get along with other pawns, which affect speed and quality.
+- Pawns have moods driven by things like stress, fatigue, pay and how they get along with other pawns, which affect speed and quality (inspired by RimWorld's needs and mood effects).
+- **Mood (first slice):** each pawn's mood (0–100) drifts toward a target: 50, minus up to 40 for stress, plus any timed mood effects (e.g. "Survived the rush", +8 for 2 hours). Happy (70+) works 10% faster and cooks as if 2 skill levels higher; Stressed (under 30) works 10% slower and 2 levels lower. Under 15 a pawn has a breakdown: they finish their job, then stand on their phone for 20 minutes (at most once an hour).
+- **Rush:** the shop rushes on its own when unfinished tickets outnumber 2 per pawn or any ticket is past its quote, and stops after 5 calm minutes. While rushing, pawns work 25% faster, but stress (0–100) builds 1.5 a minute for pawns on a job; it eases 1 a minute once the rush is over (and during a breakdown). A RUSH tag shows on the HUD, and pawns who worked it get "Survived the rush" when it ends.
+- **Planned next (one at a time):** energy that drains faster in a rush and refills on breaks at a break table; a top bar of pawn portraits with mood bars and status icons; traits (Calm/Nervous for stress, Chatty/Loner, Hard worker/Lazy); social opinions between pawns; a RimWorld-style bottom bar and tabbed inspect panel. Later mood factors: a messy kitchen, the break area, pay.
 - Pawns have hidden personality traits that are revealed after some shifts. A better manager reveals them faster.
 - Pawns can become friends if their personalities jive, or enemies if they don't.
 - Experienced pawns want better pay and can ask for raises; unhappiness builds if they don't get one. Pawns quit after being stressed at work for a long time.

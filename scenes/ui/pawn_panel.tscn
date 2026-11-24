@@ -35,6 +35,56 @@ focus_mode = 0
 text = "×"
 flat = true
 
+[node name="Mood" type="GridContainer" parent="Margin/Lines"]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+columns = 3
+
+[node name="MoodName" type="Label" parent="Margin/Lines/Mood"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Mood"
+
+[node name="MoodValue" type="Label" parent="Margin/Lines/Mood"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "50 Content"
+horizontal_alignment = 2
+
+[node name="MoodBar" type="ProgressBar" parent="Margin/Lines/Mood"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 6)
+layout_mode = 2
+size_flags_vertical = 4
+step = 0.0
+show_percentage = false
+
+[node name="StressName" type="Label" parent="Margin/Lines/Mood"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Stress"
+
+[node name="StressValue" type="Label" parent="Margin/Lines/Mood"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0"
+horizontal_alignment = 2
+
+[node name="StressBar" type="ProgressBar" parent="Margin/Lines/Mood"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 6)
+layout_mode = 2
+size_flags_vertical = 4
+step = 0.0
+show_percentage = false
+
+[node name="Effects" type="Label" parent="Margin/Lines"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.8)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "No mood effects"
+
 [node name="Hint" type="Label" parent="Margin/Lines"]
 modulate = Color(1, 1, 1, 0.6)
 layout_mode = 2
