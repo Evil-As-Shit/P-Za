@@ -34,11 +34,13 @@ func _start() -> void:
 	if hours.is_taking_orders(clock.get_minute_of_day()):
 		fail("orders are taken during prep")
 		return
-	# The opener covers quoting while the manager is out.
-	if work.get_quoting_pawn() != _opener:
+	# The openers are in; one of them covers quoting while the manager is out.
+	var openers: Array[Pawn] = [_opener, world.get_node("Entities/Pawn5") as Pawn]
+	var quoting: Pawn = work.get_quoting_pawn()
+	if quoting == null or not openers.has(quoting):
 		fail("nobody covers quoting for the manager")
 		return
-	if _opener.mood.break_length != 30.0 or work.get_pawns_on_shift() != [_opener]:
+	if _opener.mood.break_length != 30.0 or work.get_pawns_on_shift() != openers:
 		fail("the opener's break is %.0f min; %d on shift" % [_opener.mood.break_length, work.get_pawns_on_shift().size()])
 		return
 
@@ -53,6 +55,17 @@ func _start() -> void:
 		return
 	hours.set_mark(ShopHours.Mark.PREP, 8 * 60)
 	hours.set_mark(ShopHours.Mark.OPEN, 10 * 60)
+
+	# Pawns starting on the same shift (Pawn 2 and 5, Pawn 4 and 6) are painted on their own.
+	for pair: Array in [["Pawn2", "Pawn5"], ["Pawn4", "Pawn6"]]:
+		var painted: Pawn = world.get_node("Entities/" + pair[0])
+		var other: Pawn = world.get_node("Entities/" + pair[1])
+		world._on_schedule_change_requested(painted, 2, true)
+		var shared: bool = other.schedule.is_working(2)
+		world._on_schedule_change_requested(painted, 2, false)
+		if shared:
+			fail("painting %s's schedule also changed %s's" % [painted.display_name, other.display_name])
+			return
 
 	# A shift painted later makes the day longer, until it's painted off again.
 	world._on_schedule_change_requested(_opener, 46, true)
@@ -92,8 +105,8 @@ func _step() -> void:
 		fail("the opener never took their break")
 		return
 	var report: DayReport = (world.get_node("Hud") as Hud)._last_report
-	if report == null or not is_equal_approx(report.wages, 4 * 8 * 15.0) or not is_equal_approx(report.staff_hours, 32.0):
-		fail("day 1 paid %.0f in wages for %.0f h, expected 480 for 32 h" % [report.wages if report else 0.0, report.staff_hours if report else 0.0])
+	if report == null or not is_equal_approx(report.wages, 6 * 8 * 15.0) or not is_equal_approx(report.staff_hours, 48.0):
+		fail("day 1 paid %.0f in wages for %.0f h, expected 720 for 48 h" % [report.wages if report else 0.0, report.staff_hours if report else 0.0])
 		return
 	if clock.get_minute_of_day() != 8 * 60 or _opener.mood.break_taken:
 		fail("day 2 should start at 08:00 with a break to take")

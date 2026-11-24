@@ -74,6 +74,17 @@ func stop_random_orders() -> void:
 	(world.get_node("OrderSource") as Node).process_mode = Node.PROCESS_MODE_DISABLED
 
 
+## Sends every pawn after the first `count` home for good (off all day, with no work), for
+## tests whose setup needs room on the floor or a fixed number of pawns. Returns the pawns kept.
+func keep_pawns(count: int) -> Array[Pawn]:
+	var pawns: Array[Pawn] = work.get_pawns()
+	for extra: Pawn in pawns.slice(count):
+		extra.schedule = WorkSchedule.new()
+		extra.priorities.clear()
+		extra.set_away(true)
+	return pawns.slice(0, count)
+
+
 ## Refills the box pallet's flat boxes whenever it runs out, standing in for deliveries in
 ## tests that make more pizzas than the starting shop has boxes for. Call from _step().
 func keep_flat_boxes_stocked() -> void:

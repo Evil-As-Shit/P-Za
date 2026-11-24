@@ -24,6 +24,8 @@ var _rack_stock: int = 0
 
 func _start() -> void:
 	stop_random_orders()
+	# Fewer pawns standing about, so moved stations have room to go down.
+	keep_pawns(4)
 	_build = world.get_node("BuildMode")
 	_floor = world.get_node("ShopFloor")
 	clock.set_speed(6)

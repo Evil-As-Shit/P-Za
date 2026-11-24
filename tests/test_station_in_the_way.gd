@@ -14,8 +14,9 @@ func _start() -> void:
 	stop_random_orders()
 	_build = world.get_node("BuildMode")
 	_floor = world.get_node("ShopFloor")
+	# Fewer pawns standing about, so the can has room on the path.
 	var pawn: Pawn = null
-	for candidate: Pawn in work.get_pawns():
+	for candidate: Pawn in keep_pawns(4):
 		if not candidate.has_job():
 			pawn = candidate
 			break

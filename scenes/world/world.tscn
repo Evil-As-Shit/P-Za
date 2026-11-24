@@ -300,6 +300,34 @@ ExtResource("65_cleaning"): 2,
 ExtResource("19_hauling"): 1
 })
 
+[node name="Pawn5" parent="Entities" instance=ExtResource("3_pawn")]
+display_name = "Pawn 5"
+schedule = ExtResource("109_opener_shift")
+priorities = Dictionary[ExtResource("15_work_type"), int]({
+ExtResource("16_dough"): 1,
+ExtResource("16_pizza_making"): 1,
+ExtResource("17_oven"): 2,
+ExtResource("18_cutting"): 3,
+ExtResource("18_folding"): 3,
+ExtResource("19_cashier"): 3,
+ExtResource("65_cleaning"): 2,
+ExtResource("19_hauling"): 3
+})
+
+[node name="Pawn6" parent="Entities" instance=ExtResource("3_pawn")]
+display_name = "Pawn 6"
+schedule = ExtResource("111_closer_shift")
+priorities = Dictionary[ExtResource("15_work_type"), int]({
+ExtResource("16_dough"): 1,
+ExtResource("16_pizza_making"): 1,
+ExtResource("17_oven"): 2,
+ExtResource("18_cutting"): 3,
+ExtResource("18_folding"): 3,
+ExtResource("19_cashier"): 3,
+ExtResource("65_cleaning"): 3,
+ExtResource("19_hauling"): 3
+})
+
 [node name="Work" type="Node" parent="."]
 script = ExtResource("45_work")
 work_types = Array[ExtResource("15_work_type")]([ExtResource("16_dough"), ExtResource("16_pizza_making"), ExtResource("17_oven"), ExtResource("18_cutting"), ExtResource("18_folding"), ExtResource("19_cashier"), ExtResource("65_cleaning"), ExtResource("19_hauling")])

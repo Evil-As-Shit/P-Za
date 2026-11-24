@@ -23,13 +23,15 @@ func is_working(slot: int) -> bool:
 
 
 func set_working(slot: int, on: bool) -> void:
-	if slot < 0 or slot >= SLOTS:
+	if slot < 0 or slot >= SLOTS or is_working(slot) == on:
 		return
-	if slots.size() < SLOTS:
-		slots.resize(SLOTS)
-	if is_working(slot) == on:
-		return
-	slots[slot] = 1 if on else 0
+	# Edited as a fresh copy: a duplicated schedule can share its slot data with the one it
+	# was copied from (pawns starting on the same shift), and each must change on its own.
+	var copy: PackedByteArray = slots.duplicate()
+	if copy.size() < SLOTS:
+		copy.resize(SLOTS)
+	copy[slot] = 1 if on else 0
+	slots = copy
 	emit_changed()
 
 

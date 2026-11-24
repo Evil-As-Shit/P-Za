@@ -16,9 +16,9 @@ func _start() -> void:
 	social.process_mode = Node.PROCESS_MODE_DISABLED
 	var rules: SocialRules = social.rules
 	var shop_floor: ShopFloor = world.get_node("ShopFloor")
-	var pawns: Array[Pawn] = work.get_pawns()
-	# Frozen in place, two together and two apart.
+	# Frozen in place, two together and two apart; any others are sent home out of the way.
 	var cells: Array[Vector2i] = [Vector2i(12, 7), Vector2i(13, 7), Vector2i(2, 8), Vector2i(17, 8)]
+	var pawns: Array[Pawn] = keep_pawns(cells.size())
 	for i: int in pawns.size():
 		pawns[i].process_mode = Node.PROCESS_MODE_DISABLED
 		pawns[i].global_position = shop_floor.cell_to_global(cells[i])

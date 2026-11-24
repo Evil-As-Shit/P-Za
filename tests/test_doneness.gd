@@ -17,7 +17,9 @@ var _ticket: Ticket
 ## Each pawn's Oven priority (by pawn order) while it's turned off. Not keyed by pawn: a
 ## dictionary of nodes held until the test quits can crash Godot on exit.
 var _priorities: Array[int] = []
-var _ordered_at: int = 0
+## The over pizza: seen baking, and the open minute its bake finished (-1 until then).
+var _was_baking: bool = false
+var _done_at: int = -1
 ## Minutes a pizza stays perfect (the rules' own value, restored after the under check).
 var _perfect: float = 0.0
 var _lead: float = 0.0
@@ -78,10 +80,17 @@ func _step() -> void:
 				_priorities.append(pawn.get_priority(OVEN))
 				pawn.set_priority(OVEN, 0)
 			_phase = Phase.OVER
-			_ordered_at = clock.get_open_minutes()
 			_ticket = order_pizzas(1)
 		Phase.OVER:
-			if not _priorities.is_empty() and clock.get_open_minutes() - _ordered_at > 15:
+			# Oven pawns come back once it's been done past its perfect window (timed from the
+			# bake, since how long the prep takes varies with the staff).
+			var item: Item = _ticket.order_items[0].item
+			if item != null and item.busy:
+				_was_baking = true
+			elif _was_baking and _done_at < 0:
+				_done_at = clock.get_open_minutes()
+			if not _priorities.is_empty() and _done_at >= 0 \
+					and clock.get_open_minutes() - _done_at > _perfect + 1.0:
 				for index: int in _priorities.size():
 					work.get_pawns()[index].set_priority(OVEN, _priorities[index])
 				_priorities.clear()
