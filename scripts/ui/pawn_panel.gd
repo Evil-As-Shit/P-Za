@@ -1,8 +1,8 @@
 class_name PawnPanel
 extends PanelContainer
-## HUD panel for the selected pawn: their traits, mood, stress, energy, social, opinions of
-## the others, breaks and mood effects, and their skills, each with its level and practice
-## toward the next level. Later pay too.
+## The inspect panel for the selected pawn: name and traits over tabs: Needs (mood, stress,
+## energy, social, and any break or breakdown), Mood (mood effects), Social (opinions of the
+## others) and Skills (each level and practice toward the next). Later pay too.
 
 signal close_requested
 
@@ -30,6 +30,8 @@ var _bars: Dictionary[WorkType, ProgressBar] = {}
 @onready var _social_bar: ProgressBar = %SocialBar
 @onready var _opinions: Label = %Opinions
 @onready var _effects: Label = %Effects
+@onready var _status: Label = %Status
+@onready var _tabs: TabContainer = %Tabs
 
 
 func _ready() -> void:
@@ -114,6 +116,7 @@ func _update_mood() -> void:
 		_social_bar.value = 0.0
 		_opinions.text = ""
 		_effects.text = ""
+		_status.text = ""
 		return
 	_mood_value.text = "%d %s" % [roundi(mood.mood), mood.get_band_name()]
 	_mood_bar.value = mood.mood
@@ -125,13 +128,15 @@ func _update_mood() -> void:
 	_social_value.text = str(roundi(mood.social))
 	_social_bar.value = mood.social
 	_opinions.text = _get_opinion_lines(mood)
-	var lines: PackedStringArray = []
+	var status: PackedStringArray = []
 	if mood.is_on_breakdown():
-		lines.append("Having a breakdown (no work)")
+		status.append("Having a breakdown (no work)")
 	if pawn.is_resting():
-		lines.append("On a break")
+		status.append("On a break")
 	elif mood.is_on_standing_break():
-		lines.append("On a break (no break table free)")
+		status.append("On a break (no break table free)")
+	_status.text = "\n".join(status)
+	var lines: PackedStringArray = []
 	var effects: Dictionary[MoodEffect, float] = mood.get_effects()
 	for effect: MoodEffect in effects:
 		lines.append("%s %+d (%d min)" % [effect.display_name, roundi(effect.mood), ceili(effects[effect])])

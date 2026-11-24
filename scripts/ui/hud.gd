@@ -1,7 +1,8 @@
 class_name Hud
 extends CanvasLayer
-## The on-screen panels: clock and cash, the pawn bar, ticket rack, priorities, the selected
-## station, pawn or item, and the day report. Keeps them showing the shop's state, applies speed picks and
+## The on-screen panels: clock and cash, the pawn bar, ticket rack, the bottom bar and its
+## windows (priorities, build, supplies), the inspect panel for the selected station, pawn
+## or item, and the day report. Keeps them showing the shop's state, applies speed picks and
 ## ticket moves directly, and passes the player's other requests up.
 
 signal priority_change_requested(pawn: Pawn, work_type: WorkType, priority: int)
@@ -17,12 +18,18 @@ signal sell_requested
 signal supply_target_change_requested(supply: SupplyItem, target: int)
 ## A pawn card was clicked: select the pawn (and with `focus`, center the camera on them).
 signal pawn_select_requested(pawn: Pawn, focus: bool)
+## The bottom bar's Build button (or opening another window) turns build mode on or off.
+signal build_mode_requested(on: bool)
 
 var _rack: TicketRack
 var _pawns: Array[Pawn] = []
 var _work_types: Array[WorkType] = []
 var _managing: WorkType
 var _clock: ShopClock
+## The last day report, for the bottom bar's Report button (null before the first).
+var _last_report: DayReport = null
+## The report showing was reopened from the bottom bar (closing it doesn't resume the day).
+var _report_reopened: bool = false
 
 @onready var _rack_panel: TicketRackPanel = $TicketRackPanel
 @onready var _priority_panel: PriorityPanel = $PriorityPanel
@@ -31,6 +38,7 @@ var _clock: ShopClock
 @onready var _item_panel: ItemPanel = $ItemPanel
 @onready var _clock_panel: ClockPanel = $ClockPanel
 @onready var _pawn_bar: PawnBar = $PawnBar
+@onready var _bottom_bar: BottomBar = $BottomBar
 @onready var _day_report_panel: DayReportPanel = $DayReportPanel
 @onready var _build_panel: BuildPanel = $BuildPanel
 @onready var _supply_panel: SupplyPanel = $SupplyPanel
@@ -68,7 +76,12 @@ func setup(
 	_pawn_bar.show_pawns(pawns)
 	_pawn_bar.pawn_pressed.connect(pawn_select_requested.emit)
 	_item_panel.close_requested.connect(item_close_requested.emit)
-	_day_report_panel.continue_requested.connect(report_closed.emit)
+	_day_report_panel.continue_requested.connect(_on_report_continue)
+	_bottom_bar.tab_toggled.connect(
+		func(tab: StringName, on: bool) -> void: open_window(tab if on else &"")
+	)
+	_bottom_bar.report_requested.connect(_reopen_report)
+	_bottom_bar.show_open(_get_open_window())
 
 
 func refresh_rack() -> void:
@@ -97,7 +110,30 @@ func refresh_priorities() -> void:
 
 
 func toggle_priorities() -> void:
-	_priority_panel.visible = not _priority_panel.visible
+	open_window(&"" if _priority_panel.visible else BottomBar.PRIORITIES)
+
+
+## Opens one of the bottom bar's windows (BottomBar.PRIORITIES, BUILD or SUPPLIES) and
+## closes the others; &"" closes them all. Build mode is the world's: it's asked for.
+func open_window(tab: StringName) -> void:
+	if _build_panel.visible and tab != BottomBar.BUILD:
+		build_mode_requested.emit(false)
+	_priority_panel.visible = tab == BottomBar.PRIORITIES
+	_supply_panel.visible = tab == BottomBar.SUPPLIES
+	refresh_supplies()
+	if tab == BottomBar.BUILD and not _build_panel.visible:
+		build_mode_requested.emit(true)
+	_bottom_bar.show_open(_get_open_window())
+
+
+func _get_open_window() -> StringName:
+	if _build_panel.visible:
+		return BottomBar.BUILD
+	if _priority_panel.visible:
+		return BottomBar.PRIORITIES
+	if _supply_panel.visible:
+		return BottomBar.SUPPLIES
+	return &""
 
 
 ## Shows the station in the station panel, or hides the panel for null.
@@ -163,12 +199,31 @@ func show_rush(rushing: bool) -> void:
 	_clock_panel.show_rush(rushing)
 
 
+## The end-of-day report: closing it resumes the day (see report_closed).
 func show_report(report: DayReport) -> void:
+	_last_report = report
+	_report_reopened = false
+	_bottom_bar.set_report_available(true)
 	_day_report_panel.show_report(report)
 
 
 func hide_report() -> void:
 	_day_report_panel.hide()
+
+
+func _reopen_report() -> void:
+	if _last_report == null or _day_report_panel.visible:
+		return
+	_report_reopened = true
+	_day_report_panel.show_report(_last_report)
+
+
+func _on_report_continue() -> void:
+	if _report_reopened:
+		_report_reopened = false
+		hide_report()
+	else:
+		report_closed.emit()
 
 
 ## Fills the build menu with the stations the player can build.
@@ -187,13 +242,10 @@ func setup_supplies(deliveries: Deliveries) -> void:
 	deliveries.targets_changed.connect(refresh_supplies)
 	deliveries.delivered.connect(refresh_supplies.unbind(1))
 	_clock.time_changed.connect(refresh_supplies.unbind(2))
-	_clock_panel.supplies_toggled.connect(show_supplies)
 
 
 func show_supplies(shown: bool) -> void:
-	_supply_panel.visible = shown
-	_clock_panel.show_supplies_open(shown)
-	refresh_supplies()
+	open_window(BottomBar.SUPPLIES if shown else &"")
 
 
 func refresh_supplies() -> void:
@@ -201,8 +253,13 @@ func refresh_supplies() -> void:
 		_supply_panel.refresh(_clock.day)
 
 
+## Build mode turned on or off: the build window opens (closing the others) or closes.
 func show_build(shown: bool) -> void:
 	_build_panel.visible = shown
+	if shown:
+		_priority_panel.hide()
+		_supply_panel.hide()
+	_bottom_bar.show_open(_get_open_window())
 
 
 func set_can_sell(can_sell: bool) -> void:

@@ -4,14 +4,14 @@
 
 [node name="SupplyPanel" type="PanelContainer"]
 visible = false
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -150.0
-offset_top = 100.0
-offset_right = 150.0
-offset_bottom = 100.0
-grow_horizontal = 2
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 336.0
+offset_top = -56.0
+offset_right = 636.0
+offset_bottom = -56.0
+grow_vertical = 0
 script = ExtResource("1_panel")
 
 [node name="Margin" type="MarginContainer" parent="."]

@@ -1,5 +1,5 @@
 extends "res://tests/test_base.gd"
-## The supply panel: the clock's Supplies button opens it, it lists each supply's stock and
+## The supply panel: the bottom bar's Supplies button opens it, it lists each supply's stock and
 ## target and the next delivery (day 1 is a Monday, so Wednesday, Day 3), and its + and -
 ## buttons raise and lower a target by one case.
 
@@ -12,13 +12,14 @@ func _start() -> void:
 	var panel: SupplyPanel = hud.get_node("SupplyPanel")
 	var clock_panel: ClockPanel = hud.get_node("ClockPanel")
 	var deliveries: Deliveries = world.get_node("Deliveries")
+	var supplies: Button = (hud.get_node("BottomBar") as BottomBar).get_button(BottomBar.SUPPLIES)
 	if panel.visible:
 		fail("the supply panel should start hidden")
 		return
 	if not (clock_panel.get_node("%Day") as Label).text.begins_with("Mon, Day 1"):
 		fail("the clock should show Mon, Day 1, shows %s" % (clock_panel.get_node("%Day") as Label).text)
 		return
-	(clock_panel.get_node("%Supplies") as Button).button_pressed = true
+	supplies.button_pressed = true
 	if not panel.visible:
 		fail("the Supplies button didn't open the supply panel")
 		return
@@ -44,7 +45,7 @@ func _start() -> void:
 	if deliveries.get_target(CHEESE) != target - CHEESE.units_per_case:
 		fail("- didn't lower the cheese target by a case")
 		return
-	(clock_panel.get_node("%Supplies") as Button).button_pressed = false
+	supplies.button_pressed = false
 	if panel.visible:
 		fail("the Supplies button didn't close the supply panel")
 		return

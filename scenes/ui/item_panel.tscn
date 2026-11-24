@@ -3,10 +3,14 @@
 [ext_resource type="Script" path="res://scripts/ui/item_panel.gd" id="1_panel"]
 
 [node name="ItemPanel" type="PanelContainer"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
 offset_left = 8.0
-offset_top = 48.0
-offset_right = 168.0
-offset_bottom = 48.0
+offset_top = -56.0
+offset_right = 328.0
+offset_bottom = -56.0
+grow_vertical = 0
 script = ExtResource("1_panel")
 
 [node name="Margin" type="MarginContainer" parent="."]

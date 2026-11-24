@@ -1,0 +1,60 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/bottom_bar.gd" id="1_bar"]
+
+[node name="BottomBar" type="PanelContainer"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = -8.0
+grow_vertical = 0
+script = ExtResource("1_bar")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="Buttons" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Priorities" type="Button" parent="Margin/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+tooltip_text = "Work priorities (P)"
+focus_mode = 0
+toggle_mode = true
+text = "Priorities"
+
+[node name="Build" type="Button" parent="Margin/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+tooltip_text = "Build, move and sell stations (B)"
+focus_mode = 0
+toggle_mode = true
+text = "Build"
+
+[node name="Supplies" type="Button" parent="Margin/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+tooltip_text = "Supplies and deliveries"
+focus_mode = 0
+toggle_mode = true
+text = "Supplies"
+
+[node name="Report" type="Button" parent="Margin/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+tooltip_text = "Reopen the last day report"
+focus_mode = 0
+text = "Report"

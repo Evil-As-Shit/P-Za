@@ -99,6 +99,7 @@ func _ready() -> void:
 	_hud.setup_build(_build.catalog)
 	_hud.build_choice_requested.connect(_build.choose)
 	_hud.build_close_requested.connect(_set_build_mode.bind(false))
+	_hud.build_mode_requested.connect(_set_build_mode)
 	_hud.sell_requested.connect(_build.sell)
 	_build.holding_changed.connect(_hud.set_can_sell)
 	_build.station_sold.connect(_work.assign_all.unbind(1))
