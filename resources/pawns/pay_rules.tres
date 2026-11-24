@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="PayRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/pawns/pay_rules.gd" id="1_rules"]
+[ext_resource type="Resource" path="res://resources/pawns/mood_effects/raise_turned_down.tres" id="2_turned_down"]
+
+[resource]
+script = ExtResource("1_rules")
+turned_down = ExtResource("2_turned_down")

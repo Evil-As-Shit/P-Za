@@ -60,6 +60,7 @@ func _ready() -> void:
 			pawn.global_position = _floor.cell_to_global(_floor.get_random_walkable_cell())
 			pawn.roll_skills(_work.get_skill_types(), rng)
 			pawn.roll_traits(rng)
+			pawn.start_at_fair_wage()
 			pawn.cell_reached.connect(_floor_dirt.add_step)
 			_work.add_pawn(pawn)
 	_social.setup(_work.get_pawns(), _floor, rng)
@@ -80,6 +81,8 @@ func _ready() -> void:
 	_hud.setup(_clock, _rack, _finances, _work.get_pawns(), _work.work_types, _work.managing)
 	_hud.priority_change_requested.connect(_on_priority_change_requested)
 	_hud.manager_change_requested.connect(_on_manager_change_requested)
+	_hud.wage_change_requested.connect(_on_wage_change_requested)
+	_hud.raise_answered.connect(_on_raise_answered)
 	_hud.schedule_change_requested.connect(_on_schedule_change_requested)
 	_hud.hours_change_requested.connect(_on_hours_change_requested)
 	_work.manager_changed.connect(_on_manager_changed)
@@ -336,6 +339,17 @@ func _on_hours_change_requested(mark: ShopHours.Mark, minute: int) -> void:
 	_hud.refresh_schedules()
 
 
+func _on_wage_change_requested(pawn: Pawn, wage: float) -> void:
+	pawn.set_wage(wage)
+
+
+func _on_raise_answered(pawn: Pawn, give: bool) -> void:
+	if give:
+		pawn.give_raise()
+	else:
+		pawn.turn_down_raise(_clock.day)
+
+
 func _on_manager_change_requested(pawn: Pawn, on: bool) -> void:
 	if on:
 		_work.set_manager(pawn)
@@ -495,6 +509,7 @@ func _on_day_started(day: int) -> void:
 	_close_day(day - 1)
 	for pawn: Pawn in _work.get_pawns():
 		pawn.rest_overnight()
+		pawn.check_raise(day)
 
 
 ## Wages are paid for each pawn's scheduled hours.

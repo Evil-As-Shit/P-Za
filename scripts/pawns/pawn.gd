@@ -49,6 +49,8 @@ const SIDESTEP_REACH: float = 2.5
 @export var schedule: WorkSchedule
 ## Paid per scheduled hour, at closing.
 @export var hourly_wage: float = 15.0
+## What they think they deserve, and when they ask for a raise (none: pay doesn't matter).
+@export var pay_rules: PayRules
 @export var move_speed: float = 75.0
 ## Seconds of work done per second, before skill, mood and the rush.
 @export var work_speed: float = 1.0
@@ -100,6 +102,10 @@ var _walk_seconds: float = 0.0
 var _practice: Dictionary[WorkType, float] = {}
 ## Gone home: hidden, not in anyone's way, resting.
 var _away: bool = false
+## They've asked for a raise and the player hasn't answered yet.
+var _wants_raise: bool = false
+## The first day they'll ask for a raise again after being turned down.
+var _ask_again_day: int = 0
 
 ## Everything drawn for the pawn. Moved while stepping aside; it sorts on its own (the pawn
 ## is y-sorted), so the pawn is drawn in front of or behind others where it's drawn.
@@ -126,6 +132,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if mood != null:
+		mood.pay_mood = get_pay_mood()
 		# At home they rest like at a break table.
 		mood.tick(delta / ShopClock.minutes_to_seconds(1.0), has_job(), is_resting() or _away)
 	if _away:
@@ -531,6 +538,71 @@ func rest_overnight() -> void:
 func set_rushing(rushing: bool) -> void:
 	if mood != null:
 		mood.set_rushing(rushing)
+
+
+## Their highest skill level.
+func get_best_skill() -> int:
+	var best: int = 0
+	for work_type: WorkType in skills:
+		best = maxi(best, skills[work_type])
+	return best
+
+
+## What they think they deserve an hour (their wage without pay rules).
+func get_fair_wage() -> float:
+	if pay_rules == null:
+		return hourly_wage
+	return pay_rules.get_fair_wage(get_best_skill(), is_manager)
+
+
+## Mood from their wage against their fair wage.
+func get_pay_mood() -> float:
+	if pay_rules == null:
+		return 0.0
+	return pay_rules.get_mood(hourly_wage, get_fair_wage())
+
+
+## Sets their hourly wage (snapped to the wage step). Paid enough, they stop asking.
+func set_wage(wage: float) -> void:
+	hourly_wage = pay_rules.snap_wage(wage) if pay_rules != null else maxf(wage, 0.0)
+	if _wants_raise and not _is_underpaid():
+		_wants_raise = false
+
+
+## Starts them on their fair wage (for the starting staff).
+func start_at_fair_wage() -> void:
+	set_wage(get_fair_wage())
+
+
+func wants_raise() -> bool:
+	return _wants_raise
+
+
+## A new day: they ask for a raise if their fair wage has passed their wage by enough,
+## unless they were turned down too recently.
+func check_raise(day: int) -> void:
+	if not _wants_raise and day >= _ask_again_day and _is_underpaid():
+		_wants_raise = true
+
+
+## The player gives the raise they asked for: up to their fair wage.
+func give_raise() -> void:
+	_wants_raise = false
+	set_wage(maxf(hourly_wage, get_fair_wage()))
+
+
+## The player turns the raise down on `day`: it hurts, and they wait a while to ask again.
+func turn_down_raise(day: int) -> void:
+	if not _wants_raise:
+		return
+	_wants_raise = false
+	_ask_again_day = day + pay_rules.ask_again_days
+	if mood != null and pay_rules.turned_down != null:
+		mood.add_effect(pay_rules.turned_down)
+
+
+func _is_underpaid() -> bool:
+	return pay_rules != null and get_fair_wage() - hourly_wage >= pay_rules.raise_gap - 0.001
 
 
 ## Adds shop minutes of practice to a skill, leveling it up as it fills.

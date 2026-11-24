@@ -184,3 +184,72 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/h_separation = 8
 columns = 3
+
+[node name="Pay" type="VBoxContainer" parent="Margin/Lines/Tabs"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 4
+
+[node name="Wage" type="HBoxContainer" parent="Margin/Lines/Tabs/Pay"]
+layout_mode = 2
+
+[node name="WageName" type="Label" parent="Margin/Lines/Tabs/Pay/Wage"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Wage"
+
+[node name="WageDown" type="Button" parent="Margin/Lines/Tabs/Pay/Wage"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "−"
+
+[node name="WageValue" type="Label" parent="Margin/Lines/Tabs/Pay/Wage"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+text = "$15.00/h"
+horizontal_alignment = 1
+
+[node name="WageUp" type="Button" parent="Margin/Lines/Tabs/Pay/Wage"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "+"
+
+[node name="FairWage" type="Label" parent="Margin/Lines/Tabs/Pay"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Thinks they deserve $15.00/h"
+autowrap_mode = 3
+
+[node name="PayMood" type="Label" parent="Margin/Lines/Tabs/Pay"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Fairly paid"
+
+[node name="Raise" type="HBoxContainer" parent="Margin/Lines/Tabs/Pay"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="RaiseText" type="Label" parent="Margin/Lines/Tabs/Pay/Raise"]
+modulate = Color(1, 0.8, 0.6, 1)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "Wants a raise"
+
+[node name="GiveRaise" type="Button" parent="Margin/Lines/Tabs/Pay/Raise"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Give raise"
+
+[node name="TurnDown" type="Button" parent="Margin/Lines/Tabs/Pay/Raise"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Turn down"

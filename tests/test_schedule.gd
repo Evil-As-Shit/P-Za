@@ -105,8 +105,12 @@ func _step() -> void:
 		fail("the opener never took their break")
 		return
 	var report: DayReport = (world.get_node("Hud") as Hud)._last_report
-	if report == null or not is_equal_approx(report.wages, 6 * 8 * 15.0) or not is_equal_approx(report.staff_hours, 48.0):
-		fail("day 1 paid %.0f in wages for %.0f h, expected 720 for 48 h" % [report.wages if report else 0.0, report.staff_hours if report else 0.0])
+	# Six 8-hour shifts, each at that pawn's wage.
+	var expected_wages: float = 0.0
+	for pawn: Pawn in work.get_pawns():
+		expected_wages += pawn.hourly_wage * 8.0
+	if report == null or not is_equal_approx(report.wages, expected_wages) or not is_equal_approx(report.staff_hours, 48.0):
+		fail("day 1 paid %.0f in wages for %.0f h, expected %.0f for 48 h" % [report.wages if report else 0.0, report.staff_hours if report else 0.0, expected_wages])
 		return
 	if clock.get_minute_of_day() != 8 * 60 or _opener.mood.break_taken:
 		fail("day 2 should start at 08:00 with a break to take")

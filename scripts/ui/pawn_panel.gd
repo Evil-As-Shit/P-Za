@@ -2,9 +2,14 @@ class_name PawnPanel
 extends PanelContainer
 ## The inspect panel for the selected pawn: name and traits over tabs: Needs (mood, stress,
 ## energy, social, and any break or breakdown), Mood (mood effects), Social (opinions of the
-## others) and Skills (each level and practice toward the next). Later pay too.
+## others), Skills (each level and practice toward the next) and Pay (their wage, what they
+## think they deserve, and any raise they've asked for).
 
 signal close_requested
+## The player changed the pawn's hourly wage with the Pay tab's buttons.
+signal wage_change_requested(pawn: Pawn, wage: float)
+## The player gave (`give`) or turned down the raise the pawn asked for.
+signal raise_answered(pawn: Pawn, give: bool)
 
 const BAR_SIZE := Vector2(60, 6)
 
@@ -32,16 +37,55 @@ var _bars: Dictionary[WorkType, ProgressBar] = {}
 @onready var _effects: Label = %Effects
 @onready var _status: Label = %Status
 @onready var _tabs: TabContainer = %Tabs
+@onready var _wage_down: Button = %WageDown
+@onready var _wage_up: Button = %WageUp
+@onready var _wage_value: Label = %WageValue
+@onready var _fair_wage: Label = %FairWage
+@onready var _pay_mood: Label = %PayMood
+@onready var _raise: HBoxContainer = %Raise
+@onready var _give_raise: Button = %GiveRaise
+@onready var _turn_down: Button = %TurnDown
 
 
 func _ready() -> void:
 	_close.pressed.connect(close_requested.emit)
+	_wage_down.pressed.connect(_step_wage.bind(-1))
+	_wage_up.pressed.connect(_step_wage.bind(1))
+	_give_raise.pressed.connect(func() -> void: raise_answered.emit(pawn, true))
+	_turn_down.pressed.connect(func() -> void: raise_answered.emit(pawn, false))
 
 
 func _process(_delta: float) -> void:
 	if visible and pawn != null:
 		_update_mood()
 		_update_skills()
+		_update_pay()
+
+
+func _step_wage(steps: int) -> void:
+	if pawn == null or pawn.pay_rules == null:
+		return
+	wage_change_requested.emit(pawn, pawn.hourly_wage + steps * pawn.pay_rules.wage_step)
+
+
+func _update_pay() -> void:
+	_wage_value.text = "%s/h" % ShopFinances.format_money(pawn.hourly_wage)
+	var has_rules: bool = pawn.pay_rules != null
+	_wage_down.disabled = not has_rules or pawn.hourly_wage <= pawn.pay_rules.min_wage
+	_wage_up.disabled = not has_rules
+	_fair_wage.text = "Thinks they deserve %s/h" % ShopFinances.format_money(pawn.get_fair_wage())
+	_pay_mood.text = get_pay_mood_line(pawn)
+	_raise.visible = pawn.wants_raise()
+
+
+## "Underpaid -6", "Well paid +4" or "Fairly paid".
+static func get_pay_mood_line(of: Pawn) -> String:
+	var mood: int = roundi(of.get_pay_mood())
+	if mood < 0:
+		return "Underpaid %+d" % mood
+	if mood > 0:
+		return "Well paid %+d" % mood
+	return "Fairly paid"
 
 
 func show_pawn(p_pawn: Pawn, work_types: Array[WorkType]) -> void:
@@ -74,6 +118,7 @@ func show_pawn(p_pawn: Pawn, work_types: Array[WorkType]) -> void:
 		_bars[work_type] = bar
 	_update_mood()
 	_update_skills()
+	_update_pay()
 	show()
 
 
@@ -137,6 +182,8 @@ func _update_mood() -> void:
 		status.append("On a break (no break table free)")
 	_status.text = "\n".join(status)
 	var lines: PackedStringArray = []
+	if roundi(pawn.get_pay_mood()) != 0:
+		lines.append(get_pay_mood_line(pawn))
 	var effects: Dictionary[MoodEffect, float] = mood.get_effects()
 	for effect: MoodEffect in effects:
 		lines.append("%s %+d (%d min)" % [effect.display_name, roundi(effect.mood), ceili(effects[effect])])

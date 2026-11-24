@@ -81,6 +81,8 @@ static func get_status(of: Pawn) -> String:
 		return "Tired"
 	if mood.get_band() <= PawnMood.Band.STRESSED:
 		return "Stressed"
+	if of.wants_raise():
+		return "Wants a raise"
 	if mood.is_lonely():
 		return "Lonely"
 	return ""

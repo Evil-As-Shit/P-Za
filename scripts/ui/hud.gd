@@ -8,6 +8,10 @@ extends CanvasLayer
 signal priority_change_requested(pawn: Pawn, work_type: WorkType, priority: int)
 ## The player ticked (on) or unticked a pawn's Manager box.
 signal manager_change_requested(pawn: Pawn, on: bool)
+## The player set a pawn's hourly wage in the pawn panel's Pay tab.
+signal wage_change_requested(pawn: Pawn, wage: float)
+## The player gave (`give`) or turned down the raise a pawn asked for.
+signal raise_answered(pawn: Pawn, give: bool)
 signal role_change_requested(station: Station, role: StationRole)
 signal station_close_requested
 signal item_close_requested
@@ -81,6 +85,8 @@ func setup(
 	_station_panel.role_change_requested.connect(role_change_requested.emit)
 	_station_panel.close_requested.connect(station_close_requested.emit)
 	_pawn_panel.close_requested.connect(show_pawn.bind(null))
+	_pawn_panel.wage_change_requested.connect(wage_change_requested.emit)
+	_pawn_panel.raise_answered.connect(raise_answered.emit)
 	_pawn_bar.show_pawns(pawns)
 	_pawn_bar.pawn_pressed.connect(pawn_select_requested.emit)
 	_item_panel.close_requested.connect(item_close_requested.emit)

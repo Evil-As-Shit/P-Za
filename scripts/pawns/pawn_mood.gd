@@ -28,6 +28,8 @@ var social: float = 50.0
 var social_need: float = 1.0
 ## Other pawn -> opinion of them (-100 to 100). Missing means 0.
 var opinions: Dictionary[Pawn, float] = {}
+## Mood from their pay against what they think they deserve (set by their pawn; see PayRules).
+var pay_mood: float = 0.0
 ## Shop minutes of today's one break (0: none today). Set from their schedule (see
 ## MoodRules.get_break_minutes()).
 var break_length: float = 0.0
@@ -53,9 +55,10 @@ func _init(p_rules: MoodRules) -> void:
 	break_length = rules.short_break_minutes
 
 
-## What mood drifts toward: the base, less stress and tiredness, plus mood effects.
+## What mood drifts toward: the base, less stress and tiredness, plus social, pay and mood
+## effects.
 func get_target() -> float:
-	var target: float = rules.base_mood - stress / 100.0 * rules.stress_mood_cost
+	var target: float = rules.base_mood - stress / 100.0 * rules.stress_mood_cost + pay_mood
 	if energy < rules.tired_below:
 		target -= (rules.tired_below - energy) / rules.tired_below * rules.tired_mood_cost
 	target += (social - 50.0) / 50.0 * rules.social_mood_cost

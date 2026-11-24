@@ -2,7 +2,7 @@ extends "res://tests/test_base.gd"
 ## The bottom bar: its Priorities, Build and Supplies buttons open their windows one at a
 ## time (Build turns build mode on, and opening another window turns it off). Report is off
 ## until a day report exists, then reopens it, and closing a reopened report doesn't resume
-## a paused day. The pawn inspect panel has Needs, Mood, Social and Skills tabs.
+## a paused day. The pawn inspect panel has Needs, Mood, Social, Skills and Pay tabs.
 
 
 func _start() -> void:
@@ -64,7 +64,7 @@ func _start() -> void:
 	var titles: PackedStringArray = []
 	for i: int in tabs.get_tab_count():
 		titles.append(tabs.get_tab_title(i))
-	if titles != PackedStringArray(["Needs", "Mood", "Social", "Skills"]):
+	if titles != PackedStringArray(["Needs", "Mood", "Social", "Skills", "Pay"]):
 		fail("the pawn panel's tabs are %s" % [titles])
 		return
 	pass_test("bottom bar windows open one at a time; Report reopens; pawn panel has tabs")
