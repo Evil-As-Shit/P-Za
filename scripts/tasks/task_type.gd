@@ -34,6 +34,9 @@ static var _default_behavior := TaskBehavior.new()
 ## If true, the skill of the pawn who does this step counts toward the item's quality (see
 ## QualityRules), e.g. stretching or cutting.
 @export var affects_quality: bool = false
+## If true, it's a break, not work: it lasts work_minutes whatever the pawn's speed, gives no
+## practice, and refills energy (see PawnMood).
+@export var rest: bool = false
 ## How the task is planned and carried out. Empty means the default (see TaskBehavior).
 @export var behavior: TaskBehavior
 

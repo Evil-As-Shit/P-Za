@@ -54,6 +54,10 @@ func _start() -> void:
 		fail("a rack outside the walk-in offers Dough storage")
 		return
 
+	# Clear room where it's going.
+	if not _build.pick_up(world.get_node("Entities/BreakTable")) or not _build.sell():
+		fail("couldn't sell the break table")
+		return
 	# Move it with the rack partly emptied: the rack and its stock come along; no selling.
 	_rack._stock = 2
 	if not _build.pick_up(_walk_in):

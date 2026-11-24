@@ -17,6 +17,8 @@ signal skill_leveled_up(work_type: WorkType, level: int)
 ## Mood fell too low: the pawn takes no new jobs until breakdown_ended.
 signal breakdown_started
 signal breakdown_ended
+## A break resting standing (no free break table) is over.
+signal break_ended
 
 enum State { IDLE, WALKING, WALKING_TO_STOP, WAITING_AT_STOP, WALKING_TO_JOB, WORKING }
 
@@ -101,13 +103,14 @@ func _ready() -> void:
 		mood = PawnMood.new(mood_rules)
 		mood.breakdown_started.connect(breakdown_started.emit)
 		mood.breakdown_ended.connect(breakdown_ended.emit)
+		mood.break_ended.connect(break_ended.emit)
 	_play_idle()
 	_place_hold_point()
 
 
 func _process(delta: float) -> void:
 	if mood != null:
-		mood.tick(delta / ShopClock.minutes_to_seconds(1.0), has_job())
+		mood.tick(delta / ShopClock.minutes_to_seconds(1.0), has_job(), is_resting())
 	_avoid_others(delta)
 	match _state:
 		State.WALKING, State.WALKING_TO_STOP, State.WALKING_TO_JOB:
@@ -404,6 +407,39 @@ func is_on_breakdown() -> bool:
 	return mood != null and mood.is_on_breakdown()
 
 
+## True while they take no new jobs: on a breakdown or resting standing on a break.
+func is_off_work() -> bool:
+	return mood != null and (mood.is_on_breakdown() or mood.is_on_standing_break())
+
+
+## True while taking their break at a break table (working a rest task there).
+func is_resting() -> bool:
+	return _state == State.WORKING and _job != null and _job.task_type.rest
+
+
+## True if they're low enough on energy to take a break now.
+func wants_break() -> bool:
+	return mood != null and mood.wants_break()
+
+
+## A break is over (at a table, or resting standing).
+func finish_break() -> void:
+	if mood != null:
+		mood.finish_break()
+
+
+## Starts a break resting where they stand (see PawnMood.start_standing_break()).
+func start_standing_break() -> void:
+	if mood != null:
+		mood.start_standing_break()
+
+
+## A night's rest before the next day: full energy.
+func rest_overnight() -> void:
+	if mood != null:
+		mood.rest_overnight()
+
+
 ## The shop started or stopped rushing.
 func set_rushing(rushing: bool) -> void:
 	if mood != null:
@@ -468,7 +504,9 @@ func _on_path_end() -> void:
 func _do_work(delta: float) -> void:
 	var work_type: WorkType = _job.task_type.work_type
 	practice(work_type, delta / ShopClock.minutes_to_seconds(1.0))
-	var done: bool = _job.add_work(get_work_rate(work_type) * delta)
+	# A break lasts its time whatever the pawn's speed.
+	var rate: float = 1.0 if _job.task_type.rest else get_work_rate(work_type)
+	var done: bool = _job.add_work(rate * delta)
 	_update_work_bar()
 	work_progressed.emit(_job, _job.get_progress())
 	if not done:

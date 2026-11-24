@@ -9,7 +9,9 @@ func _start() -> void:
 	stop_random_orders()
 	var hud: Hud = world.get_node("Hud")
 	var pawn: Pawn = work.get_pawns()[0]
-	# Others may stand in front of them (pawns start on random cells).
+	# Pawns start on random cells, maybe behind furniture: stand them on open floor.
+	pawn.global_position = (world.get_node("ShopFloor") as ShopFloor).cell_to_global(Vector2i(12, 7))
+	# Others may stand in front of them.
 	for other: Pawn in work.get_pawns():
 		if other != pawn:
 			other.global_position = pawn.global_position + Vector2(200.0, 0.0)

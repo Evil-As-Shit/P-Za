@@ -36,6 +36,30 @@ extends Resource
 @export var happy_quality_levels: int = 2
 @export var stressed_quality_levels: int = -2
 
+@export_group("Energy")
+## Energy lost per shop minute on a job (rush_energy_drain times that in a rush).
+@export var energy_drain_per_minute: float = 0.25
+@export var rush_energy_drain: float = 2.0
+## Below this energy, mood drops, down to tired_mood_cost lower at 0.
+@export var tired_below: float = 40.0
+@export var tired_mood_cost: float = 20.0
+## Below this energy, work is slower by exhausted_speed.
+@export var exhausted_below: float = 15.0
+@export var exhausted_speed: float = 0.85
+
+@export_group("Breaks")
+## Below this energy a pawn takes a break once the shop isn't rushing.
+@export var break_below: float = 30.0
+## Below this energy a pawn takes a break even in a rush.
+@export var must_break_below: float = 10.0
+## Shop minutes a break lasts.
+@export var break_minutes: float = 15.0
+## Energy gained per shop minute at a break table, and resting standing (no free table).
+@export var table_rest_per_minute: float = 5.0
+@export var standing_rest_per_minute: float = 2.0
+## Given at the end of every break.
+@export var took_break: MoodEffect
+
 @export_group("Breakdown")
 ## Shop minutes a breakdown lasts.
 @export var breakdown_minutes: float = 20.0

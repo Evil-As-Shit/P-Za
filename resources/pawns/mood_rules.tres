@@ -2,7 +2,9 @@
 
 [ext_resource type="Script" path="res://scripts/pawns/mood_rules.gd" id="1_rules"]
 [ext_resource type="Resource" path="res://resources/pawns/mood_effects/survived_rush.tres" id="2_survived"]
+[ext_resource type="Resource" path="res://resources/pawns/mood_effects/took_break.tres" id="3_break"]
 
 [resource]
 script = ExtResource("1_rules")
 rush_survived = ExtResource("2_survived")
+took_break = ExtResource("3_break")

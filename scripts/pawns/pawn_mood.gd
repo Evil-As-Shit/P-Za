@@ -1,10 +1,14 @@
 class_name PawnMood
 extends RefCounted
-## A pawn's mood (0-100) and what drives it: stress and timed mood effects. Mood drifts
-## toward its target (see get_target()). Its pawn ticks it in shop minutes.
+## A pawn's mood (0-100) and what drives it: stress, energy and timed mood effects. Mood
+## drifts toward its target (see get_target()). Also tracks breaks: at a break table the
+## pawn's job is the break; resting standing (no free table) is a timer here. Its pawn ticks
+## it in shop minutes.
 
 signal breakdown_started
 signal breakdown_ended
+## A standing break (see start_standing_break()) is over.
+signal break_ended
 
 enum Band { BREAKING, STRESSED, CONTENT, HAPPY }
 
@@ -14,6 +18,8 @@ var rules: MoodRules
 var mood: float = 50.0
 ## 0-100. Builds on a job during a rush, eases after.
 var stress: float = 0.0
+## 0-100. Drains on a job, refills on breaks and overnight.
+var energy: float = 100.0
 
 var _rushing: bool = false
 ## Worked a job during the current rush.
@@ -22,6 +28,8 @@ var _worked_rush: bool = false
 var _effects: Dictionary[MoodEffect, float] = {}
 var _breakdown_left: float = 0.0
 var _cooldown_left: float = 0.0
+## Shop minutes left of a standing break.
+var _standing_break_left: float = 0.0
 
 
 func _init(p_rules: MoodRules) -> void:
@@ -29,24 +37,42 @@ func _init(p_rules: MoodRules) -> void:
 	mood = get_target()
 
 
-## What mood drifts toward: the base, less stress, plus mood effects.
+## What mood drifts toward: the base, less stress and tiredness, plus mood effects.
 func get_target() -> float:
 	var target: float = rules.base_mood - stress / 100.0 * rules.stress_mood_cost
+	if energy < rules.tired_below:
+		target -= (rules.tired_below - energy) / rules.tired_below * rules.tired_mood_cost
 	for effect: MoodEffect in _effects:
 		target += effect.mood
 	return clampf(target, 0.0, 100.0)
 
 
 ## Moves time on by `minutes` shop minutes. `has_job`: the pawn is on a job.
-func tick(minutes: float, has_job: bool) -> void:
+## `resting_at_table`: they're taking their break at a break table.
+func tick(minutes: float, has_job: bool, resting_at_table: bool = false) -> void:
 	if minutes <= 0.0:
 		return
-	if is_on_breakdown() or not _rushing:
+	var resting: bool = resting_at_table or is_on_standing_break()
+	if is_on_breakdown() or resting or not _rushing:
 		stress -= rules.stress_ease_per_minute * minutes
 	elif has_job:
 		stress += rules.stress_rise_per_minute * minutes
 		_worked_rush = true
 	stress = clampf(stress, 0.0, 100.0)
+	if resting_at_table:
+		energy += rules.table_rest_per_minute * minutes
+	elif is_on_standing_break():
+		energy += rules.standing_rest_per_minute * minutes
+	elif has_job:
+		var drain: float = rules.energy_drain_per_minute * minutes
+		energy -= drain * rules.rush_energy_drain if _rushing else drain
+	energy = clampf(energy, 0.0, 100.0)
+	if is_on_standing_break():
+		_standing_break_left -= minutes
+		if _standing_break_left <= 0.0:
+			_standing_break_left = 0.0
+			finish_break()
+			break_ended.emit()
 	for effect: MoodEffect in _effects.keys():
 		_effects[effect] -= minutes
 		if _effects[effect] <= 0.0:
@@ -73,6 +99,34 @@ func start_breakdown() -> void:
 ## True during a breakdown: the pawn takes no new jobs.
 func is_on_breakdown() -> bool:
 	return _breakdown_left > 0.0
+
+
+## True if the pawn should take a break now: low on energy (very low during a rush).
+func wants_break() -> bool:
+	if is_on_breakdown() or is_on_standing_break():
+		return false
+	return energy < (rules.must_break_below if _rushing else rules.break_below)
+
+
+## Starts a break resting where they stand (no free break table): no new jobs until
+## break_ended.
+func start_standing_break() -> void:
+	_standing_break_left = rules.break_minutes
+
+
+func is_on_standing_break() -> bool:
+	return _standing_break_left > 0.0
+
+
+## A break (at a table or standing) is over.
+func finish_break() -> void:
+	if rules.took_break != null:
+		add_effect(rules.took_break)
+
+
+## A night's rest: full energy for the new day.
+func rest_overnight() -> void:
+	energy = 100.0
 
 
 func is_rushing() -> bool:
@@ -113,9 +167,11 @@ func get_band_name() -> String:
 	return BAND_NAMES[get_band()]
 
 
-## Work speed multiplier from mood and the rush.
+## Work speed multiplier from mood, energy and the rush.
 func get_speed_multiplier() -> float:
 	var speed: float = rules.rush_speed if _rushing else 1.0
+	if energy < rules.exhausted_below:
+		speed *= rules.exhausted_speed
 	match get_band():
 		Band.HAPPY:
 			speed *= rules.happy_speed

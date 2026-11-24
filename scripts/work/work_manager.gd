@@ -37,6 +37,8 @@ signal rush_changed(rushing: bool)
 @export var managing: WorkType
 ## How the manager quotes each order's wait.
 @export var quote_rules: QuoteRules
+## A tired pawn's break at a break table (a table with the Break role).
+@export var break_task: TaskType
 ## How many recent order jobs the average walk per job is taken over (for quotes).
 @export var walk_samples: int = 50
 @export var idle_time_min: float = 0.5
@@ -191,7 +193,8 @@ func add_pawn(pawn: Pawn) -> void:
 	pawn.work_started.connect(_on_pawn_work_started.bind(pawn))
 	pawn.job_finished.connect(_on_pawn_job_finished.bind(pawn))
 	pawn.work_progressed.connect(_on_pawn_work_progressed.bind(pawn))
-	pawn.breakdown_ended.connect(_on_pawn_breakdown_ended.bind(pawn))
+	pawn.breakdown_ended.connect(_on_pawn_back_to_work.bind(pawn))
+	pawn.break_ended.connect(_on_pawn_back_to_work.bind(pawn))
 	pawn.shop_floor = _floor
 	pawn.set_rushing(_rushing)
 	_pawns.append(pawn)
@@ -291,7 +294,13 @@ func assign_all() -> void:
 func try_assign(pawn: Pawn, max_priority: int = Pawn.LOWEST_PRIORITY) -> bool:
 	if pawn.has_job():
 		return true
-	if pawn.is_on_breakdown():
+	if pawn.is_off_work():
+		return false
+	if pawn.wants_break():
+		# A free break table spot, or else they rest where they stand.
+		if break_task != null and break_task.get_behavior().try_start(pawn, Job.new(break_task, null, null), self):
+			return true
+		pawn.start_standing_break()
 		return false
 	var jobs: Array[Job] = _rack.get_open_jobs()
 	for job: Job in _shop_jobs:
@@ -954,8 +963,8 @@ func _work_or_wander(pawn: Pawn) -> void:
 
 func _wait_then_wander(pawn: Pawn) -> void:
 	var wait: float = randf_range(idle_time_min, idle_time_max)
-	# During a breakdown they stay on their phone.
-	if pawn.is_on_breakdown() or randf() < phone_chance:
+	# During a breakdown or a standing break they stay on their phone.
+	if pawn.is_off_work() or randf() < phone_chance:
 		pawn.use_phone()
 		wait = randf_range(phone_time_min, phone_time_max)
 	get_tree().create_timer(wait).timeout.connect(_send_to_random_cell.bind(pawn))
@@ -964,7 +973,7 @@ func _wait_then_wander(pawn: Pawn) -> void:
 func _send_to_random_cell(pawn: Pawn) -> void:
 	if pawn.has_job():
 		return
-	if pawn.is_on_breakdown():
+	if pawn.is_off_work():
 		_wait_then_wander(pawn)
 		return
 	var path: PackedVector2Array = get_walk_path(get_cell(pawn), _floor.get_random_walkable_cell())
@@ -974,9 +983,9 @@ func _send_to_random_cell(pawn: Pawn) -> void:
 	pawn.follow_path(path)
 
 
-## Back from a breakdown: they look for work again. (Their idle loop is still running, so
-## it isn't restarted here.)
-func _on_pawn_breakdown_ended(_pawn: Pawn) -> void:
+## Back from a breakdown or a standing break: they look for work again. (Their idle loop
+## is still running, so it isn't restarted here.)
+func _on_pawn_back_to_work(_pawn: Pawn) -> void:
 	assign_all()
 
 #endregion

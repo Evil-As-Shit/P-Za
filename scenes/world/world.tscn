@@ -91,6 +91,8 @@
 [ext_resource type="Script" path="res://scripts/supply/deliveries.gd" id="94_deliveries"]
 [ext_resource type="Resource" path="res://resources/supplies/supply_catalog.tres" id="95_supplies"]
 [ext_resource type="PackedScene" path="res://scenes/ui/supply_panel.tscn" id="96_supply_panel"]
+[ext_resource type="Resource" path="res://resources/tasks/take_break.tres" id="97_take_break"]
+[ext_resource type="Resource" path="res://resources/station_roles/break.tres" id="98_break_role"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -203,6 +205,11 @@ data = ExtResource("6_table")
 cell = Vector2i(4, 4)
 role = ExtResource("21_boxing_role")
 
+[node name="BreakTable" parent="Entities" instance=ExtResource("5_station")]
+data = ExtResource("6_table")
+cell = Vector2i(15, 7)
+role = ExtResource("98_break_role")
+
 [node name="BoxPallet" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("53_pallet")
 cell = Vector2i(12, 4)
@@ -278,6 +285,7 @@ restock_tasks = Array[ExtResource("56_task_type")]([ExtResource("55_fold_box"), 
 chore_tasks = Array[ExtResource("56_task_type")]([ExtResource("67_wash")])
 managing = ExtResource("60_managing")
 quote_rules = ExtResource("61_quote_rules")
+break_task = ExtResource("97_take_break")
 
 [node name="BuildMode" type="Node" parent="."]
 script = ExtResource("47_build")

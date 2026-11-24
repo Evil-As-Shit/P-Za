@@ -406,6 +406,8 @@ func _on_day_started(day: int) -> void:
 	if day <= 1:
 		return
 	_close_day(day - 1)
+	for pawn: Pawn in _work.get_pawns():
+		pawn.rest_overnight()
 	_deliveries.deliver(day)
 
 
