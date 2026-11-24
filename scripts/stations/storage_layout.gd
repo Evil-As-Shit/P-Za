@@ -24,12 +24,9 @@ extends Resource
 @export var pile_sizes: Array[int] = []
 ## Pixels each stacked unit sits above the one below it.
 @export var pile_step: float = 2.0
-## Placeholder until deliveries: the station starts full when assigned this storage, and
-## (with `refills`) refills the moment it runs out.
-@export var starts_full: bool = false
-## With `starts_full`: refills the moment it runs out. Off for storage only washed dishes
-## refill (e.g. the prep table's sauce cooler).
-@export var refills: bool = true
+## The starting shop's stations open with this storage full (see Station.stock_up()).
+## Storage built or assigned later starts empty and is filled by deliveries or pawns.
+@export var stocked_at_start: bool = false
 ## Units are dishes of different kinds (e.g. Empty Dishes), each drawn with its own dish's
 ## art (see Dish) instead of `textures`.
 @export var holds_dishes: bool = false

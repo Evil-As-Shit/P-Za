@@ -87,6 +87,12 @@ var _dish_boards: DishBoards = null
 var _room: WalkInRoom = null
 ## Portions left in each of its ingredient pans (see StationData.pans); full until used.
 var _pan_left: Dictionary[IngredientPan, int] = {}
+## Portions in its bulk tub (see StationData.bulk_tub), and room promised to pawns bringing
+## a case to pour in.
+var _bulk_left: int = 0
+var _bulk_room_claimed: int = 0
+## A delivery drop-off's cases (see StationData.delivery_dock), or null.
+var _dock_cases: DockCases = null
 
 ## All the station's art and what's on it, in draw order. Positions are floor positions,
 ## also inside the canvas.
@@ -173,6 +179,7 @@ func place(shop_floor: ShopFloor) -> void:
 	_origin_center = shop_floor.cell_to_global(cell)
 	_build_piles(_placed)
 	_place_dish_boards()
+	_place_dock_cases()
 	_place_room()
 	_placed = true
 	_place_work_spot_markers()
@@ -242,7 +249,7 @@ func _place_work_spot_markers() -> void:
 
 ## True if nothing is on it or on its way to or from it.
 func is_idle() -> bool:
-	if _stock_claimed > 0 or _room_claimed > 0:
+	if _stock_claimed > 0 or _room_claimed > 0 or _bulk_room_claimed > 0:
 		return false
 	for spot: int in get_spot_count():
 		if _items[spot] != null or _reserved[spot]:
@@ -666,8 +673,11 @@ func get_work_cell(spot: int) -> Vector2i:
 	return data.get_work_cell(cell, facing, spot)
 
 
-## True if anything sits on its spots (stored stock doesn't count).
+## True if anything sits on its spots, or supply cases on a delivery drop-off (stored stock
+## doesn't count).
 func has_items() -> bool:
+	if _dock_cases != null and _dock_cases.has_cases():
+		return true
 	return _items.any(func(item: Item) -> bool: return item != null)
 
 
@@ -717,6 +727,90 @@ func get_dish_boards() -> DishBoards:
 	return _dish_boards
 
 
+#region Bulk tub
+
+## Portions its bulk tub holds when full, or 0 if it isn't one.
+func get_bulk_capacity() -> int:
+	return data.bulk_tub.capacity if data.bulk_tub != null else 0
+
+
+## Portions left in its bulk tub (0 if it isn't one).
+func get_bulk_left() -> int:
+	return _bulk_left
+
+
+## Unpromised room left in its bulk tub, in portions.
+func get_bulk_room() -> int:
+	return get_bulk_capacity() - _bulk_left - _bulk_room_claimed
+
+
+## Promises `amount` portions of room to a pawn bringing a case. Undo with
+## unclaim_bulk_room().
+func claim_bulk_room(amount: int) -> void:
+	_bulk_room_claimed += amount
+
+
+func unclaim_bulk_room(amount: int) -> void:
+	_bulk_room_claimed -= amount
+
+
+## Pours `amount` portions into claimed room.
+func add_bulk(amount: int) -> void:
+	_bulk_room_claimed -= amount
+	_bulk_left = mini(_bulk_left + amount, get_bulk_capacity())
+
+
+## True if its bulk tub has enough left for one fill.
+func can_fill() -> bool:
+	return data.bulk_tub != null and _bulk_left >= data.bulk_tub.per_fill
+
+
+## Takes one fill's portions out of its bulk tub.
+func use_fill() -> void:
+	if data.bulk_tub != null:
+		_bulk_left = maxi(_bulk_left - data.bulk_tub.per_fill, 0)
+
+#endregion
+
+
+## Fills the station for the starting shop: storage marked stocked at start (see
+## StorageLayout.stocked_at_start) and its bulk tub. Stations built later start empty.
+func stock_up() -> void:
+	var layout: StorageLayout = get_storage_layout()
+	if layout != null and layout.stocked_at_start:
+		_stock = get_capacity()
+		_partial.clear()
+		_stock_dishes.clear()
+		_update_piles()
+	_bulk_left = get_bulk_capacity()
+
+
+## A delivery drop-off's cases, or null if the station isn't one.
+func get_dock_cases() -> DockCases:
+	return _dock_cases
+
+
+func _place_dock_cases() -> void:
+	var dock: DeliveryDock = data.delivery_dock
+	if dock == null:
+		return
+	if _dock_cases == null:
+		_dock_cases = DockCases.new()
+		_dock_cases.name = "DockCases"
+		_dock_cases.dock = dock
+		_supply_on_top.add_child(_dock_cases)
+	var step_x: Vector2 = _floor.cell_to_global(cell + Vector2i.RIGHT) - _origin_center
+	var step_y: Vector2 = _floor.cell_to_global(cell + Vector2i.DOWN) - _origin_center
+	var bases: Array[Vector2] = []
+	for offset: Vector3 in dock.piles:
+		var turned: Vector2 = StationData.rotate_point(Vector2(offset.x, offset.y), facing)
+		bases.append(
+			_origin_center + data.item_offset + step_x * turned.x + step_y * turned.y
+			- Vector2(0.0, offset.z)
+		)
+	_dock_cases.arrange(bases, data.is_mirrored(facing))
+
+
 ## Makes a sink's drainboards the first time, and lines their piles up with its spots. Dishes
 ## on them stay through moves.
 func _place_dish_boards() -> void:
@@ -756,7 +850,6 @@ func unclaim_supply() -> void:
 ## or the count put back with it (see add_stock()). Partly used ones go out first. For
 ## storage that holds dishes, get_top_dish() beforehand says which one this is, or `dish`
 ## picks one (the top-most of its kind).
-## Placeholder until deliveries: storage that starts full refills the moment it runs out.
 func take_supply(dish: Dish = null) -> int:
 	_stock_claimed -= 1
 	_stock -= 1
@@ -765,10 +858,6 @@ func take_supply(dish: Dish = null) -> int:
 		_stock_dishes.remove_at(_stock_dishes.rfind(dish))
 	elif not _stock_dishes.is_empty():
 		_stock_dishes.pop_back()
-	var layout: StorageLayout = get_storage_layout()
-	if _stock == 0 and layout != null and layout.starts_full and layout.refills:
-		_stock = _get_capacity()
-		_partial.clear()
 	_update_piles()
 	return left
 
@@ -783,18 +872,24 @@ func get_stock_dishes() -> Array[Dish]:
 	return _stock_dishes.duplicate()
 
 
-func _get_capacity() -> int:
+## Units its storage holds when full (0 if it stores nothing).
+func get_capacity() -> int:
 	var total: int = 0
 	for pile: Array in _pile_units:
 		total += pile.size()
 	return total
 
 
+## Free places in its storage nobody has been promised.
+func get_free_room() -> int:
+	return get_capacity() - _stock - _room_claimed
+
+
 ## True if there's a free place for one unit of `kind` not already promised to a pawn.
 func has_room(kind: StorageKind) -> bool:
 	return (
 		kind != null and get_stored_kind() == kind
-		and _stock + _room_claimed < _get_capacity()
+		and get_free_room() > 0
 	)
 
 
@@ -819,7 +914,7 @@ func add_stock(left: int = -1, dish: Dish = null) -> void:
 	var layout: StorageLayout = get_storage_layout()
 	if dish != null and layout != null and layout.holds_dishes:
 		_stock_dishes.append(dish)
-	if layout != null and layout.clears_when_full and _stock >= _get_capacity():
+	if layout != null and layout.clears_when_full and _stock >= get_capacity():
 		_stock = 0
 		_partial.clear()
 		_stock_dishes.clear()
@@ -832,8 +927,7 @@ func get_partial_stock() -> Array[int]:
 
 
 ## Lays out the piles for the stored kind. With `keep_stock` (after a move) the stock stays;
-## otherwise it starts full or empty (see StorageLayout.starts_full) until there are
-## deliveries. Units and places promised to pawns stay promised until they hand them back
+## otherwise it starts empty (the starting shop's are filled by stock_up()). Units and places promised to pawns stay promised until they hand them back
 ## (a role change interrupts them, see world.gd).
 func _build_piles(keep_stock: bool = false) -> void:
 	for pile: Array in _pile_units:
@@ -854,14 +948,12 @@ func _build_piles(keep_stock: bool = false) -> void:
 		_make_piles(layout, layout.piles, _supply_inside, 0)
 		_make_piles(layout, layout.piles_on_top, _supply_on_top, layout.piles.size())
 	if keep_stock:
-		_stock = mini(kept, _get_capacity())
+		_stock = mini(kept, get_capacity())
 		_partial.resize(mini(_partial.size(), _stock))
 		_stock_dishes.resize(mini(_stock_dishes.size(), _stock))
 	else:
 		_partial.clear()
 		_stock_dishes.clear()
-		if layout.starts_full:
-			_stock = _get_capacity()
 	_update_piles()
 
 

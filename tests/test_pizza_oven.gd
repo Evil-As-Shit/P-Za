@@ -16,7 +16,7 @@ func _start() -> void:
 	var shop_floor: ShopFloor = world.get_node("ShopFloor")
 	var pawns: Array[Pawn] = work.get_pawns()
 	for i: int in pawns.size():
-		pawns[i].global_position = shop_floor.cell_to_global(Vector2i(14 + i, 0))
+		pawns[i].global_position = shop_floor.cell_to_global(Vector2i(13 + i, 0))
 	if PIZZA_OVEN.get_facings() != [0, 1, 2, 3]:
 		fail("pizza oven can face %s, expected all four" % [PIZZA_OVEN.get_facings()])
 		return

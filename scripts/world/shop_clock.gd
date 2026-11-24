@@ -10,6 +10,10 @@ signal speed_changed(speed: int)
 
 ## Game seconds per shop minute when no clock is running (a 30-minute, 12-hour day).
 const DEFAULT_SECONDS_PER_MINUTE: float = 2.5
+## Weekday names, Monday first. Day 1 is a Monday.
+const WEEKDAY_NAMES: Array[String] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+enum Weekday { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY }
 
 ## Real minutes one day lasts at 1x speed.
 @export var day_length_minutes: float = 30.0
@@ -96,6 +100,16 @@ func set_speed(new_speed: int) -> void:
 
 func toggle_pause() -> void:
 	set_speed(_resume_speed if speed == 0 else 0)
+
+
+## The weekday of `for_day` (day 1 is a Monday).
+static func get_weekday(for_day: int) -> Weekday:
+	return posmod(for_day - 1, 7) as Weekday
+
+
+## Short weekday name of `for_day`, e.g. "Mon".
+static func get_weekday_name(for_day: int) -> String:
+	return WEEKDAY_NAMES[get_weekday(for_day)]
 
 
 static func format_time(minute_of_day: int) -> String:

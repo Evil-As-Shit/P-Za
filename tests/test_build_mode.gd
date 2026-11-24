@@ -19,7 +19,7 @@ func _start() -> void:
 	# up along the back wall, out of the way.
 	var pawns: Array[Pawn] = work.get_pawns()
 	for i: int in pawns.size():
-		pawns[i].global_position = _floor.cell_to_global(Vector2i(14 + i, 0))
+		pawns[i].global_position = _floor.cell_to_global(Vector2i(13 + i, 0))
 	world._set_build_mode(true)
 	var station_count: int = world._stations.size()
 

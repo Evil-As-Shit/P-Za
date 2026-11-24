@@ -45,7 +45,7 @@ func show_report(p_report: DayReport) -> void:
 	_add_line("Sales", ShopFinances.format_money(report.revenue))
 	if report.orders_missed > 0:
 		_add_line("Sales lost", ShopFinances.format_money(report.sales_missed), "", DIM)
-	_add_line("Ingredients", _cost(report.ingredients))
+	_add_line("Supplies", _cost(report.supplies))
 	_add_line(
 		"Wages", _cost(report.wages),
 		"%d staff × %d h" % [report.staff_count, roundi(report.staff_hours)]

@@ -121,7 +121,7 @@ func _check_station(label: String, data: StationData, facing: int, background: I
 	station.place(_floor)
 	if label == "box rack":
 		# Box storage starts empty; fill it.
-		station._stock = station._get_capacity()
+		station._stock = station.get_capacity()
 		station._update_piles()
 	if label == "long table" or label == "prep table":
 		for spot: int in station.get_spot_count():

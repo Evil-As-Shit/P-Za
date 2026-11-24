@@ -85,6 +85,12 @@
 [ext_resource type="Script" path="res://scripts/customers/lobby.gd" id="80_lobby"]
 [ext_resource type="PackedScene" path="res://scenes/customers/customer.tscn" id="81_customer"]
 [ext_resource type="Resource" path="res://resources/recipes/quality_rules.tres" id="79_quality"]
+[ext_resource type="Resource" path="res://resources/stations/bulk_dough_tub.tres" id="91_bulk_dough"]
+[ext_resource type="Resource" path="res://resources/stations/delivery_pallet.tres" id="92_delivery_pallet"]
+[ext_resource type="Resource" path="res://resources/tasks/haul_case.tres" id="93_haul_case"]
+[ext_resource type="Script" path="res://scripts/supply/deliveries.gd" id="94_deliveries"]
+[ext_resource type="Resource" path="res://resources/supplies/supply_catalog.tres" id="95_supplies"]
+[ext_resource type="PackedScene" path="res://scenes/ui/supply_panel.tscn" id="96_supply_panel"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -99,7 +105,7 @@ y_sort_enabled = true
 y_sort_enabled = true
 script = ExtResource("24_walls")
 style = ExtResource("25_wall_style")
-doors = Array[Vector3i]([Vector3i(8, 13, 2)])
+doors = Array[Vector3i]([Vector3i(8, 13, 2), Vector3i(16, 0, 1)])
 inner_walls = Array[Vector3i]([Vector3i(0, 9, 2), Vector3i(1, 9, 2), Vector3i(2, 9, 2), Vector3i(3, 9, 2), Vector3i(4, 9, 2), Vector3i(5, 9, 2), Vector3i(7, 9, 2), Vector3i(8, 9, 2), Vector3i(9, 9, 2), Vector3i(11, 9, 2), Vector3i(12, 9, 2), Vector3i(13, 9, 2), Vector3i(14, 9, 2), Vector3i(15, 9, 2), Vector3i(16, 9, 2)])
 
 [node name="PrepTable" parent="Entities" instance=ExtResource("5_station")]
@@ -138,6 +144,15 @@ role = ExtResource("31_dough_storage")
 data = ExtResource("74_bulk_sauce")
 cell = Vector2i(3, 2)
 facing = 1
+
+[node name="BulkDough" parent="Entities" instance=ExtResource("5_station")]
+data = ExtResource("91_bulk_dough")
+cell = Vector2i(0, 2)
+facing = 3
+
+[node name="DeliveryPallet" parent="Entities" instance=ExtResource("5_station")]
+data = ExtResource("92_delivery_pallet")
+cell = Vector2i(17, 0)
 
 [node name="CheeseRack" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("12_box_rack")
@@ -236,7 +251,7 @@ item_scene = ExtResource("11_item")
 throw_out_task = ExtResource("44_throw_out")
 quality_rules = ExtResource("79_quality")
 take_order_task = ExtResource("52_take_order")
-restock_tasks = Array[ExtResource("56_task_type")]([ExtResource("55_fold_box"), ExtResource("58_put_away_dough"), ExtResource("68_bring_dishes"), ExtResource("76_store_clean"), ExtResource("69_put_away_dishes"), ExtResource("70_return_bucket"), ExtResource("77_refill_cheese")])
+restock_tasks = Array[ExtResource("56_task_type")]([ExtResource("55_fold_box"), ExtResource("58_put_away_dough"), ExtResource("68_bring_dishes"), ExtResource("76_store_clean"), ExtResource("69_put_away_dishes"), ExtResource("70_return_bucket"), ExtResource("77_refill_cheese"), ExtResource("93_haul_case")])
 chore_tasks = Array[ExtResource("56_task_type")]([ExtResource("67_wash")])
 managing = ExtResource("60_managing")
 quote_rules = ExtResource("61_quote_rules")
@@ -244,7 +259,7 @@ quote_rules = ExtResource("61_quote_rules")
 [node name="BuildMode" type="Node" parent="."]
 script = ExtResource("47_build")
 station_scene = ExtResource("5_station")
-catalog = Array[ExtResource("48_station_data")]([ExtResource("57_prep_table"), ExtResource("6_table"),ExtResource("33_small_table"), ExtResource("14_counter"), ExtResource("51_register"), ExtResource("10_oven"), ExtResource("50_pizza_oven"), ExtResource("64_pizza_rack"), ExtResource("12_box_rack"), ExtResource("53_pallet"), ExtResource("43_garbage_can"), ExtResource("66_dish_sink"), ExtResource("72_walk_in_small"), ExtResource("71_walk_in"), ExtResource("73_walk_in_large"), ExtResource("74_bulk_sauce")])
+catalog = Array[ExtResource("48_station_data")]([ExtResource("57_prep_table"), ExtResource("6_table"),ExtResource("33_small_table"), ExtResource("14_counter"), ExtResource("51_register"), ExtResource("10_oven"), ExtResource("50_pizza_oven"), ExtResource("64_pizza_rack"), ExtResource("12_box_rack"), ExtResource("53_pallet"), ExtResource("43_garbage_can"), ExtResource("66_dish_sink"), ExtResource("72_walk_in_small"), ExtResource("71_walk_in"), ExtResource("73_walk_in_large"), ExtResource("74_bulk_sauce"), ExtResource("91_bulk_dough"), ExtResource("92_delivery_pallet")])
 
 [node name="Lobby" type="Node" parent="."]
 script = ExtResource("80_lobby")
@@ -263,6 +278,10 @@ menu = Array[ExtResource("29_recipe")]([ExtResource("8_pizza")])
 [node name="ShopFinances" type="Node" parent="."]
 script = ExtResource("36_finances")
 bills = Array[ExtResource("37_bill")]([ExtResource("38_rent"), ExtResource("39_electricity"), ExtResource("40_gas"), ExtResource("41_water")])
+
+[node name="Deliveries" type="Node" parent="."]
+script = ExtResource("94_deliveries")
+catalog = ExtResource("95_supplies")
 
 [node name="ShopReputation" type="Node" parent="."]
 script = ExtResource("62_reputation")
@@ -290,6 +309,8 @@ visible = false
 
 [node name="ItemPanel" parent="Hud" instance=ExtResource("90_item_panel")]
 visible = false
+
+[node name="SupplyPanel" parent="Hud" instance=ExtResource("96_supply_panel")]
 
 [node name="BuildPanel" parent="Hud" instance=ExtResource("49_build_panel")]
 visible = false

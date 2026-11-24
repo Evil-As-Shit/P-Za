@@ -23,6 +23,8 @@ enum Action {
 	TAKE_SIDE,
 	## Set the carried side item out in a station's side areas.
 	SET_SIDE,
+	## Take a supply case off a delivery drop-off (see DockCases).
+	TAKE_CASE,
 }
 
 var action: Action
@@ -36,6 +38,8 @@ var container: Item = null
 ## The clean dish taken (TAKE_DISH), or the dish taken from storage that holds dishes
 ## (TAKE_SUPPLY; null for its top one).
 var dish: Dish = null
+## The supply case taken (TAKE_CASE).
+var supply: SupplyItem = null
 
 
 func _init(p_action: Action, p_cell: Vector2i) -> void:
@@ -108,6 +112,14 @@ static func set_side(p_station: Station, p_cell: Vector2i) -> JobStop:
 	return stop
 
 
+## Taking a case of `p_supply` off a delivery drop-off.
+static func take_case(p_station: Station, p_supply: SupplyItem) -> JobStop:
+	var stop := JobStop.new(Action.TAKE_CASE, p_station.get_work_cell(0))
+	stop.station = p_station
+	stop.supply = p_supply
+	return stop
+
+
 ## Claims what the stop needs.
 func claim() -> void:
 	match action:
@@ -123,6 +135,8 @@ func claim() -> void:
 			station.get_dish_boards().claim_dirty_room()
 		Action.TAKE_DISH:
 			station.get_dish_boards().claim_clean(dish)
+		Action.TAKE_CASE:
+			station.get_dock_cases().claim(supply)
 
 
 ## Hands back what claim() took, for a stop the pawn won't make.
@@ -141,3 +155,5 @@ func release() -> void:
 			station.get_dish_boards().unclaim_dirty_room()
 		Action.TAKE_DISH:
 			station.get_dish_boards().unclaim_clean(dish)
+		Action.TAKE_CASE:
+			station.get_dock_cases().unclaim(supply)

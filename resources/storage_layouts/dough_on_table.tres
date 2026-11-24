@@ -13,4 +13,4 @@ textures = Array[Texture2D]([ExtResource("2_back"), ExtResource("3_front"), ExtR
 piles_at_spots = true
 per_pile = 4
 pile_step = 3.0
-starts_full = true
+stocked_at_start = true

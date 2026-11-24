@@ -13,7 +13,8 @@ var orders_open: int = 0
 var orders_missed: int = 0
 var sales_missed: float = 0.0
 var revenue: float = 0.0
-var ingredients: float = 0.0
+## Supply deliveries paid for today.
+var supplies: float = 0.0
 var wages: float = 0.0
 var staff_count: int = 0
 var staff_hours: float = 0.0
@@ -55,7 +56,7 @@ func get_bills_total() -> float:
 
 
 func get_profit() -> float:
-	return revenue - ingredients - wages - get_bills_total()
+	return revenue - supplies - wages - get_bills_total()
 
 
 func get_average_minutes() -> float:

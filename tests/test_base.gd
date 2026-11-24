@@ -66,6 +66,14 @@ func stop_random_orders() -> void:
 	(world.get_node("OrderSource") as Node).process_mode = Node.PROCESS_MODE_DISABLED
 
 
+## Refills the box pallet's flat boxes whenever it runs out, standing in for deliveries in
+## tests that make more pizzas than the starting shop has boxes for. Call from _step().
+func keep_flat_boxes_stocked() -> void:
+	var pallet: Station = world.get_node("Entities/BoxPallet")
+	if pallet.get_stock() == 0:
+		pallet.stock_up()
+
+
 ## The dough storage pawns take from and put back to first: the walk-in's first Dough shelf.
 func dough_storage() -> Station:
 	var dough: StorageKind = load("res://resources/storage_kinds/dough.tres")

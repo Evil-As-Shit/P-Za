@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SupplyItem" format=3]
+
+[ext_resource type="Script" path="res://scripts/supply/supply_item.gd" id="1_supply"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/placeholder/supply_case_sheet.png" id="2_sheet"]
+[ext_resource type="Resource" path="res://resources/stations/bulk_sauce_bucket.tres" id="3_where"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_case"]
+atlas = ExtResource("2_sheet")
+region = Rect2(64, 0, 32, 16)
+margin = Rect2(0, 48, 0, 48)
+
+[resource]
+script = ExtResource("1_supply")
+display_name = "Sauce"
+unit_name = "portions"
+bulk_station = ExtResource("3_where")
+units_per_case = 20
+portions_per_unit = 1
+price_per_portion = 0.4
+case_texture = SubResource("AtlasTexture_case")

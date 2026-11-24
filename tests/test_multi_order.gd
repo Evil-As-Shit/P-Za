@@ -19,6 +19,7 @@ func _start() -> void:
 
 
 func _step() -> void:
+	keep_flat_boxes_stocked()
 	for ticket: Ticket in _remaining:
 		if ticket.ready and not _stack_sizes.has(ticket):
 			_stack_sizes[ticket] = ticket.stack_base.item.get_units().size() + 1

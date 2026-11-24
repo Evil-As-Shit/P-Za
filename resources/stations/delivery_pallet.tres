@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="StationData" format=3]
+
+[ext_resource type="Script" path="res://scripts/stations/station_data.gd" id="1_data"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/placeholder/delivery_pallet_sheet.png" id="2_sheet"]
+[ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="3_spot"]
+[ext_resource type="Script" path="res://scripts/stations/delivery_dock.gd" id="4_dock"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_facing0"]
+atlas = ExtResource("2_sheet")
+region = Rect2(0, 0, 32, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_facing1"]
+atlas = ExtResource("2_sheet")
+region = Rect2(32, 0, 32, 48)
+
+[sub_resource type="Resource" id="Resource_spot"]
+script = ExtResource("3_spot")
+work_cell = Vector2i(0, 1)
+item_cell = Vector2i(0, 0)
+
+[sub_resource type="Resource" id="Resource_dock"]
+script = ExtResource("4_dock")
+capacity = 12
+piles = Array[Vector3]([Vector3(-0.2, -0.2, 0), Vector3(0.2, -0.2, 0), Vector3(-0.2, 0.2, 0), Vector3(0.2, 0.2, 0)])
+pile_step = 9.0
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Delivery Pallet"
+footprint = Vector2i(1, 1)
+facing_textures = Array[Texture2D]([SubResource("AtlasTexture_facing0"), SubResource("AtlasTexture_facing1"), SubResource("AtlasTexture_facing0"), SubResource("AtlasTexture_facing1")])
+spots = Array[ExtResource("3_spot")]([SubResource("Resource_spot")])
+item_offset = Vector2(0, -3)
+delivery_dock = SubResource("Resource_dock")

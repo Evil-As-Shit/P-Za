@@ -2,7 +2,8 @@ class_name StationPanel
 extends PanelContainer
 ## HUD panel for the selected station: its name, and for stations that take a role, one button per
 ## role (plus None) and reports the player's pick. Also shows how full its ingredient pans
-## are (see StationData.pans), kept up to date while it's open.
+## are (see StationData.pans), a bulk tub's level and a delivery pallet's cases, kept up
+## to date while it's open.
 
 signal role_change_requested(station: Station, role: StationRole)
 signal close_requested
@@ -30,6 +31,12 @@ func _show_contents() -> void:
 	var lines: PackedStringArray = []
 	for pan: IngredientPan in station.data.pans:
 		lines.append("%s: %d/%d" % [pan.display_name, station.get_pan_left(pan), pan.portions])
+	if station.data.bulk_tub != null:
+		lines.append("Portions: %d/%d" % [station.get_bulk_left(), station.get_bulk_capacity()])
+	var cases: DockCases = station.get_dock_cases()
+	if cases != null:
+		lines.append("Cases: %d/%d" % [station.data.delivery_dock.capacity - cases.get_room(),
+			station.data.delivery_dock.capacity])
 	_contents.text = "\n".join(lines)
 	_contents.visible = not lines.is_empty()
 

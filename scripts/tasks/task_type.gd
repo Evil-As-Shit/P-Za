@@ -13,8 +13,6 @@ static var _default_behavior := TaskBehavior.new()
 ## Shop-clock minutes of work at normal speed (so they don't change with the day's real
 ## length). Skill and mood will scale this later.
 @export var work_minutes: float = 1.0
-## Cost of what this step uses up (e.g. the cheese, a box), paid when it's done.
-@export var ingredient_cost: float = 0.0
 ## If true, the pawn only loads the item and the station works it for work_minutes on
 ## its own (e.g. baking). The ticket moves on right away, so its next steps can be done
 ## meanwhile, but the item can't be moved until it's done.

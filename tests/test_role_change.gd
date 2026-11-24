@@ -33,6 +33,8 @@ func _step() -> void:
 			_dough_rack._stock_claimed, _dough_rack._room_claimed])
 		return
 	world._on_role_change_requested(_dough_rack, DOUGH_STORAGE)
+	# A rack given a storage role starts empty; stock it again for the order.
+	_dough_rack.stock_up()
 
 
 ## True if a pawn's job has a stop to take supply from the dough rack.

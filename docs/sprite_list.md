@@ -40,6 +40,9 @@ Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette 
 - `pizza_rack_sheet.png`: sheet-pan style pizza rack on casters, 1×1, 32×80 per facing (0–3 left to right). Row 1 is the base (back frame, drawn under stored pizzas), row 2 the cover (front post and front rail ends, drawn over them). Open on the working side and the back, so facings 0 and 2 share art, as do 1 and 3. 17 slots, 3 px apart (first at 9 px, last at 57 px above the floor), one pizza per slot. Used by the Pizza Rack station.
 - `box_rack_sheet.png`: chrome wire shelving, 2×1, 48×64 frames drawn at facing 3. Frame 1 is the base (back and side posts, bottom shelf 3 px up), frame 2 the cover (top shelf 25 px up, front post). Open on both long sides, so facing 1 reuses facing 3's art and 0 and 2 are its mirror image. Used by the Rack station at all four facings.
 - `pizza_screen.png`: 32×16, laid out like the pizza stages. A pizza screen drawn under each pizza on the rack, so stacked layers read apart.
+- `bulk_dough_tub.png`: the bulk sauce bucket recolored with dough, 1×1. Used by the Bulk Dough Tub station in the walk-in.
+- `delivery_pallet_sheet.png`: `pallet_sheet.png` recolored grey, 1×1, 32×48 per facing. Used by the Delivery Pallet station, where delivered cases are stacked (4 piles of 3).
+- `supply_case_sheet.png`: 32×16 cells like the items. A cardboard case with a colored band, one per supply: cheese, flat boxes, sauce, dough. Stacked on the delivery pallet and carried while putting a delivery away.
 - `ingredient_icons.png`: on the 16×16 item guide. Dough, sauce, cheese, pepperoni, mushroom, olives.
 
 ## Priority 1: the pizza loop (next slices)
@@ -66,6 +69,7 @@ Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette 
 | 16 | **Fridge / walk-in cooler**, dry shelf, ingredient crates | object 1×1 to 2×2 | Cold storage matters for spoilage. |
 | 17 | Ingredient items: dough, sauce, cheese, toppings | item 16×16 | Also usable as menu icons. |
 | 18 | **Delivery** vehicle, or a driver exiting through the door | **TBD** | Depends on how delivery is shown. |
+| 18a | **Supply cases**, **delivery pallet** and **bulk dough tub** (real art) | item 32×16, object 1×1 | Placeholders in use; there's no driver yet (cases appear on the pallet at opening). |
 
 ## Priority 3: staff life and management
 

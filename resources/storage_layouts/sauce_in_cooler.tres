@@ -8,5 +8,4 @@ script = ExtResource("1_layout")
 kind = ExtResource("2_kind")
 piles = Array[Vector3]([Vector3(0, 0, 0)])
 per_pile = 1
-starts_full = true
-refills = false
+stocked_at_start = true

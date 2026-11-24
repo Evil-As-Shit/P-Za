@@ -14,11 +14,13 @@ signal report_closed
 signal build_choice_requested(data: StationData)
 signal build_close_requested
 signal sell_requested
+signal supply_target_change_requested(supply: SupplyItem, target: int)
 
 var _rack: TicketRack
 var _pawns: Array[Pawn] = []
 var _work_types: Array[WorkType] = []
 var _managing: WorkType
+var _clock: ShopClock
 
 @onready var _rack_panel: TicketRackPanel = $TicketRackPanel
 @onready var _priority_panel: PriorityPanel = $PriorityPanel
@@ -28,6 +30,7 @@ var _managing: WorkType
 @onready var _clock_panel: ClockPanel = $ClockPanel
 @onready var _day_report_panel: DayReportPanel = $DayReportPanel
 @onready var _build_panel: BuildPanel = $BuildPanel
+@onready var _supply_panel: SupplyPanel = $SupplyPanel
 
 
 func setup(
@@ -35,6 +38,7 @@ func setup(
 	work_types: Array[WorkType], managing: WorkType
 ) -> void:
 	_rack = rack
+	_clock = clock
 	_pawns = pawns
 	_work_types = work_types
 	_managing = managing
@@ -158,6 +162,28 @@ func setup_build(catalog: Array[StationData]) -> void:
 	_build_panel.station_chosen.connect(build_choice_requested.emit)
 	_build_panel.close_requested.connect(build_close_requested.emit)
 	_build_panel.sell_requested.connect(sell_requested.emit)
+
+
+## Fills the supply panel from the shop's deliveries. It refreshes each shop minute while
+## shown, and when a target changes.
+func setup_supplies(deliveries: Deliveries) -> void:
+	_supply_panel.setup(deliveries)
+	_supply_panel.target_change_requested.connect(supply_target_change_requested.emit)
+	deliveries.targets_changed.connect(refresh_supplies)
+	deliveries.delivered.connect(refresh_supplies.unbind(1))
+	_clock.time_changed.connect(refresh_supplies.unbind(2))
+	_clock_panel.supplies_toggled.connect(show_supplies)
+
+
+func show_supplies(shown: bool) -> void:
+	_supply_panel.visible = shown
+	_clock_panel.show_supplies_open(shown)
+	refresh_supplies()
+
+
+func refresh_supplies() -> void:
+	if _supply_panel.visible:
+		_supply_panel.refresh(_clock.day)
 
 
 func show_build(shown: bool) -> void:

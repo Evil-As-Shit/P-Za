@@ -59,6 +59,11 @@ extends Resource
 @export var pans: Array[IngredientPan] = []
 ## Makes the station a dish sink: drainboards for dirty and clean dishes, and basins.
 @export var dish_sink: DishSink
+## Makes the station a bulk tub (e.g. the bulk sauce bucket): dishes are filled from it and
+## deliveries refill it.
+@export var bulk_tub: BulkTub
+## Makes the station a delivery drop-off (e.g. the delivery pallet) for supply cases.
+@export var delivery_dock: DeliveryDock
 ## Makes the station a walk-in cooler: walls, a door and shelves, with open floor inside.
 ## It has no art of its own and turns to any facing.
 @export var walk_in: WalkIn

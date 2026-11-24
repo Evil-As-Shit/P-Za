@@ -7,8 +7,6 @@ extends Node
 
 ## An order's last job is done: it's ready to go out.
 signal order_ready(ticket: Ticket)
-## A finished step used up ingredients (or a box) costing this much.
-signal ingredients_used(cost: float)
 ## A pawn took a customer's order at the register (`job`, with its recipes, when they
 ## ordered and the manager's quote): its ticket should print now.
 signal order_taken(job: Job)
@@ -764,8 +762,6 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 		if not pawn.has_job():
 			_work_or_wander(pawn)
 		return
-	if task.ingredient_cost != 0.0:
-		ingredients_used.emit(task.ingredient_cost)
 	if task.affects_quality and job.recipe_step and job.order_item != null:
 		job.order_item.skill_levels.append(pawn.get_skill(task.work_type))
 	var station: Station = job.station

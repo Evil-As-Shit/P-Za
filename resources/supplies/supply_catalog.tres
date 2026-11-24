@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="SupplyCatalog" format=3]
+
+[ext_resource type="Script" path="res://scripts/supply/supply_catalog.gd" id="1_catalog"]
+[ext_resource type="Script" path="res://scripts/supply/supply_item.gd" id="2_item"]
+[ext_resource type="Resource" path="res://resources/supplies/dough.tres" id="3_dough"]
+[ext_resource type="Resource" path="res://resources/supplies/sauce.tres" id="4_sauce"]
+[ext_resource type="Resource" path="res://resources/supplies/cheese.tres" id="5_cheese"]
+[ext_resource type="Resource" path="res://resources/supplies/flat_boxes.tres" id="6_boxes"]
+
+[resource]
+script = ExtResource("1_catalog")
+items = Array[ExtResource("2_item")]([ExtResource("3_dough"), ExtResource("4_sauce"), ExtResource("5_cheese"), ExtResource("6_boxes")])

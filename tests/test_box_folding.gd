@@ -72,8 +72,12 @@ func _step() -> void:
 						return
 	match _phase:
 		0:
-			# Folding ahead: box storage fills up from the pallet.
-			if _rack.get_stock() < 16:
+			# Folding ahead: box storage fills up from the pallet, until the pallet is empty
+			# (it doesn't refill itself).
+			if _rack.get_stock() < 12:
+				return
+			if _pallet.get_stock() != 0:
+				fail("the pallet has %d flat boxes left after 12 were folded" % _pallet.get_stock())
 				return
 			if not _saw_fold_at_pallet or not _saw_put_away:
 				fail("boxes were stored without being folded at the pallet and carried over")
@@ -84,6 +88,8 @@ func _step() -> void:
 			if not _rack.is_idle():
 				return
 			world._on_role_change_requested(_rack, null)
+			# Flat boxes are delivered again, to fold on demand.
+			_pallet.stock_up()
 			_ticket = order_pizzas(1)
 			rack.ticket_completed.connect(_on_completed)
 			_phase = 2

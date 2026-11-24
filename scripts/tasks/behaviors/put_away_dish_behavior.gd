@@ -4,8 +4,9 @@ extends TaskBehavior
 ## from storage for clean dishes (see StoreCleanDishBehavior) and put away in its storage
 ## (see Dish.put_away_kind, e.g. Dough, or a prep table's sauce cooler), where it counts as
 ## full again. A dish that's filled first (see Dish.filled_at, e.g. a sauce bucket at the
-## bulk sauce bucket) is filled there on the way, in hand. One pawn at a time; a dish with
-## nowhere to be filled waits.
+## bulk sauce bucket, a dough container at the bulk dough tub) is filled there on the way,
+## in hand, using up some of the tub. One pawn at a time; a dish with nowhere to be filled
+## (no tub, or an empty one) waits.
 
 enum Part { PUT_AWAY, FILL }
 
@@ -72,9 +73,21 @@ func on_work_started(job: Job, pawn: Pawn, _work: WorkManager) -> void:
 	job.destination = null
 
 
-func on_finished(job: Job, _pawn: Pawn, _work: WorkManager) -> void:
-	if job.part == Part.FILL and job.target != null and job.target.portions != null:
+## Filled: the bulk tub's level drops, and the dish in hand is full (a dough container is
+## swapped for a full one, with its dough balls).
+func on_finished(job: Job, pawn: Pawn, work: WorkManager) -> void:
+	if job.part != Part.FILL:
+		return
+	job.station.use_fill()
+	if job.target == null or not is_instance_valid(job.target):
+		return
+	if job.target.portions != null:
 		job.target.fill_portions(job.target.portions)
+	elif job.target.ingredient != null:
+		var full: Item = IngredientBehavior.spawn_container(job.target.ingredient, work)
+		pawn.release_item().queue_free()
+		job.target = full
+		pawn.hold_item(full)
 
 
 ## Filled: the same pawn carries it to storage. If they can't get there, they set it down
@@ -135,6 +148,7 @@ func _find_clean(work: WorkManager) -> Array:
 
 static func _find_filler(type: StationData, work: WorkManager) -> Station:
 	for station: Station in work.get_stations():
-		if station.data == type and not station.is_reserved(0):
+		if station.data == type and not station.is_reserved(0) \
+				and (type.bulk_tub == null or station.can_fill()):
 			return station
 	return null

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SupplyItem" format=3]
+
+[ext_resource type="Script" path="res://scripts/supply/supply_item.gd" id="1_supply"]
+[ext_resource type="Texture2D" path="res://Assets/Sprites/placeholder/supply_case_sheet.png" id="2_sheet"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/flat_box.tres" id="3_where"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_case"]
+atlas = ExtResource("2_sheet")
+region = Rect2(32, 0, 32, 16)
+margin = Rect2(0, 48, 0, 48)
+
+[resource]
+script = ExtResource("1_supply")
+display_name = "Boxes"
+unit_name = "flat boxes"
+storage_kind = ExtResource("3_where")
+units_per_case = 12
+portions_per_unit = 1
+price_per_portion = 0.6
+case_texture = SubResource("AtlasTexture_case")

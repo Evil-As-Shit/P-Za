@@ -1,7 +1,7 @@
 class_name ShopFinances
 extends Node
-## The shop's cash, and the running tally for today. Sales and ingredients change cash as
-## they happen; wages and bills are paid at closing, when the day's report is made.
+## The shop's cash, and the running tally for today. Sales and supply deliveries change cash
+## as they happen; wages and bills are paid at closing, when the day's report is made.
 
 signal cash_changed(cash: float)
 
@@ -37,11 +37,11 @@ func record_missed(sales: float) -> void:
 	_today.sales_missed += sales
 
 
-## Ingredients (or boxes) were used up.
-func record_ingredients(cost: float) -> void:
+## A supply delivery arrived and was paid for.
+func record_supplies(cost: float) -> void:
 	if cost == 0.0:
 		return
-	_today.ingredients += cost
+	_today.supplies += cost
 	_change_cash(-cost)
 
 

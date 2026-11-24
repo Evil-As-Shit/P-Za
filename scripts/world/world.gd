@@ -32,6 +32,7 @@ var _selected_item: Item = null
 @onready var _hud: Hud = $Hud
 @onready var _build: BuildMode = $BuildMode
 @onready var _lobby: Lobby = $Lobby
+@onready var _deliveries: Deliveries = $Deliveries
 
 
 func _ready() -> void:
@@ -44,6 +45,8 @@ func _ready() -> void:
 			var station := child as Station
 			if station != null and (station.data.walk_in != null) == walk_ins_first:
 				_setup_station(station)
+				# The starting shop opens stocked; stations built later start empty.
+				station.stock_up()
 	var rng := RandomNumberGenerator.new()
 	for child: Node in _entities.get_children():
 		if child is Pawn:
@@ -56,7 +59,8 @@ func _ready() -> void:
 	_rack.job_withdrawn.connect(_work.withdraw_job)
 	_rack.ticket_cancelled.connect(_on_ticket_cancelled)
 	_work.order_ready.connect(_on_order_ready)
-	_work.ingredients_used.connect(_finances.record_ingredients)
+	_deliveries.setup(_work)
+	_deliveries.delivered.connect(_finances.record_supplies)
 	_clock.time_changed.connect(_on_time_changed)
 	_clock.day_started.connect(_on_day_started)
 	_orders.setup(_clock)
@@ -76,6 +80,8 @@ func _ready() -> void:
 	_hud.setup_items(_rack.find_order_item, _work.quality_rules)
 	_hud.item_close_requested.connect(_select_item.bind(null))
 	_hud.report_closed.connect(_on_report_closed)
+	_hud.setup_supplies(_deliveries)
+	_hud.supply_target_change_requested.connect(_deliveries.set_target)
 	_work.waiting_orders_changed.connect(_hud.show_waiting_orders)
 	_reputation.rating_changed.connect(_on_rating_changed)
 	_on_rating_changed(_reputation.rating)
@@ -393,17 +399,23 @@ func _on_time_changed(_day: int, _minute: int) -> void:
 
 
 ## A day ended: pay wages and bills, and pause on the day's report until it's closed.
-## Orders still open carry over into the new day.
+## Orders still open carry over into the new day. Then the new day's delivery (if any)
+## arrives and is paid for on the new day.
 func _on_day_started(day: int) -> void:
 	if day <= 1:
 		return
+	_close_day(day - 1)
+	_deliveries.deliver(day)
+
+
+func _close_day(day: int) -> void:
 	var hours: float = float(_clock.close_hour - _clock.open_hour)
 	var pawns: Array[Pawn] = _work.get_pawns()
 	var wages: float = 0.0
 	for pawn: Pawn in pawns:
 		wages += pawn.hourly_wage * hours
 	var open_orders: int = _rack.get_ticket_count() + _work.get_waiting_orders().size()
-	var report: DayReport = _finances.close_day(day - 1, wages, pawns.size(), hours, open_orders)
+	var report: DayReport = _finances.close_day(day, wages, pawns.size(), hours, open_orders)
 	_reputation.close_day(report)
 	if _clock.speed > 0:
 		_clock.toggle_pause()
