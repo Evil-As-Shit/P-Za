@@ -48,7 +48,7 @@ func show_report(p_report: DayReport) -> void:
 	_add_line("Supplies", _cost(report.supplies))
 	_add_line(
 		"Wages", _cost(report.wages),
-		"%d staff × %d h" % [report.staff_count, roundi(report.staff_hours)]
+		"%d staff, %d h" % [report.staff_count, roundi(report.staff_hours)]
 	)
 	for bill_name: String in report.bills:
 		_add_line(bill_name, _cost(report.bills[bill_name]))

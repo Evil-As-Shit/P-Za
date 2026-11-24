@@ -18,6 +18,8 @@ var _stations: Array[Station] = []
 var _selected_station: Station = null
 ## Item shown in the item panel, or null.
 var _selected_item: Item = null
+## The last day whose delivery has arrived (day 1 opens stocked).
+var _delivered_day: int = 1
 
 @onready var _floor: ShopFloor = $ShopFloor
 @onready var _floor_dirt: FloorDirt = $FloorDirt
@@ -78,6 +80,8 @@ func _ready() -> void:
 	_hud.setup(_clock, _rack, _finances, _work.get_pawns(), _work.work_types, _work.managing)
 	_hud.priority_change_requested.connect(_on_priority_change_requested)
 	_hud.manager_change_requested.connect(_on_manager_change_requested)
+	_hud.schedule_change_requested.connect(_on_schedule_change_requested)
+	_hud.hours_change_requested.connect(_on_hours_change_requested)
 	_work.manager_changed.connect(_on_manager_changed)
 	_on_manager_changed(_work.get_manager())
 	for pawn: Pawn in _work.get_pawns():
@@ -95,6 +99,17 @@ func _ready() -> void:
 	_hud.setup_social(_social)
 	_reputation.rating_changed.connect(_on_rating_changed)
 	_on_rating_changed(_reputation.rating)
+
+	# The day runs from the first shift (or prep) to the last (or closing). Staff not on
+	# shift as it starts are at home.
+	var span: Vector2i = _get_day_span()
+	_clock.restart_day(span.x, span.y)
+	_clock.hours.changed.connect(_on_shifts_changed)
+	for pawn: Pawn in _work.get_pawns():
+		if pawn.schedule != null:
+			pawn.schedule.changed.connect(_on_shifts_changed)
+	_work.update_shifts(_clock.get_minute_of_day(), true)
+	_update_orders_open()
 
 	_build.setup(_floor, _entities, _stations, _work.get_pawns(), _work.get_floor_items)
 	_build.station_built.connect(_on_station_built)
@@ -121,6 +136,7 @@ func _setup_lobby() -> void:
 			outside = cell + ShopWalls.SIDE_STEP[door.z]
 			break
 	_lobby.setup(_floor, _entities, _stations, _work.take_order_task, _rack.hand_off_task, door_cell, outside)
+	_work.set_staff_door(door_cell, outside)
 	_lobby.reached_register.connect(_work.release_order)
 	_lobby.reached_pickup.connect(_on_customer_at_pickup)
 	_lobby.customer_cell_reached.connect(_floor_dirt.add_step)
@@ -304,6 +320,20 @@ func _on_priority_change_requested(pawn: Pawn, work_type: WorkType, priority: in
 	_work.try_assign(pawn)
 
 
+## A pawn's half hour painted Work or Off (see _on_shifts_changed() for what follows).
+func _on_schedule_change_requested(pawn: Pawn, slot: int, on: bool) -> void:
+	if pawn.schedule == null:
+		pawn.schedule = WorkSchedule.make(0, ShopHours.DAY_MINUTES)
+		pawn.schedule.changed.connect(_on_shifts_changed)
+	pawn.schedule.set_working(slot, on)
+	_hud.refresh_schedules()
+
+
+func _on_hours_change_requested(mark: ShopHours.Mark, minute: int) -> void:
+	_clock.hours.set_mark(mark, minute)
+	_hud.refresh_schedules()
+
+
 func _on_manager_change_requested(pawn: Pawn, on: bool) -> void:
 	if on:
 		_work.set_manager(pawn)
@@ -311,11 +341,16 @@ func _on_manager_change_requested(pawn: Pawn, on: bool) -> void:
 		_work.set_manager(null)
 
 
-## The shop only takes orders with a manager on shift.
 func _on_manager_changed(manager: Pawn) -> void:
-	_orders.open = manager != null
+	_update_orders_open()
 	_hud.show_no_manager(manager == null)
 	_hud.refresh_priorities()
+
+
+## The shop only takes orders with a manager, and someone on shift to quote them (the
+## manager, or whoever covers while they're off).
+func _update_orders_open() -> void:
+	_orders.open = _work.get_manager() != null and _work.get_quoting_pawn() != null
 
 #endregion
 
@@ -405,7 +440,13 @@ func _on_rating_changed(rating: float) -> void:
 
 #region Time
 
-func _on_time_changed(_day: int, _minute: int) -> void:
+func _on_time_changed(day: int, minute: int) -> void:
+	_work.update_shifts(minute)
+	_update_orders_open()
+	# The day's delivery (if any) arrives as prep starts; day 1 opens stocked.
+	if day > 1 and _delivered_day < day and minute >= _clock.hours.prep_minute:
+		_delivered_day = day
+		_deliveries.deliver(day)
 	_rack.now_minutes = _clock.get_open_minutes()
 	_rack.cancel_overdue()
 	# Customers still waiting at the register give up after the same patience.
@@ -418,24 +459,47 @@ func _on_time_changed(_day: int, _minute: int) -> void:
 	_hud.update_ticket_times()
 
 
+## When a day starts and ends (minutes since midnight, as x and y): from the first shift or
+## prep, whichever is earlier, to the last shift or closing, whichever is later.
+func _get_day_span() -> Vector2i:
+	var span := Vector2i(_clock.hours.prep_minute, _clock.hours.close_minute)
+	for pawn: Pawn in _work.get_pawns():
+		if pawn.schedule == null or pawn.schedule.get_first_minute() < 0:
+			continue
+		span.x = mini(span.x, pawn.schedule.get_first_minute())
+		span.y = maxi(span.y, pawn.schedule.get_last_minute())
+	return span
+
+
+## The hours or a schedule changed: so may when days start and end, and who's on shift.
+func _on_shifts_changed() -> void:
+	var span: Vector2i = _get_day_span()
+	_clock.set_span(span.x, span.y)
+	_work.update_shifts(_clock.get_minute_of_day())
+	_update_orders_open()
+
+
 ## A day ended: pay wages and bills, and pause on the day's report until it's closed.
-## Orders still open carry over into the new day. Then the new day's delivery (if any)
-## arrives and is paid for on the new day.
+## Orders still open carry over into the new day. The new day's delivery (if any) arrives
+## as prep starts (see _on_time_changed()).
 func _on_day_started(day: int) -> void:
 	if day <= 1:
 		return
 	_close_day(day - 1)
 	for pawn: Pawn in _work.get_pawns():
 		pawn.rest_overnight()
-	_deliveries.deliver(day)
 
 
+## Wages are paid for each pawn's scheduled hours.
 func _close_day(day: int) -> void:
-	var hours: float = float(_clock.close_hour - _clock.open_hour)
 	var pawns: Array[Pawn] = _work.get_pawns()
+	var day_minutes: int = _clock.day_end_minute - _clock.day_start_minute
 	var wages: float = 0.0
+	var hours: float = 0.0
 	for pawn: Pawn in pawns:
-		wages += pawn.hourly_wage * hours
+		var pawn_hours: float = pawn.get_scheduled_minutes(day_minutes) / 60.0
+		wages += pawn.hourly_wage * pawn_hours
+		hours += pawn_hours
 	var open_orders: int = _rack.get_ticket_count() + _work.get_waiting_orders().size()
 	var report: DayReport = _finances.close_day(day, wages, pawns.size(), hours, open_orders)
 	_reputation.close_day(report)

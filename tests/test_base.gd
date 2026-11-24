@@ -7,6 +7,9 @@ const WORLD_SCENE := "res://scenes/world/world.tscn"
 
 ## Frames before a test gives up (at the runner's 60 fps).
 var timeout_frames: int = 60 * 600
+## Off by default: every pawn is on shift all day, so tests about other things have the
+## whole staff. Set it in _init() to keep the starting shop's shifts.
+var keep_schedules: bool = false
 
 var world: Node
 var clock: ShopClock
@@ -21,6 +24,10 @@ var _done: bool = false
 func _initialize() -> void:
 	world = (load(WORLD_SCENE) as PackedScene).instantiate()
 	(world.get_node("Work") as WorkManager).phone_chance = 0.0
+	if not keep_schedules:
+		for node: Node in world.get_node("Entities").get_children():
+			if node is Pawn:
+				(node as Pawn).schedule = null
 	root.add_child(world)
 
 

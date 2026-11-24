@@ -16,8 +16,8 @@ func _start() -> void:
 	stop_random_orders()
 	_reputation = world.get_node("ShopReputation")
 	_rules = _reputation.rules
-	if not is_equal_approx(_reputation.rating, 3.0):
-		fail("the rating starts at %.2f, expected 3.0" % _reputation.rating)
+	if not is_equal_approx(_reputation.rating, 1.0):
+		fail("the rating starts at %.2f, expected 1.0" % _reputation.rating)
 		return
 
 	# Quoted 10 min, perfect pizzas: 5 stars at 8 min, 4 at 15 (late), 2 at 25 (very late

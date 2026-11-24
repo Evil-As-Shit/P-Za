@@ -66,6 +66,8 @@ func refresh() -> void:
 
 ## The pawn's most pressing status, or "" if nothing stands out.
 static func get_status(of: Pawn) -> String:
+	if not of.on_shift:
+		return "Off shift"
 	var mood: PawnMood = of.mood
 	if mood == null:
 		return ""

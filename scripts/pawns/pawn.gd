@@ -45,7 +45,9 @@ const SIDESTEP_REACH: float = 2.5
 ## The shop's manager (one at a time): quotes each order's wait. They still work as usual.
 @export var is_manager: bool = false
 
-## Paid per shop hour, for the whole day, at closing.
+## Their shifts. Null: always on shift.
+@export var schedule: WorkSchedule
+## Paid per scheduled hour, at closing.
 @export var hourly_wage: float = 15.0
 @export var move_speed: float = 75.0
 ## Seconds of work done per second, before skill, mood and the rush.
@@ -72,6 +74,8 @@ const SIDESTEP_REACH: float = 2.5
 var shop_floor: ShopFloor = null
 ## Mood, stress and mood effects (null without mood_rules).
 var mood: PawnMood = null
+## False once their shift is over: they take no new jobs and head home (set by their owner).
+var on_shift: bool = true
 
 var _state: State = State.IDLE
 var _path: PackedVector2Array = PackedVector2Array()
@@ -94,6 +98,8 @@ var _speed_factor: float = 1.0
 var _walk_seconds: float = 0.0
 ## Work type -> shop minutes of practice toward the next skill level.
 var _practice: Dictionary[WorkType, float] = {}
+## Gone home: hidden, not in anyone's way, resting.
+var _away: bool = false
 
 ## Everything drawn for the pawn. Moved while stepping aside; it sorts on its own (the pawn
 ## is y-sorted), so the pawn is drawn in front of or behind others where it's drawn.
@@ -105,6 +111,9 @@ var _practice: Dictionary[WorkType, float] = {}
 
 func _ready() -> void:
 	add_to_group(&"pawns")
+	# Their own copy: the player paints it in play.
+	if schedule != null:
+		schedule = schedule.duplicate()
 	if mood_rules != null:
 		mood = PawnMood.new(mood_rules)
 		mood.breakdown_started.connect(breakdown_started.emit)
@@ -117,7 +126,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if mood != null:
-		mood.tick(delta / ShopClock.minutes_to_seconds(1.0), has_job(), is_resting())
+		# At home they rest like at a break table.
+		mood.tick(delta / ShopClock.minutes_to_seconds(1.0), has_job(), is_resting() or _away)
+	if _away:
+		return
 	_avoid_others(delta)
 	match _state:
 		State.WALKING, State.WALKING_TO_STOP, State.WALKING_TO_JOB:
@@ -153,7 +165,7 @@ func _avoid_others(delta: float) -> void:
 		var nearest_distance: float = avoid_radius
 		for node: Node in get_tree().get_nodes_in_group(&"pawns"):
 			var other := node as Pawn
-			if other == self or other == null:
+			if other == self or other == null or other.is_away():
 				continue
 			var distance: float = _to_floor(other.global_position - global_position).length()
 			if distance < nearest_distance:
@@ -458,6 +470,33 @@ func get_portrait(height: float = 18.0) -> Texture2D:
 ## True while they take no new jobs: on a breakdown or resting standing on a break.
 func is_off_work() -> bool:
 	return mood != null and (mood.is_on_breakdown() or mood.is_on_standing_break())
+
+
+## True if their schedule has them working at `minute_of_day` (always without one).
+func is_scheduled_at(minute_of_day: int) -> bool:
+	return schedule == null or schedule.is_working_at(minute_of_day)
+
+
+## Minutes their schedule has them working each day (`day_minutes` without one).
+func get_scheduled_minutes(day_minutes: int) -> int:
+	return day_minutes if schedule == null else schedule.get_work_minutes()
+
+
+## True while gone home (see set_away()).
+func is_away() -> bool:
+	return _away
+
+
+## Goes home (hidden, out of everyone's way, resting) or comes back. Only valid with no job.
+func set_away(away: bool) -> void:
+	_away = away
+	visible = not away
+	_path.clear()
+	_state = State.IDLE
+	_on_phone = false
+	_sidestep_offset = Vector2.ZERO
+	_body.position = Vector2.ZERO
+	_play_idle()
 
 
 ## True while taking their break at a break table (working a rest task there).

@@ -17,6 +17,7 @@ var revenue: float = 0.0
 var supplies: float = 0.0
 var wages: float = 0.0
 var staff_count: int = 0
+## Scheduled hours, all staff together.
 var staff_hours: float = 0.0
 ## Bill name -> amount charged at closing.
 var bills: Dictionary[String, float] = {}

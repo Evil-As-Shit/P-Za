@@ -101,6 +101,12 @@
 [ext_resource type="Resource" path="res://resources/tasks/mop_floor.tres" id="104_mop"]
 [ext_resource type="Resource" path="res://resources/tasks/wipe_station.tres" id="105_wipe"]
 [ext_resource type="Resource" path="res://resources/tasks/clean_spill.tres" id="106_spill"]
+[ext_resource type="Resource" path="res://resources/shop/shop_hours.tres" id="107_hours"]
+[ext_resource type="Resource" path="res://resources/pawns/schedules/manager_10_18.tres" id="108_manager_shift"]
+[ext_resource type="Resource" path="res://resources/pawns/schedules/opener_8_16.tres" id="109_opener_shift"]
+[ext_resource type="Resource" path="res://resources/pawns/schedules/mid_12_20.tres" id="110_mid_shift"]
+[ext_resource type="Resource" path="res://resources/pawns/schedules/closer_14_22.tres" id="111_closer_shift"]
+[ext_resource type="PackedScene" path="res://scenes/ui/schedule_panel.tscn" id="112_schedule_panel"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -245,6 +251,7 @@ facing = 3
 [node name="Pawn" parent="Entities" instance=ExtResource("3_pawn")]
 display_name = "Pawn 1"
 is_manager = true
+schedule = ExtResource("108_manager_shift")
 priorities = Dictionary[ExtResource("15_work_type"), int]({
 ExtResource("16_dough"): 1,
 ExtResource("16_pizza_making"): 1,
@@ -257,6 +264,7 @@ ExtResource("19_hauling"): 3
 
 [node name="Pawn2" parent="Entities" instance=ExtResource("3_pawn")]
 display_name = "Pawn 2"
+schedule = ExtResource("109_opener_shift")
 priorities = Dictionary[ExtResource("15_work_type"), int]({
 ExtResource("16_dough"): 2,
 ExtResource("16_pizza_making"): 2,
@@ -269,6 +277,7 @@ ExtResource("19_hauling"): 1
 
 [node name="Pawn3" parent="Entities" instance=ExtResource("3_pawn")]
 display_name = "Pawn 3"
+schedule = ExtResource("110_mid_shift")
 priorities = Dictionary[ExtResource("15_work_type"), int]({
 ExtResource("16_dough"): 1,
 ExtResource("16_pizza_making"): 1,
@@ -281,6 +290,7 @@ ExtResource("19_hauling"): 3
 
 [node name="Pawn4" parent="Entities" instance=ExtResource("3_pawn")]
 display_name = "Pawn 4"
+schedule = ExtResource("111_closer_shift")
 priorities = Dictionary[ExtResource("15_work_type"), int]({
 ExtResource("17_oven"): 1,
 ExtResource("18_cutting"): 2,
@@ -317,6 +327,7 @@ script = ExtResource("4_camera")
 
 [node name="ShopClock" type="Node" parent="."]
 script = ExtResource("26_clock")
+hours = ExtResource("107_hours")
 
 [node name="OrderSource" type="Node" parent="."]
 script = ExtResource("28_orders")
@@ -350,6 +361,9 @@ script = ExtResource("46_hud")
 [node name="TicketRackPanel" parent="Hud" instance=ExtResource("9_rack_panel")]
 
 [node name="PriorityPanel" parent="Hud" instance=ExtResource("20_priority_panel")]
+
+[node name="SchedulePanel" parent="Hud" instance=ExtResource("112_schedule_panel")]
+visible = false
 
 [node name="ClockPanel" parent="Hud" instance=ExtResource("27_clock_panel")]
 

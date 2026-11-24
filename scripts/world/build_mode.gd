@@ -281,7 +281,8 @@ func _fits_here(group: Array[Station]) -> bool:
 			room_floor.append_array(station.get_footprint_cells())
 	var pawn_cells: Array[Vector2i] = []
 	for pawn: Pawn in _pawns:
-		pawn_cells.append(_floor.global_to_cell(pawn.global_position))
+		if not pawn.is_away():
+			pawn_cells.append(_floor.global_to_cell(pawn.global_position))
 	for cell: Vector2i in footprint:
 		if not _floor.has_floor(cell) or not _floor.is_walkable(cell):
 			return false

@@ -16,6 +16,10 @@ signal build_choice_requested(data: StationData)
 signal build_close_requested
 signal sell_requested
 signal supply_target_change_requested(supply: SupplyItem, target: int)
+## The player painted a half hour of a pawn's schedule Work (`on`) or Off.
+signal schedule_change_requested(pawn: Pawn, slot: int, on: bool)
+## The player dragged one of the shop's hours (prep, open, last orders, close) to `minute`.
+signal hours_change_requested(mark: ShopHours.Mark, minute: int)
 ## A pawn card was clicked: select the pawn (and with `focus`, center the camera on them).
 signal pawn_select_requested(pawn: Pawn, focus: bool)
 ## The bottom bar's Build button (or opening another window) turns build mode on or off.
@@ -33,6 +37,7 @@ var _report_reopened: bool = false
 
 @onready var _rack_panel: TicketRackPanel = $TicketRackPanel
 @onready var _priority_panel: PriorityPanel = $PriorityPanel
+@onready var _schedule_panel: SchedulePanel = $SchedulePanel
 @onready var _station_panel: StationPanel = $StationPanel
 @onready var _pawn_panel: PawnPanel = $PawnPanel
 @onready var _item_panel: ItemPanel = $ItemPanel
@@ -70,6 +75,9 @@ func setup(
 	_priority_panel.priority_change_requested.connect(priority_change_requested.emit)
 	_priority_panel.manager_change_requested.connect(manager_change_requested.emit)
 	refresh_priorities()
+	_schedule_panel.slot_change_requested.connect(schedule_change_requested.emit)
+	_schedule_panel.mark_change_requested.connect(hours_change_requested.emit)
+	clock.time_changed.connect(refresh_schedules.unbind(2))
 	_station_panel.role_change_requested.connect(role_change_requested.emit)
 	_station_panel.close_requested.connect(station_close_requested.emit)
 	_pawn_panel.close_requested.connect(show_pawn.bind(null))
@@ -113,13 +121,21 @@ func toggle_priorities() -> void:
 	open_window(&"" if _priority_panel.visible else BottomBar.PRIORITIES)
 
 
-## Opens one of the bottom bar's windows (BottomBar.PRIORITIES, BUILD or SUPPLIES) and
-## closes the others; &"" closes them all. Build mode is the world's: it's asked for.
+## Brings the schedule window up to date (while it's shown).
+func refresh_schedules() -> void:
+	if _schedule_panel.visible:
+		_schedule_panel.show_schedules(_pawns, _clock.hours, _clock.get_minute_of_day())
+
+
+## Opens one of the bottom bar's windows (BottomBar.PRIORITIES, SCHEDULE, BUILD or SUPPLIES)
+## and closes the others; &"" closes them all. Build mode is the world's: it's asked for.
 func open_window(tab: StringName) -> void:
 	if _build_panel.visible and tab != BottomBar.BUILD:
 		build_mode_requested.emit(false)
 	_priority_panel.visible = tab == BottomBar.PRIORITIES
+	_schedule_panel.visible = tab == BottomBar.SCHEDULE
 	_supply_panel.visible = tab == BottomBar.SUPPLIES
+	refresh_schedules()
 	refresh_supplies()
 	if tab == BottomBar.BUILD and not _build_panel.visible:
 		build_mode_requested.emit(true)
@@ -131,6 +147,8 @@ func _get_open_window() -> StringName:
 		return BottomBar.BUILD
 	if _priority_panel.visible:
 		return BottomBar.PRIORITIES
+	if _schedule_panel.visible:
+		return BottomBar.SCHEDULE
 	if _supply_panel.visible:
 		return BottomBar.SUPPLIES
 	return &""
@@ -258,6 +276,7 @@ func show_build(shown: bool) -> void:
 	_build_panel.visible = shown
 	if shown:
 		_priority_panel.hide()
+		_schedule_panel.hide()
 		_supply_panel.hide()
 	_bottom_bar.show_open(_get_open_window())
 

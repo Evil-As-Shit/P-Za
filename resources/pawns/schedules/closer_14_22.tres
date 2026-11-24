@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="WorkSchedule" format=3]
+
+[ext_resource type="Script" path="res://scripts/pawns/work_schedule.gd" id="1_schedule"]
+
+[resource]
+script = ExtResource("1_schedule")
+slots = PackedByteArray(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0)

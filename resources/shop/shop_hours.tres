@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ShopHours" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/shop_hours.gd" id="1_hours"]
+
+[resource]
+script = ExtResource("1_hours")
+prep_minute = 480
+open_minute = 600
+last_order_minute = 1260
+close_minute = 1320

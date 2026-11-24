@@ -48,12 +48,19 @@ extends Resource
 @export var exhausted_speed: float = 0.85
 
 @export_group("Breaks")
-## Below this energy a pawn takes a break once the shop isn't rushing.
+## A pawn gets one break a day, by how long their schedule has them work: from
+## short_shift_hours a short break, from long_shift_hours a long one; none below.
+@export var short_shift_hours: float = 4.0
+@export var short_break_minutes: float = 15.0
+@export var long_shift_hours: float = 8.0
+@export var long_break_minutes: float = 30.0
+## Below this energy a pawn takes their break once the shop isn't rushing.
 @export var break_below: float = 30.0
-## Below this energy a pawn takes a break even in a rush.
+## Below this energy a pawn takes their break even in a rush.
 @export var must_break_below: float = 10.0
-## Shop minutes a break lasts.
-@export var break_minutes: float = 15.0
+## Not tired by the time this few shop minutes of their shift are left, they take it anyway
+## (placeholder).
+@export var break_due_minutes_left: float = 120.0
 ## Energy gained per shop minute at a break table, and resting standing (no free table).
 @export var table_rest_per_minute: float = 5.0
 @export var standing_rest_per_minute: float = 2.0
@@ -71,3 +78,13 @@ extends Resource
 @export var breakdown_minutes: float = 20.0
 ## Shop minutes after a breakdown before another can start.
 @export var breakdown_cooldown_minutes: float = 60.0
+@export_group("")
+
+
+## Shop minutes of break a day for `work_minutes` of scheduled work (0 for none).
+func get_break_minutes(work_minutes: float) -> float:
+	if work_minutes >= long_shift_hours * 60.0:
+		return long_break_minutes
+	if work_minutes >= short_shift_hours * 60.0:
+		return short_break_minutes
+	return 0.0

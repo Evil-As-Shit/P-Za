@@ -32,7 +32,8 @@ func tick(minutes: float) -> void:
 		return
 	for pawn: Pawn in _pawns:
 		var mood: PawnMood = pawn.mood
-		if mood == null:
+		# Gone home: away from the shop's company (and loneliness).
+		if mood == null or pawn.is_away():
 			continue
 		var company: Array[Pawn] = get_company(pawn)
 		if company.is_empty():
@@ -52,7 +53,7 @@ func get_company(pawn: Pawn) -> Array[Pawn]:
 	var company: Array[Pawn] = []
 	var here: Vector2i = _floor.global_to_cell(pawn.global_position)
 	for other: Pawn in _pawns:
-		if other == pawn:
+		if other == pawn or other.is_away():
 			continue
 		var there: Vector2i = _floor.global_to_cell(other.global_position)
 		if maxi(absi(there.x - here.x), absi(there.y - here.y)) <= rules.near_cells:

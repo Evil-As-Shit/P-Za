@@ -51,7 +51,7 @@ func _step() -> void:
 	if not _saw_resting or _pawn.has_job():
 		return
 	# The break is over.
-	if _pawn.mood.energy < 20.0 + _rules.table_rest_per_minute * _rules.break_minutes * 0.9:
+	if _pawn.mood.energy < minf(20.0 + _rules.table_rest_per_minute * _pawn.mood.break_length * 0.9, 99.0):
 		fail("a break at the table only brought energy to %.1f" % _pawn.mood.energy)
 		return
 	if not _pawn.mood.get_effects().has(_rules.took_break):
@@ -106,14 +106,21 @@ func _check_mood() -> String:
 	mood.start_standing_break()
 	if mood.wants_break():
 		return "a pawn on a break still wants one"
-	for i: int in int(_rules.break_minutes) + 1:
+	for i: int in int(mood.break_length) + 1:
 		mood.tick(1.0, false)
-	var expected: float = 20.0 + _rules.standing_rest_per_minute * _rules.break_minutes
+	var expected: float = 20.0 + _rules.standing_rest_per_minute * mood.break_length
 	if ended[0] != 1 or not is_equal_approx(mood.energy, expected):
 		return "a standing break ended %d times with energy %.1f, expected once with %.1f" % [ended[0], mood.energy, expected]
 	if not mood.get_effects().has(_rules.took_break):
 		return "no \"Took a break\" after a standing break"
+	# One break a day: tired again, no second one until the next day.
+	mood.energy = _rules.must_break_below / 2.0
+	if mood.wants_break():
+		return "a pawn wants a second break the same day"
 	mood.rest_overnight()
 	if mood.energy != 100.0:
 		return "a night's rest didn't refill energy"
+	mood.energy = _rules.must_break_below / 2.0
+	if not mood.wants_break():
+		return "a tired pawn doesn't want their break the next day"
 	return ""

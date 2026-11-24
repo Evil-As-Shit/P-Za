@@ -33,6 +33,15 @@ focus_mode = 0
 toggle_mode = true
 text = "Priorities"
 
+[node name="Schedule" type="Button" parent="Margin/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+tooltip_text = "Staff shifts and shop hours"
+focus_mode = 0
+toggle_mode = true
+text = "Schedule"
+
 [node name="Build" type="Button" parent="Margin/Buttons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(90, 0)

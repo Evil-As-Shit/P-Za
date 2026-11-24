@@ -28,6 +28,13 @@ var social: float = 50.0
 var social_need: float = 1.0
 ## Other pawn -> opinion of them (-100 to 100). Missing means 0.
 var opinions: Dictionary[Pawn, float] = {}
+## Shop minutes of today's one break (0: none today). Set from their schedule (see
+## MoodRules.get_break_minutes()).
+var break_length: float = 0.0
+## Today's break is over.
+var break_taken: bool = false
+## Their shift is nearly over without a break: they take it now, tired or not.
+var break_due: bool = false
 
 var _rushing: bool = false
 ## Worked a job during the current rush.
@@ -43,6 +50,7 @@ var _standing_break_left: float = 0.0
 func _init(p_rules: MoodRules) -> void:
 	rules = p_rules
 	mood = get_target()
+	break_length = rules.short_break_minutes
 
 
 ## What mood drifts toward: the base, less stress and tiredness, plus mood effects.
@@ -110,25 +118,27 @@ func is_on_breakdown() -> bool:
 	return _breakdown_left > 0.0
 
 
-## True if the pawn should take a break now: low on energy (very low during a rush).
+## True if the pawn should take today's break now: low on energy (very low during a rush),
+## or it's due (see break_due). Only one a day.
 func wants_break() -> bool:
-	if is_on_breakdown() or is_on_standing_break():
+	if is_on_breakdown() or is_on_standing_break() or break_taken or break_length <= 0.0:
 		return false
-	return energy < (rules.must_break_below if _rushing else rules.break_below)
+	return break_due or energy < (rules.must_break_below if _rushing else rules.break_below)
 
 
-## Starts a break resting where they stand (no free break table): no new jobs until
+## Starts today's break resting where they stand (no free break table): no new jobs until
 ## break_ended.
 func start_standing_break() -> void:
-	_standing_break_left = rules.break_minutes
+	_standing_break_left = break_length
 
 
 func is_on_standing_break() -> bool:
 	return _standing_break_left > 0.0
 
 
-## A break (at a table or standing) is over.
+## Today's break (at a table or standing) is over.
 func finish_break() -> void:
+	break_taken = true
 	if rules.took_break != null:
 		add_effect(rules.took_break)
 
@@ -149,9 +159,11 @@ func is_lonely() -> bool:
 	return social < rules.lonely_below
 
 
-## A night's rest: full energy for the new day.
+## A night's rest: full energy, and a break to take, for the new day.
 func rest_overnight() -> void:
 	energy = 100.0
+	break_taken = false
+	break_due = false
 
 
 func is_rushing() -> bool:

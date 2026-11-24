@@ -89,6 +89,12 @@ var _now: float = 0.0
 var _rushing: bool = false
 ## Shop minutes the shop has gone without being busy during a rush.
 var _calm_minutes: float = 0.0
+## Where staff come in and go home: the front door's cell and the street outside it.
+var _door_cell: Vector2i = Vector2i.ZERO
+var _outside_cell: Vector2i = Vector2i.ZERO
+var _has_door: bool = false
+## Pawns off shift, walking out to go home.
+var _leaving: Array[Pawn] = []
 
 
 ## An item a station works on its own (see TaskType.unattended).
@@ -146,7 +152,7 @@ func _is_busy() -> bool:
 			if ticket.get_quote_miss(_rack.now_minutes) > 0:
 				return true
 			open += 1
-	return open > rush_tickets_per_pawn * _pawns.size()
+	return open > rush_tickets_per_pawn * maxi(get_pawns_on_shift().size(), 1)
 
 
 ## Call once before adding stations and pawns. Items are spawned under `entities`.
@@ -224,6 +230,76 @@ func get_pawns() -> Array[Pawn]:
 	return _pawns
 
 
+## Pawns at the shop on shift (not gone home or heading out).
+func get_pawns_on_shift() -> Array[Pawn]:
+	var on_shift: Array[Pawn] = []
+	for pawn: Pawn in _pawns:
+		if pawn.on_shift and not pawn.is_away() and not _leaving.has(pawn):
+			on_shift.append(pawn)
+	return on_shift
+
+
+## Staff come in and go home through the door on `door_cell`'s edge toward `outside_cell`.
+func set_staff_door(door_cell: Vector2i, outside_cell: Vector2i) -> void:
+	_door_cell = door_cell
+	_outside_cell = outside_cell
+	_has_door = true
+
+
+## Brings each pawn's shift up to date at `minute_of_day`: pawns whose shift starts come in;
+## pawns whose shift is over finish their job, then go home. Also sets the length of each
+## pawn's break today (from how long they're scheduled) and whether it's due. With
+## `instant`, pawns off shift are simply gone (e.g. as the game starts).
+func update_shifts(minute_of_day: int, instant: bool = false) -> void:
+	for pawn: Pawn in _pawns:
+		var on: bool = pawn.is_scheduled_at(minute_of_day)
+		pawn.on_shift = on
+		if pawn.mood != null:
+			var rules: MoodRules = pawn.mood.rules
+			pawn.mood.break_length = rules.get_break_minutes(pawn.get_scheduled_minutes(24 * 60))
+			pawn.mood.break_due = on and pawn.schedule != null \
+				and pawn.schedule.get_shift_end(minute_of_day) - minute_of_day <= rules.break_due_minutes_left
+		if on:
+			if pawn.is_away():
+				_clock_in(pawn)
+			elif _leaving.has(pawn):
+				# Their shift started again on the way out: they turn back.
+				_leaving.erase(pawn)
+				pawn.stop_walking()
+				_work_or_wander(pawn)
+		elif instant and not pawn.has_job() and not pawn.is_away():
+			_leaving.erase(pawn)
+			pawn.set_away(true)
+		elif not pawn.has_job():
+			_send_home(pawn)
+
+
+## A pawn off shift with no job walks out the front door, then is gone until their next
+## shift.
+func _send_home(pawn: Pawn) -> void:
+	if pawn.is_away() or _leaving.has(pawn):
+		return
+	if not _has_door:
+		pawn.set_away(true)
+		return
+	_leaving.append(pawn)
+	pawn.stop_walking()
+	var path: PackedVector2Array = get_walk_path(get_cell(pawn), _door_cell)
+	path.append(_floor.cell_to_global(_outside_cell))
+	pawn.follow_path(path)
+
+
+## A pawn's shift starts: they walk in the front door and look for work.
+func _clock_in(pawn: Pawn) -> void:
+	pawn.set_away(false)
+	if not _has_door:
+		pawn.global_position = _floor.cell_to_global(_floor.get_random_walkable_cell())
+		_work_or_wander(pawn)
+		return
+	pawn.global_position = _floor.cell_to_global(_outside_cell)
+	pawn.follow_path(PackedVector2Array([_floor.cell_to_global(_door_cell)]))
+
+
 ## Every work type pawns have a skill level in: the grid's, plus Managing.
 func get_skill_types() -> Array[WorkType]:
 	var types: Array[WorkType] = []
@@ -241,6 +317,21 @@ func get_manager() -> Pawn:
 		if pawn.is_manager:
 			return pawn
 	return null
+
+
+## Who quotes orders right now: the manager if they're on shift, or else the pawn on shift
+## with the best Managing skill. Null with nobody on shift, or no manager at all.
+func get_quoting_pawn() -> Pawn:
+	if get_manager() == null:
+		return null
+	var on_shift: Array[Pawn] = get_pawns_on_shift()
+	var best: Pawn = null
+	for pawn: Pawn in on_shift:
+		if pawn.is_manager:
+			return pawn
+		if best == null or pawn.get_skill(managing) > best.get_skill(managing):
+			best = pawn
+	return best
 
 
 ## Makes `pawn` the manager, replacing any other; null leaves the shop with none.
@@ -261,14 +352,14 @@ func get_average_walk_minutes() -> float:
 	return total / _walk_minutes.size()
 
 
-## The manager's quoted wait for an order of `recipes`, in shop minutes, or -1 with no
-## manager. Quoting is Managing practice.
+## The quoted wait for an order of `recipes`, in shop minutes, by the manager or whoever
+## covers for them (see get_quoting_pawn()), or -1 with nobody. Quoting is Managing practice.
 func quote_order(recipes: Array[Recipe]) -> int:
-	var manager: Pawn = get_manager()
+	var manager: Pawn = get_quoting_pawn()
 	if manager == null or quote_rules == null:
 		return -1
 	var estimate := WaitEstimate.new(
-		_pawns, take_order_task, _rack.stack_task, _rack.hand_off_task, get_average_walk_minutes(),
+		get_pawns_on_shift(), take_order_task, _rack.stack_task, _rack.hand_off_task, get_average_walk_minutes(),
 		_stations
 	)
 	var tickets: Array[Ticket] = _rack.get_tickets(Ticket.Section.WAIT)
@@ -314,6 +405,11 @@ func assign_all() -> void:
 func try_assign(pawn: Pawn, max_priority: int = Pawn.LOWEST_PRIORITY) -> bool:
 	if pawn.has_job():
 		return true
+	if pawn.is_away() or _leaving.has(pawn):
+		return false
+	if not pawn.on_shift:
+		_send_home(pawn)
+		return false
 	if pawn.is_off_work():
 		return false
 	if pawn.wants_break():
@@ -552,6 +648,11 @@ func reroute_around(cells: Array[Vector2i]) -> void:
 		var route: Array[PackedVector2Array] = pawn.get_route()
 		if not _route_crosses(route, cells):
 			continue
+		if _leaving.has(pawn):
+			# On their way home: a new way out.
+			_leaving.erase(pawn)
+			_send_home(pawn)
+			continue
 		if not pawn.has_job():
 			var wander: PackedVector2Array = route[0]
 			var path: PackedVector2Array = get_walk_path(
@@ -723,6 +824,11 @@ func _has_other_units(container: Item, own: Array[Item]) -> bool:
 #region Pawns working
 
 func _on_pawn_path_finished(pawn: Pawn) -> void:
+	if _leaving.has(pawn):
+		# Out the door: gone until their next shift.
+		_leaving.erase(pawn)
+		pawn.set_away(true)
+		return
 	_work_or_wander(pawn)
 
 
@@ -1021,6 +1127,8 @@ func _work_or_wander(pawn: Pawn) -> void:
 
 
 func _wait_then_wander(pawn: Pawn) -> void:
+	if pawn.is_away() or _leaving.has(pawn):
+		return
 	var wait: float = randf_range(idle_time_min, idle_time_max)
 	# During a breakdown or a standing break they stay on their phone.
 	if pawn.is_off_work() or randf() < phone_chance * pawn.get_slack():
@@ -1030,7 +1138,11 @@ func _wait_then_wander(pawn: Pawn) -> void:
 
 
 func _send_to_random_cell(pawn: Pawn) -> void:
-	if pawn.has_job():
+	# Gone home, or on their way in or out (their walk's end picks things up again).
+	if pawn.has_job() or pawn.is_away() or _leaving.has(pawn) or pawn.is_walking():
+		return
+	if not pawn.on_shift:
+		_send_home(pawn)
 		return
 	if pawn.is_off_work():
 		_wait_then_wander(pawn)

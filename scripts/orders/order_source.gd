@@ -1,6 +1,7 @@
 class_name OrderSource
 extends Node
-## Places customer orders at random while the shop is open, more often during rushes.
+## Places customer orders at random between opening and last orders (the clock's
+## ShopHours), more often during rushes.
 ## Stands in for real customers until they exist. Times are on the shop clock.
 
 ## One recipe per item ordered (e.g. three pizzas).
@@ -16,10 +17,8 @@ signal order_placed(recipes: Array[Recipe])
 @export var rush_rate_multiplier: float = 2.0
 ## Relative chance of each order size: entry 0 is one item, entry 1 two items, and so on.
 @export var size_weights: PackedFloat32Array = [60.0, 15.0, 15.0, 2.0, 2.0, 2.0, 2.0, 2.0]
-## No new orders from this time on (minutes since midnight), so the kitchen can finish.
-@export var last_order_minute: int = 21 * 60
 
-## While false no orders come in (e.g. the shop has no manager).
+## While false no orders come in (e.g. the shop has no manager, or nobody on shift).
 var open: bool = true
 ## Times the normal order rate (from the shop's rating).
 var demand_multiplier: float = 1.0
@@ -36,7 +35,8 @@ func _process(delta: float) -> void:
 	if not open or _clock == null or menu.is_empty() or delta <= 0.0:
 		return
 	var now: int = _clock.get_minute_of_day()
-	if now >= last_order_minute:
+	# Only between opening and last orders (see ShopHours).
+	if not _clock.hours.is_taking_orders(now):
 		return
 	# Orders arrive at random at the current average rate (a Poisson process).
 	var minutes: float = _clock.to_clock_minutes(delta)

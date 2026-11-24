@@ -77,7 +77,11 @@ func _tally_activity() -> void:
 		return
 	for pawn: Pawn in work.get_pawns():
 		var key: String = "idle"
-		if pawn.is_on_breakdown():
+		if pawn.is_away():
+			key = "off shift"
+		elif not pawn.on_shift and pawn.is_walking():
+			key = "going home"
+		elif pawn.is_on_breakdown():
 			key = "breakdown"
 		elif pawn.is_resting():
 			key = "break"

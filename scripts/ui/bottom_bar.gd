@@ -1,7 +1,7 @@
 class_name BottomBar
 extends PanelContainer
 ## The bar along the bottom of the screen: buttons that open the main windows (Priorities,
-## Build, Supplies), one at a time, and one that reopens the last day report. Reports the
+## Schedule, Build, Supplies), one at a time, and one that reopens the last day report. Reports the
 ## player's clicks; the HUD decides what opens.
 
 ## A window button was pressed on (`on`) or off.
@@ -9,11 +9,12 @@ signal tab_toggled(tab: StringName, on: bool)
 signal report_requested
 
 const PRIORITIES := &"priorities"
+const SCHEDULE := &"schedule"
 const BUILD := &"build"
 const SUPPLIES := &"supplies"
 
 @onready var _buttons: Dictionary[StringName, Button] = {
-	PRIORITIES: %Priorities, BUILD: %Build, SUPPLIES: %Supplies,
+	PRIORITIES: %Priorities, SCHEDULE: %Schedule, BUILD: %Build, SUPPLIES: %Supplies,
 }
 @onready var _report: Button = %Report
 
