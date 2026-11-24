@@ -94,6 +94,8 @@
 [ext_resource type="Resource" path="res://resources/tasks/take_break.tres" id="97_take_break"]
 [ext_resource type="Resource" path="res://resources/station_roles/break.tres" id="98_break_role"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pawn_bar.tscn" id="99_pawn_bar"]
+[ext_resource type="Script" path="res://scripts/pawns/social.gd" id="100_social"]
+[ext_resource type="Resource" path="res://resources/pawns/social_rules.tres" id="101_social_rules"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -318,6 +320,10 @@ catalog = ExtResource("95_supplies")
 [node name="ShopReputation" type="Node" parent="."]
 script = ExtResource("62_reputation")
 rules = ExtResource("63_review_rules")
+
+[node name="Social" type="Node" parent="."]
+script = ExtResource("100_social")
+rules = ExtResource("101_social_rules")
 
 [node name="TicketRack" type="Node" parent="."]
 script = ExtResource("7_rack")

@@ -1,5 +1,5 @@
 extends "res://tests/test_base.gd"
-## Traits: each pawn rolls 2, never two opposites (same group). Calm and Nervous change how
+## Traits: each pawn rolls 2 or 3, never two opposites (same group). Calm and Nervous change how
 ## fast stress builds; Hard worker and Lazy change work speed and how often they check
 ## their phone. The pawn panel lists them.
 
@@ -35,7 +35,7 @@ func _start() -> void:
 		fail("only %d of %d traits ever rolled" % [seen.size(), rules.traits.size()])
 		return
 	pawn.roll_traits(rng)
-	if pawn.traits.size() != rules.min_traits:
+	if pawn.traits.size() < rules.min_traits or pawn.traits.size() > rules.max_traits:
 		fail("a pawn with no traits rolled %d" % pawn.traits.size())
 		return
 

@@ -57,9 +57,10 @@ func refresh() -> void:
 	var trait_names: PackedStringArray = []
 	for each: PawnTrait in pawn.traits:
 		trait_names.append(each.display_name)
-	tooltip_text = "%s\nMood %d (%s)\nStress %d\nEnergy %d\nTraits: %s" % [
+	tooltip_text = "%s\nMood %d (%s)\nStress %d\nEnergy %d\nSocial %d\nTraits: %s" % [
 		pawn.display_name, roundi(mood.mood), mood.get_band_name(), roundi(mood.stress),
-		roundi(mood.energy), ", ".join(trait_names) if not trait_names.is_empty() else "none",
+		roundi(mood.energy), roundi(mood.social),
+		", ".join(trait_names) if not trait_names.is_empty() else "none",
 	]
 
 
@@ -78,6 +79,8 @@ static func get_status(of: Pawn) -> String:
 		return "Tired"
 	if mood.get_band() <= PawnMood.Band.STRESSED:
 		return "Stressed"
+	if mood.is_lonely():
+		return "Lonely"
 	return ""
 
 

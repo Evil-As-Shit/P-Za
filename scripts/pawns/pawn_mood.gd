@@ -1,9 +1,9 @@
 class_name PawnMood
 extends RefCounted
-## A pawn's mood (0-100) and what drives it: stress, energy and timed mood effects. Mood
-## drifts toward its target (see get_target()). Also tracks breaks: at a break table the
-## pawn's job is the break; resting standing (no free table) is a timer here. Its pawn ticks
-## it in shop minutes.
+## A pawn's mood (0-100) and what drives it: stress, energy, social and timed mood effects,
+## plus their opinions of the other pawns (changed by Social). Mood drifts toward its target
+## (see get_target()). Also tracks breaks: at a break table the pawn's job is the break;
+## resting standing (no free table) is a timer here. Its pawn ticks it in shop minutes.
 
 signal breakdown_started
 signal breakdown_ended
@@ -22,6 +22,12 @@ var stress: float = 0.0
 var energy: float = 100.0
 ## Multiplies how fast stress builds (from traits, e.g. Calm).
 var stress_gain: float = 1.0
+## 0-100. Filled by company, drained alone (see Social).
+var social: float = 50.0
+## Multiplies how much company matters to them (from traits, e.g. Chatty).
+var social_need: float = 1.0
+## Other pawn -> opinion of them (-100 to 100). Missing means 0.
+var opinions: Dictionary[Pawn, float] = {}
 
 var _rushing: bool = false
 ## Worked a job during the current rush.
@@ -44,6 +50,7 @@ func get_target() -> float:
 	var target: float = rules.base_mood - stress / 100.0 * rules.stress_mood_cost
 	if energy < rules.tired_below:
 		target -= (rules.tired_below - energy) / rules.tired_below * rules.tired_mood_cost
+	target += (social - 50.0) / 50.0 * rules.social_mood_cost
 	for effect: MoodEffect in _effects:
 		target += effect.mood
 	return clampf(target, 0.0, 100.0)
@@ -124,6 +131,22 @@ func is_on_standing_break() -> bool:
 func finish_break() -> void:
 	if rules.took_break != null:
 		add_effect(rules.took_break)
+
+
+func get_opinion(of: Pawn) -> float:
+	return opinions.get(of, 0.0)
+
+
+func change_opinion(of: Pawn, amount: float) -> void:
+	opinions[of] = clampf(get_opinion(of) + amount, -100.0, 100.0)
+
+
+func change_social(amount: float) -> void:
+	social = clampf(social + amount, 0.0, 100.0)
+
+
+func is_lonely() -> bool:
+	return social < rules.lonely_below
 
 
 ## A night's rest: full energy for the new day.

@@ -13,3 +13,5 @@ extends Resource
 @export var work_speed: float = 1.0
 ## Multiplies how often they check their phone while idle.
 @export var slack: float = 1.0
+## Multiplies how much company matters: how fast social fills with company and drains alone.
+@export var social_need: float = 1.0

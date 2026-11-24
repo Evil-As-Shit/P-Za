@@ -6,7 +6,10 @@
 [ext_resource type="Resource" path="res://resources/pawns/traits/nervous.tres" id="4_nervous"]
 [ext_resource type="Resource" path="res://resources/pawns/traits/hard_worker.tres" id="5_hard"]
 [ext_resource type="Resource" path="res://resources/pawns/traits/lazy.tres" id="6_lazy"]
+[ext_resource type="Resource" path="res://resources/pawns/traits/chatty.tres" id="7_chatty"]
+[ext_resource type="Resource" path="res://resources/pawns/traits/loner.tres" id="8_loner"]
 
 [resource]
 script = ExtResource("1_rules")
-traits = Array[ExtResource("2_trait")]([ExtResource("3_calm"), ExtResource("4_nervous"), ExtResource("5_hard"), ExtResource("6_lazy")])
+traits = Array[ExtResource("2_trait")]([ExtResource("3_calm"), ExtResource("4_nervous"), ExtResource("5_hard"), ExtResource("6_lazy"), ExtResource("7_chatty"), ExtResource("8_loner")])
+max_traits = 3

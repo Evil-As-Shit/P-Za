@@ -108,6 +108,11 @@ func show_station(station: Station) -> void:
 		_station_panel.show_station(station)
 
 
+## Lets the pawn panel name friends and rivals.
+func setup_social(social: Social) -> void:
+	_pawn_panel.social = social
+
+
 ## Shows the pawn in the pawn panel, or hides the panel for null.
 func show_pawn(pawn: Pawn) -> void:
 	_pawn_bar.show_selected(pawn)

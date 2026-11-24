@@ -60,6 +60,12 @@ extends Resource
 ## Given at the end of every break.
 @export var took_break: MoodEffect
 
+@export_group("Social")
+## Mood moved at social 0 or 100 (none at 50). See Social for how social changes.
+@export var social_mood_cost: float = 10.0
+## Below this social, the pawn is lonely.
+@export var lonely_below: float = 20.0
+
 @export_group("Breakdown")
 ## Shop minutes a breakdown lasts.
 @export var breakdown_minutes: float = 20.0

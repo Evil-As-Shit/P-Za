@@ -398,8 +398,10 @@ func set_traits(new_traits: Array[PawnTrait]) -> void:
 	traits = new_traits.duplicate()
 	if mood != null:
 		mood.stress_gain = 1.0
+		mood.social_need = 1.0
 		for each: PawnTrait in traits:
 			mood.stress_gain *= each.stress_gain
+			mood.social_need *= each.social_need
 
 
 ## How much more (or less) often than usual they check their phone while idle, from traits.

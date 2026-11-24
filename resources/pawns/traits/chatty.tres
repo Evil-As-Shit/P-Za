@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="PawnTrait" format=3]
+
+[ext_resource type="Script" path="res://scripts/pawns/pawn_trait.gd" id="1_trait"]
+
+[resource]
+script = ExtResource("1_trait")
+display_name = "Chatty"
+description = "Needs company twice as much: social fills and drains twice as fast."
+group = &"social"
+social_need = 2.0

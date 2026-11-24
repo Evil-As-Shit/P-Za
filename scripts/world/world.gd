@@ -33,6 +33,7 @@ var _selected_item: Item = null
 @onready var _build: BuildMode = $BuildMode
 @onready var _lobby: Lobby = $Lobby
 @onready var _deliveries: Deliveries = $Deliveries
+@onready var _social: Social = $Social
 
 
 func _ready() -> void:
@@ -55,6 +56,7 @@ func _ready() -> void:
 			pawn.roll_skills(_work.get_skill_types(), rng)
 			pawn.roll_traits(rng)
 			_work.add_pawn(pawn)
+	_social.setup(_work.get_pawns(), _floor, rng)
 
 	_rack.jobs_changed.connect(_work.assign_all)
 	_rack.job_withdrawn.connect(_work.withdraw_job)
@@ -86,6 +88,7 @@ func _ready() -> void:
 	_work.waiting_orders_changed.connect(_hud.show_waiting_orders)
 	_work.rush_changed.connect(_hud.show_rush)
 	_hud.pawn_select_requested.connect(_on_pawn_select_requested)
+	_hud.setup_social(_social)
 	_reputation.rating_changed.connect(_on_rating_changed)
 	_on_rating_changed(_reputation.rating)
 
