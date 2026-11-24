@@ -2,8 +2,8 @@ class_name ScheduleGrid
 extends Control
 ## The schedule grid, drawn: hour numbers, the shop's hours bar (closed, prep, open, last
 ## orders, closed again) with a draggable marker at each change, then a row per pawn of
-## half-hour cells, Work or Off. Clicking or dragging over cells paints them with the
-## brush; dragging a marker moves it. The time now is a line down the grid. Reports
+## half-hour cells, Work or Off. Clicking a cell flips it, and dragging on from there paints
+## the cells passed over the same way; dragging a marker moves it. The time now is a line down the grid. Reports
 ## requests; it changes nothing itself.
 
 signal slot_change_requested(pawn: Pawn, slot: int, on: bool)
@@ -29,8 +29,8 @@ const MARKER_COLOR := Color(1, 1, 1, 0.9)
 const NOW_COLOR := Color(1.0, 0.3, 0.3, 0.9)
 const TEXT_COLOR := Color(0.85, 0.85, 0.85)
 
-## What a left press paints: true for Work.
-var brush: bool = true
+## What the current drag paints (true for Work): the flip of the cell it started on.
+var _brush: bool = true
 
 var _pawns: Array[Pawn] = []
 var _hours: ShopHours = null
@@ -140,8 +140,11 @@ func _gui_input(event: InputEvent) -> void:
 		if at.y >= HEADER_HEIGHT and at.y < HEADER_HEIGHT + BAR_HEIGHT:
 			_dragging = _find_marker(at.x)
 		elif _get_row(at.y) >= 0:
-			_dragging = -1
-			_paint(at)
+			var slot: int = floori((at.x - NAME_WIDTH) / CELL.x)
+			if slot >= 0 and slot < WorkSchedule.SLOTS:
+				_brush = not _pawns[_get_row(at.y)].is_scheduled_at(slot * WorkSchedule.SLOT_MINUTES)
+				_dragging = -1
+				_paint(at)
 		return
 	var motion := event as InputEventMouseMotion
 	if motion == null or _dragging == -2:
@@ -169,12 +172,12 @@ func _find_marker(x: float) -> int:
 	return best
 
 
-## Paints the cell at `at` with the brush.
+## Paints the cell at `at` with the drag's brush.
 func _paint(at: Vector2) -> void:
 	var row: int = _get_row(at.y)
 	var slot: int = floori((at.x - NAME_WIDTH) / CELL.x)
 	if row < 0 or slot < 0 or slot >= WorkSchedule.SLOTS:
 		return
 	var pawn: Pawn = _pawns[row]
-	if pawn.is_scheduled_at(slot * WorkSchedule.SLOT_MINUTES) != brush:
-		slot_change_requested.emit(pawn, slot, brush)
+	if pawn.is_scheduled_at(slot * WorkSchedule.SLOT_MINUTES) != _brush:
+		slot_change_requested.emit(pawn, slot, _brush)
