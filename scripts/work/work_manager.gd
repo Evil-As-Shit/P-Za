@@ -58,6 +58,9 @@ signal rush_changed(rushing: bool)
 @export var rush_end_minutes: float = 5.0
 @export_group("")
 
+## How dirty the floor is (set by the world), for cleaning chores. Null: no floor dirt.
+var floor_dirt: FloorDirt = null
+
 var _floor: ShopFloor
 var _entities: Node2D
 var _rack: TicketRack
@@ -382,6 +385,18 @@ func start_job(pawn: Pawn, job: Job, spot: WorkSpot, stops: Array[JobStop]) -> b
 	return true
 
 
+## Gives the pawn a job worked standing on a floor cell (e.g. mopping it) rather than at a
+## station spot, if they can walk there. The job has no station.
+func start_floor_job(pawn: Pawn, job: Job, cell: Vector2i) -> bool:
+	var path: PackedVector2Array = get_walk_path(get_cell(pawn), cell)
+	if path.is_empty():
+		return false
+	job.floor_cell = cell
+	pawn.assign_job(job, [] as Array[PackedVector2Array], path, _floor.cell_to_global(cell))
+	_rack.notify_job_state_changed()
+	return true
+
+
 ## For a job done in parts (see TaskBehavior.continue_job()): lets go of its spot, moves it
 ## on to `part` with no work done, and gives the same pawn that part at the first of `spots`
 ## they can reach. Returns false if they can't reach any.
@@ -567,6 +582,11 @@ func _route_crosses(route: Array[PackedVector2Array], cells: Array[Vector2i]) ->
 			if cells.has(_floor.global_to_cell(point)):
 				return true
 	return false
+
+
+## True if pawns can stand on the cell (floor, not under furniture).
+func is_walkable(cell: Vector2i) -> bool:
+	return _floor.is_walkable(cell)
 
 
 ## Walking path between floor cells, or empty if there's no way.

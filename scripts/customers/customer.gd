@@ -5,6 +5,8 @@ extends Node2D
 
 ## Reached the end of a walk.
 signal arrived
+## Walked onto a cell's center (a global position), e.g. to dirty the floor there.
+signal cell_reached(at: Vector2)
 
 enum State { IN_LINE, WAITING, PICKING_UP, LEAVING }
 
@@ -91,6 +93,9 @@ func _step_along_path(delta: float) -> void:
 	if to_target.length() <= step:
 		global_position = _path[0]
 		_path.remove_at(0)
+		# A path starts where the customer stands: that's not a step.
+		if not to_target.is_zero_approx():
+			cell_reached.emit(global_position)
 		if _path.is_empty():
 			_play_idle()
 			arrived.emit()

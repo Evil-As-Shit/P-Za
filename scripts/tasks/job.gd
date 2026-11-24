@@ -38,6 +38,9 @@ var supply_source: Station = null
 var dishes: Array[Dish] = []
 ## True for the steps of an order item's recipe (not stacking or hand-off).
 var recipe_step: bool = false
+## For a job worked on a floor cell instead of at a station (e.g. mopping it): that cell.
+## See WorkManager.start_floor_job().
+var floor_cell: Vector2i = Vector2i.ZERO
 ## Station spot reserved for this job while it is claimed.
 var station: Station = null
 var spot: int = -1

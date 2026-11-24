@@ -20,6 +20,7 @@ var _selected_station: Station = null
 var _selected_item: Item = null
 
 @onready var _floor: ShopFloor = $ShopFloor
+@onready var _floor_dirt: FloorDirt = $FloorDirt
 @onready var _entities: Node2D = $Entities
 @onready var _walls: ShopWalls = $Entities/Walls
 @onready var _camera: ShopCamera = $ShopCamera
@@ -40,6 +41,8 @@ func _ready() -> void:
 	_camera.position = _floor.cell_to_global(_floor.get_used_rect().get_center())
 	_walls.build(_floor)
 	_work.setup(_floor, _entities, _rack)
+	_floor_dirt.setup(_floor)
+	_work.floor_dirt = _floor_dirt
 	# Walk-ins first, so the stations inside them know they're in one.
 	for walk_ins_first: bool in [true, false]:
 		for child: Node in _entities.get_children():
@@ -55,6 +58,7 @@ func _ready() -> void:
 			pawn.global_position = _floor.cell_to_global(_floor.get_random_walkable_cell())
 			pawn.roll_skills(_work.get_skill_types(), rng)
 			pawn.roll_traits(rng)
+			pawn.cell_reached.connect(_floor_dirt.add_step)
 			_work.add_pawn(pawn)
 	_social.setup(_work.get_pawns(), _floor, rng)
 
@@ -119,6 +123,7 @@ func _setup_lobby() -> void:
 	_lobby.setup(_floor, _entities, _stations, _work.take_order_task, _rack.hand_off_task, door_cell, outside)
 	_lobby.reached_register.connect(_work.release_order)
 	_lobby.reached_pickup.connect(_on_customer_at_pickup)
+	_lobby.customer_cell_reached.connect(_floor_dirt.add_step)
 
 
 func _unhandled_input(event: InputEvent) -> void:

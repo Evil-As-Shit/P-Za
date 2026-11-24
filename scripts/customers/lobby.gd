@@ -9,6 +9,8 @@ extends Node
 signal reached_register(job: Job)
 ## A customer reached the pickup counter to collect their order (their ticket).
 signal reached_pickup(customer: Customer)
+## A customer walked onto a cell's center (a global position), e.g. to dirty the floor.
+signal customer_cell_reached(at: Vector2)
 
 ## Target cell of a customer walking out through the front door, to the street.
 const OUTSIDE := Vector2i(-100000, -100000)
@@ -71,6 +73,7 @@ func admit(job: Job) -> Customer:
 	customer.global_position = _floor.cell_to_global(_outside_cell)
 	customer.set_shirt_color(Color.from_hsv(randf(), shirt_saturation, shirt_value))
 	customer.arrived.connect(_on_arrived.bind(customer))
+	customer.cell_reached.connect(customer_cell_reached.emit)
 	_customers.append(customer)
 	_line.append(customer)
 	_move_line()

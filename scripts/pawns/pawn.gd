@@ -12,6 +12,8 @@ signal work_started(job: Job)
 signal job_finished(job: Job)
 ## Emitted each frame of work with how far along the job is (0-1).
 signal work_progressed(job: Job, progress: float)
+## Walked onto a cell's center (a global position), e.g. to dirty the floor there.
+signal cell_reached(at: Vector2)
 ## Practice raised a skill to a new level.
 signal skill_leveled_up(work_type: WorkType, level: int)
 ## Mood fell too low: the pawn takes no new jobs until breakdown_ended.
@@ -516,6 +518,9 @@ func _step_along_path(delta: float) -> void:
 	if to_target.length() <= step:
 		global_position = _path[0]
 		_path.remove_at(0)
+		# A path starts where the pawn stands: that's not a step.
+		if not to_target.is_zero_approx():
+			cell_reached.emit(global_position)
 		if _path.is_empty():
 			_on_path_end()
 		return
