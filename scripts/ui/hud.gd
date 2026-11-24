@@ -1,7 +1,7 @@
 class_name Hud
 extends CanvasLayer
-## The on-screen panels: clock and cash, ticket rack, priorities, the selected station or
-## pawn, and the day report. Keeps them showing the shop's state, applies speed picks and
+## The on-screen panels: clock and cash, ticket rack, priorities, the selected station,
+## pawn or item, and the day report. Keeps them showing the shop's state, applies speed picks and
 ## ticket moves directly, and passes the player's other requests up.
 
 signal priority_change_requested(pawn: Pawn, work_type: WorkType, priority: int)
@@ -9,6 +9,7 @@ signal priority_change_requested(pawn: Pawn, work_type: WorkType, priority: int)
 signal manager_change_requested(pawn: Pawn, on: bool)
 signal role_change_requested(station: Station, role: StationRole)
 signal station_close_requested
+signal item_close_requested
 signal report_closed
 signal build_choice_requested(data: StationData)
 signal build_close_requested
@@ -23,6 +24,7 @@ var _managing: WorkType
 @onready var _priority_panel: PriorityPanel = $PriorityPanel
 @onready var _station_panel: StationPanel = $StationPanel
 @onready var _pawn_panel: PawnPanel = $PawnPanel
+@onready var _item_panel: ItemPanel = $ItemPanel
 @onready var _clock_panel: ClockPanel = $ClockPanel
 @onready var _day_report_panel: DayReportPanel = $DayReportPanel
 @onready var _build_panel: BuildPanel = $BuildPanel
@@ -56,6 +58,7 @@ func setup(
 	_station_panel.role_change_requested.connect(role_change_requested.emit)
 	_station_panel.close_requested.connect(station_close_requested.emit)
 	_pawn_panel.close_requested.connect(_pawn_panel.hide)
+	_item_panel.close_requested.connect(item_close_requested.emit)
 	_day_report_panel.continue_requested.connect(report_closed.emit)
 
 
@@ -106,6 +109,25 @@ func show_pawn(pawn: Pawn) -> void:
 		if _managing != null:
 			work_types.append(_managing)
 		_pawn_panel.show_pawn(pawn, work_types)
+
+
+## What the item panel needs to show food quality: finds the order item an item is being
+## made as (see TicketRack.find_order_item()), and the quality rules.
+func setup_items(find_order_item: Callable, rules: QualityRules) -> void:
+	_item_panel.setup(find_order_item, rules)
+
+
+## Shows the item in the item panel, or hides the panel for null.
+func show_item(item: Item) -> void:
+	if item == null:
+		_item_panel.hide()
+	else:
+		_item_panel.show_item(item)
+
+
+## The item shown in the item panel, or null.
+func get_shown_item() -> Item:
+	return _item_panel.item if _item_panel.visible else null
 
 
 ## The pawn shown in the pawn panel, or null.

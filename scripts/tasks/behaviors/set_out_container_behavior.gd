@@ -48,6 +48,7 @@ func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 
 func on_supply_taken(job: Job, station: Station, pawn: Pawn, work: WorkManager) -> void:
 	job.order_item.container = work.spawn_item(station.get_storage_layout().textures[0])
+	job.order_item.container.display_name = "Box"
 	pawn.hold_item(job.order_item.container)
 
 

@@ -89,6 +89,20 @@ func get_tickets(section: Ticket.Section) -> Array[Ticket]:
 	return _list(section).duplicate()
 
 
+## The order item being made as `item` (or as an item `item` is inside, e.g. a pizza's box),
+## or null. A box in an order's stack is its own order item's, not the base's.
+func find_order_item(item: Item) -> OrderItem:
+	var tickets: Array[Ticket] = _wait + _make
+	var each: Item = item
+	while each != null:
+		for ticket: Ticket in tickets:
+			for order_item: OrderItem in ticket.order_items:
+				if order_item.item == each or order_item.container == each:
+					return order_item
+		each = each.container
+	return null
+
+
 ## Unclaimed jobs from Make tickets, in rack order.
 func get_open_jobs() -> Array[Job]:
 	var jobs: Array[Job] = []

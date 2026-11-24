@@ -47,6 +47,8 @@ func get_work_seconds(job: Job) -> float:
 
 func on_supply_taken(job: Job, _station: Station, pawn: Pawn, work: WorkManager) -> void:
 	job.target = work.spawn_item(pan.bag_texture)
+	job.target.display_name = "%s Bag" % pan.display_name
+	job.target.is_ingredient = true
 	pawn.hold_item(job.target)
 
 
@@ -62,6 +64,9 @@ func on_work_started(job: Job, pawn: Pawn, _work: WorkManager) -> void:
 func on_finished(job: Job, _pawn: Pawn, _work: WorkManager) -> void:
 	if job.part == Part.REFILL:
 		job.station.fill_pan(pan)
+		if job.target != null and is_instance_valid(job.target):
+			job.target.display_name = "Empty %s Bag" % pan.display_name
+			job.target.is_ingredient = false
 		return
 	job.station.take_item(job.spot)
 	if job.target != null and is_instance_valid(job.target):

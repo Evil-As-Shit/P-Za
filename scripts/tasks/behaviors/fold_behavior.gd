@@ -52,6 +52,7 @@ func get_work_seconds(job: Job) -> float:
 
 func on_supply_taken(job: Job, station: Station, pawn: Pawn, work: WorkManager) -> void:
 	job.target = work.spawn_item(station.get_storage_layout().textures[0])
+	job.target.display_name = "Box"
 	pawn.hold_item(job.target)
 
 

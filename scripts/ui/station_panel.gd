@@ -1,6 +1,6 @@
 class_name StationPanel
 extends PanelContainer
-## HUD panel for the selected station. For stations that take a role, shows one button per
+## HUD panel for the selected station: its name, and for stations that take a role, one button per
 ## role (plus None) and reports the player's pick. Also shows how full its ingredient pans
 ## are (see StationData.pans), kept up to date while it's open.
 
@@ -13,6 +13,7 @@ var station: Station = null
 @onready var _roles: VBoxContainer = %Roles
 @onready var _close: Button = %Close
 @onready var _contents: Label = %Contents
+@onready var _hint: Label = $Margin/Lines/Hint
 
 
 func _ready() -> void:
@@ -39,6 +40,9 @@ func show_station(p_station: Station) -> void:
 	for child: Node in _roles.get_children():
 		_roles.remove_child(child)
 		child.queue_free()
+	# Stations without roles (e.g. an oven) just show their name and contents.
+	_hint.visible = station.has_roles()
+	_roles.visible = station.has_roles()
 	var choices: Array[StationRole] = [null]
 	choices.append_array(station.get_available_roles())
 	for choice: StationRole in choices:

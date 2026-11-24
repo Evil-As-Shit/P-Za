@@ -124,13 +124,17 @@ static func spawn_container(kind: IngredientContainer, work: WorkManager, left: 
 	container.set_lid(kind.lid_texture)
 	var count: int = kind.unit_offsets.size() if left < 0 else mini(left, kind.unit_offsets.size())
 	for i: int in count:
-		container.put_in(work.spawn_item(kind.unit_texture), kind.unit_offsets[i])
+		var unit: Item = work.spawn_item(kind.unit_texture)
+		unit.display_name = kind.full_kind.display_name if kind.full_kind != null else kind.display_name
+		unit.is_ingredient = true
+		container.put_in(unit, kind.unit_offsets[i])
 	return container
 
 
 ## Takes a claimed unit out of the container; it becomes the order item's item.
 func _take_unit(job: Job, container: Item, pawn: Pawn) -> void:
 	var unit: Item = container.take_unit()
+	unit.display_name = job.order_item.recipe.display_name
 	job.order_item.item = unit
 	pawn.hold_item(unit)
 

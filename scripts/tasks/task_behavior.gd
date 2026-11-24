@@ -72,6 +72,7 @@ func on_work_started(job: Job, pawn: Pawn, work: WorkManager) -> void:
 	var order_item: OrderItem = job.order_item
 	if item == null and order_item != null and order_item.item == null:
 		item = work.spawn_item(order_item.recipe.get_stage_texture(order_item.step_index))
+		item.display_name = order_item.recipe.display_name
 		order_item.item = item
 	if item != null:
 		job.station.put_item(job.spot, item)

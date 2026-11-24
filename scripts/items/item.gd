@@ -22,6 +22,11 @@ var portions: PortionContainer = null
 var portions_left: int = 0
 ## What it is, if it was set out as a station's side item (see SideItem).
 var side_item: SideItem = null
+## Name shown when it's selected (see get_display_name()), e.g. "Box". Empty to name it by
+## what it holds or is.
+var display_name: String = ""
+## True for an ingredient (e.g. a dough ball or a bag of cheese), which has a quality.
+var is_ingredient: bool = false
 
 var _mirrored: bool = false
 ## True while shown with its turned art (see RotatedArt).
@@ -40,6 +45,22 @@ var _units_claimed: int = 0
 @onready var _contents: Node2D = $Contents
 @onready var _over: Sprite2D = $Over
 @onready var _lid: Sprite2D = $Lid
+
+
+## Its name: display_name if set, else its side item's or ingredient container's name.
+func get_display_name() -> String:
+	if not display_name.is_empty():
+		return display_name
+	if side_item != null:
+		return side_item.display_name
+	if ingredient != null:
+		return ingredient.display_name
+	return "Item"
+
+
+## Highlights it while it's selected.
+func set_selected(selected: bool) -> void:
+	modulate = Color(1.2, 1.2, 0.9) if selected else Color.WHITE
 
 
 func set_texture(texture: Texture2D) -> void:

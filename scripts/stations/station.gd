@@ -436,6 +436,8 @@ func _fit_canvas() -> void:
 		strip.region_enabled = true
 		strip.region_rect = Rect2(from_x - _canvas_origin.x, 0.0, to_x - from_x, canvas_size.y)
 		strip.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		# Clicks on the strip look for what's drawn there in the canvas.
+		strip.set_meta(PixelPick.SOURCE_META, _layers)
 		_strips.add_child(strip)
 		strip.global_position = Vector2(from_x, sort_y)
 		strip.offset = Vector2(0.0, _canvas_origin.y - sort_y)

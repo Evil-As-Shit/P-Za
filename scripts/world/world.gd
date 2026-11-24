@@ -16,6 +16,8 @@ extends Node2D
 var _stations: Array[Station] = []
 ## Station shown in the station panel, or null.
 var _selected_station: Station = null
+## Item shown in the item panel, or null.
+var _selected_item: Item = null
 
 @onready var _floor: ShopFloor = $ShopFloor
 @onready var _entities: Node2D = $Entities
@@ -71,6 +73,8 @@ func _ready() -> void:
 		pawn.skill_leveled_up.connect(_hud.refresh_priorities.unbind(2))
 	_hud.role_change_requested.connect(_on_role_change_requested)
 	_hud.station_close_requested.connect(_select_station.bind(null))
+	_hud.setup_items(_rack.find_order_item, _work.quality_rules)
+	_hud.item_close_requested.connect(_select_item.bind(null))
 	_hud.report_closed.connect(_on_report_closed)
 	_work.waiting_orders_changed.connect(_hud.show_waiting_orders)
 	_reputation.rating_changed.connect(_on_rating_changed)
@@ -178,8 +182,7 @@ func _walk_in_around(station: Station) -> Station:
 #region Stations
 
 func _set_build_mode(on: bool) -> void:
-	_select_station(null)
-	_hud.show_pawn(null)
+	_select(null)
 	_build.set_active(on)
 	_hud.show_build(on)
 
@@ -209,36 +212,39 @@ func _on_station_move_started(station: Station) -> void:
 	_lobby.refresh()
 
 
-## The role-taking station under a point, or null. Checks a little below the point too,
-## since tabletops are drawn above their floor cells.
-func _station_at(point: Vector2) -> Station:
-	for lift: float in [0.0, 16.0]:
-		var cell: Vector2i = _floor.global_to_cell(point + Vector2(0.0, lift))
-		for station: Station in _stations:
-			if station.has_roles() and station.get_footprint_cells().has(cell):
-				return station
+## Selects what's drawn in front at a point, pixel by pixel (see PixelPick): a pawn, an
+## item (on a station, the floor or in someone's hands) or a station. Clicking empty floor,
+## or something that can't be selected (a wall, a customer), clears the selection.
+func _select_at(point: Vector2) -> void:
+	_select(_selectable_from(PixelPick.find(_entities, point)))
+
+
+## The pawn, item or station a drawn node belongs to (the innermost item, e.g. a pizza in
+## its box), or null.
+func _selectable_from(node: Node) -> Node:
+	while node != null and node != _entities:
+		if node is Item or node is Pawn or node is Station:
+			return node
+		if node is Customer:
+			return null
+		node = node.get_parent()
 	return null
 
 
-## Selects the pawn under a point (pawns are drawn over stations), else the station there.
-## Clicking empty floor clears the selection.
-func _select_at(point: Vector2) -> void:
-	var pawn: Pawn = _pawn_at(point)
-	if pawn != null:
-		_select_station(null)
-		_hud.show_pawn(pawn)
-		return
-	_hud.show_pawn(null)
-	_select_station(_station_at(point))
+## Shows `target` (a pawn, item or station) in its panel and hides the others; null hides all.
+func _select(target: Node) -> void:
+	_select_station(target as Station)
+	_select_item(target as Item)
+	_hud.show_pawn(target as Pawn)
 
 
-## The pawn under a point, or null. Picks the one drawn in front when they overlap.
-func _pawn_at(point: Vector2) -> Pawn:
-	var found: Pawn = null
-	for pawn: Pawn in _work.get_pawns():
-		if pawn.has_point(point) and (found == null or pawn.global_position.y > found.global_position.y):
-			found = pawn
-	return found
+func _select_item(item: Item) -> void:
+	if _selected_item != null and is_instance_valid(_selected_item):
+		_selected_item.set_selected(false)
+	_selected_item = item
+	if item != null:
+		item.set_selected(true)
+	_hud.show_item(item)
 
 
 func _select_station(station: Station) -> void:

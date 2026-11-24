@@ -65,6 +65,7 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 - Each task type has a base work time, scaled by the pawn's skill in its column (mood will scale it later).
 - **Skills:** every column except Hauling is a skill, leveled 0–20. Level 10 works at the base time, level 0 takes twice as long and level 20 half as long (straight lines between). Pawns learn by doing: each shop minute worked is practice, and level L to L+1 takes (L+1)×10 minutes. Starting pawns roll 2–8 in each skill. The priority grid shows each pawn's level in the corner of each cell. All numbers are placeholders.
 - **Pawn panel:** clicking a pawn opens a panel with their skills: each level and a bar of practice toward the next. Mood, traits and pay come later.
+- **Selecting:** a click selects whatever is drawn in front at that pixel (a pawn, an item or any station); see-through parts of the art aren't clickable. Clicking an item (on a station, the floor or in someone's hands) shows its name and quality: a pizza shows its tier so far while it's being made, then its final tier; an ingredient shows the ingredients' quality, and a container what's left in it. Freshness will show here once it's tracked.
 - Pawns with no work wander and sometimes check their phone (placeholder).
 
 ### Stations, spots and roles
