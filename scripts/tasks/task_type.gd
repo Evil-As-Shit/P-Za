@@ -40,6 +40,9 @@ static var _default_behavior := TaskBehavior.new()
 ## If true, work done at a station dirties it (see WorkManager.station_dirt_per_task). Off
 ## for wiping it down. Breaks never do.
 @export var dirties_station: bool = true
+## Chance (0 to 1) that finishing this step at a station leaves a spill on the floor where
+## the pawn stood (see FloorDirt), e.g. sauce. Placeholder.
+@export_range(0.0, 1.0) var spill_chance: float = 0.0
 ## How the task is planned and carried out. Empty means the default (see TaskBehavior).
 @export var behavior: TaskBehavior
 

@@ -100,6 +100,7 @@
 [ext_resource type="Script" path="res://scripts/world/floor_dirt.gd" id="103_floor_dirt"]
 [ext_resource type="Resource" path="res://resources/tasks/mop_floor.tres" id="104_mop"]
 [ext_resource type="Resource" path="res://resources/tasks/wipe_station.tres" id="105_wipe"]
+[ext_resource type="Resource" path="res://resources/tasks/clean_spill.tres" id="106_spill"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -297,7 +298,7 @@ throw_out_task = ExtResource("44_throw_out")
 quality_rules = ExtResource("79_quality")
 take_order_task = ExtResource("52_take_order")
 restock_tasks = Array[ExtResource("56_task_type")]([ExtResource("55_fold_box"), ExtResource("58_put_away_dough"), ExtResource("68_bring_dishes"), ExtResource("76_store_clean"), ExtResource("69_put_away_dishes"), ExtResource("70_return_bucket"), ExtResource("77_refill_cheese"), ExtResource("93_haul_case")])
-chore_tasks = Array[ExtResource("56_task_type")]([ExtResource("67_wash"), ExtResource("105_wipe"), ExtResource("104_mop")])
+chore_tasks = Array[ExtResource("56_task_type")]([ExtResource("106_spill"), ExtResource("67_wash"), ExtResource("105_wipe"), ExtResource("104_mop")])
 managing = ExtResource("60_managing")
 quote_rules = ExtResource("61_quote_rules")
 break_task = ExtResource("97_take_break")

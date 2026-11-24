@@ -884,6 +884,8 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 		job.order_item.skill_levels.append(pawn.get_quality_level(task.work_type))
 	var station: Station = job.station
 	var spot: int = job.spot
+	if station != null and floor_dirt != null and randf() < task.spill_chance:
+		floor_dirt.add_spill(station.get_work_cell(spot))
 	_release(job)
 	var order_item: OrderItem = job.order_item
 	# A recipe step changes how the item looks (a baking pizza changes once it's done).
