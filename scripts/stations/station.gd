@@ -25,6 +25,8 @@ const SORT_OFFSET: float = -1.0
 ## Room in the canvas above and beside the art, for things stacked on the station.
 const CANVAS_HEADROOM: int = 48
 const CANVAS_MARGIN: int = 16
+## The art's tint when fully dirty; cleaner stations get less of it (placeholder look).
+const DIRTY_TINT := Color(0.62, 0.5, 0.36)
 
 @export var data: StationData
 ## Origin cell on the floor grid.
@@ -36,6 +38,10 @@ const CANVAS_MARGIN: int = 16
 
 ## True while it stands inside a walk-in (set by the owner when it's put to work).
 var in_walk_in: bool = false
+
+## How dirty its surfaces are, 0 (clean) to 1. Work done at it dirties it; wiping it down
+## (WipeBehavior) cleans it.
+var _dirt: float = 0.0
 
 var _footprint: Array[Vector2i] = []
 var _item_positions: Array[Vector2] = []
@@ -245,6 +251,27 @@ func _place_work_spot_markers() -> void:
 		# Anchored on the cell the pawn faces; the frame puts the circle on the pawn's side.
 		marker.global_position = _floor.cell_to_global(get_work_cell(spot) - side)
 		_work_spot_markers.append(marker)
+
+
+func get_dirt() -> float:
+	return _dirt
+
+
+func add_dirt(amount: float) -> void:
+	_dirt = clampf(_dirt + amount, 0.0, 1.0)
+	_update_dirt_art()
+
+
+## Wiped down: clean again.
+func clean() -> void:
+	_dirt = 0.0
+	_update_dirt_art()
+
+
+## Only the station's own art is tinted, not what sits on it.
+func _update_dirt_art() -> void:
+	if _sprite != null:
+		_sprite.self_modulate = Color.WHITE.lerp(DIRTY_TINT, _dirt)
 
 
 ## True if nothing is on it or on its way to or from it.

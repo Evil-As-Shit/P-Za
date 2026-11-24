@@ -37,6 +37,9 @@ static var _default_behavior := TaskBehavior.new()
 ## If true, it's a break, not work: it lasts work_minutes whatever the pawn's speed, gives no
 ## practice, and refills energy (see PawnMood).
 @export var rest: bool = false
+## If true, work done at a station dirties it (see WorkManager.station_dirt_per_task). Off
+## for wiping it down. Breaks never do.
+@export var dirties_station: bool = true
 ## How the task is planned and carried out. Empty means the default (see TaskBehavior).
 @export var behavior: TaskBehavior
 

@@ -56,6 +56,10 @@ signal rush_changed(rushing: bool)
 @export var rush_tickets_per_pawn: float = 2.0
 ## Shop minutes without being busy before a rush ends (placeholder).
 @export var rush_end_minutes: float = 5.0
+@export_group("Cleanliness")
+## Dirt each piece of work done at a station adds to it, 0 to 1 (placeholder). See
+## TaskType.dirties_station.
+@export var station_dirt_per_task: float = 0.1
 @export_group("")
 
 ## How dirty the floor is (set by the world), for cleaning chores. Null: no floor dirt.
@@ -858,6 +862,9 @@ func _on_pawn_work_progressed(job: Job, progress: float, _pawn: Pawn) -> void:
 func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	var task: TaskType = job.task_type
 	var behavior: TaskBehavior = task.get_behavior()
+	# Only work that took time dirties the station (not just setting something down).
+	if job.station != null and task.dirties_station and not task.rest and job.get_work_required() > 0.0:
+		job.station.add_dirt(station_dirt_per_task)
 	behavior.on_finished(job, pawn, self)
 	if behavior.continue_job(job, pawn, self):
 		# The same pawn goes on to the job's next part.
