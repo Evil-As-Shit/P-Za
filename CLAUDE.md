@@ -29,7 +29,7 @@ Check with the designer before:
 
 - Godot (Steam install): `C:\Program Files\Steam\steamapps\common\Godot Engine\godot.windows.opt.tools.64.exe`. Running it headless is allowed, to check the project loads and to verify your work before reporting it done. After adding a new `class_name`, run it once with `--headless --import`.
 - Git isn't on PATH. Use SourceTree's bundled copy: `%LOCALAPPDATA%\Atlassian\SourceTree\git_local\cmd\git.exe`.
-- **Tests:** `.\tests\run_tests.ps1 -Quiet [name]` runs `tests/test_*.gd` headless (the full suite takes about 20 s). Run it after gameplay changes, and add a test for each new system. See the `run-tests` skill. Task and wait times are in shop-clock minutes, so changing the day's length doesn't need retuning.
+- **Tests:** `.\tests\run_tests.ps1 -Quiet [name]` runs `tests/test_*.gd` headless (the full suite takes about 20 s). Run it after gameplay changes, and add a test for each new system. See the `run-tests` skill. `tests/playtest.gd` (not in the suite) plays the real starting shop for several days at top speed and prints each day's orders, misses by cause, money, stock and where staff time went: `godot --headless --path . --fixed-fps 60 --script res://tests/playtest.gd -- days=7`. Task and wait times are in shop-clock minutes, so changing the day's length doesn't need retuning.
 - Aseprite (Steam install): `C:\Program Files\Steam\steamapps\common\Aseprite\Aseprite.exe`, usable with `-b` for exports.
 
 ## Workflow
