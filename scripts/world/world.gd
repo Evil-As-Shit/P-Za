@@ -7,8 +7,8 @@ extends Node2D
 
 ## Recipe printed by the debug hotkey (J).
 @export var debug_recipe: Recipe
-## Shop minutes a finished order waits where it was handed off before it goes out
-## (placeholder until customers pick orders up).
+## Shop minutes a finished order with no customer to collect it (e.g. from the debug
+## hotkey) waits where it was handed off before it goes out.
 @export var pickup_wait_minutes: float = 0.6
 ## Placeholder: new tickets go straight to the bottom of Make instead of waiting in Wait.
 @export var auto_make: bool = true
@@ -29,6 +29,7 @@ var _selected_station: Station = null
 @onready var _reputation: ShopReputation = $ShopReputation
 @onready var _hud: Hud = $Hud
 @onready var _build: BuildMode = $BuildMode
+@onready var _lobby: Lobby = $Lobby
 
 
 func _ready() -> void:
@@ -58,7 +59,8 @@ func _ready() -> void:
 	_clock.day_started.connect(_on_day_started)
 	_orders.setup(_clock)
 	_orders.order_placed.connect(_on_order_placed)
-	_work.order_taken.connect(_print_ticket)
+	_work.order_taken.connect(_on_order_taken)
+	_setup_lobby()
 
 	_hud.setup(_clock, _rack, _finances, _work.get_pawns(), _work.work_types, _work.managing)
 	_hud.priority_change_requested.connect(_on_priority_change_requested)
@@ -84,6 +86,22 @@ func _ready() -> void:
 	_hud.sell_requested.connect(_build.sell)
 	_build.holding_changed.connect(_hud.set_can_sell)
 	_build.station_sold.connect(_work.assign_all.unbind(1))
+	_build.station_sold.connect(_lobby.refresh.unbind(1))
+
+
+## Customers come and go through the front door: the first door onto lobby floor.
+func _setup_lobby() -> void:
+	var door_cell := Vector2i.ZERO
+	var outside := Vector2i.ZERO
+	for door: Vector3i in _walls.doors:
+		var cell := Vector2i(door.x, door.y)
+		if _floor.is_lobby(cell):
+			door_cell = cell
+			outside = cell + ShopWalls.SIDE_STEP[door.z]
+			break
+	_lobby.setup(_floor, _entities, _stations, _work.take_order_task, _rack.hand_off_task, door_cell, outside)
+	_lobby.reached_register.connect(_work.release_order)
+	_lobby.reached_pickup.connect(_on_customer_at_pickup)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -175,6 +193,7 @@ func _on_station_built(station: Station) -> void:
 		cells = station.get_footprint_cells()
 	_work.reroute_around(cells)
 	_work.assign_all()
+	_lobby.refresh()
 
 
 ## A station was picked up to move: nobody uses it until it's put down, and pawns using it
@@ -187,6 +206,7 @@ func _on_station_move_started(station: Station) -> void:
 		_select_station(null)
 	_stations.erase(station)
 	_work.remove_station(station)
+	_lobby.refresh()
 
 
 ## The role-taking station under a point, or null. Checks a little below the point too,
@@ -271,30 +291,51 @@ func _on_manager_changed(manager: Pawn) -> void:
 
 #region Orders
 
-## A customer orders and the manager quotes the wait: they wait at the register until a
-## Cashier pawn takes the order.
+## A customer comes in and the manager quotes the wait: they join the register line, and a
+## Cashier pawn takes the order once they reach the register. With the line full they turn
+## around: the sale is lost, with no review.
 func _on_order_placed(recipes: Array[Recipe]) -> void:
-	_work.take_order(recipes, _rack.now_minutes, _work.quote_order(recipes))
+	if not _lobby.has_room_in_line():
+		_finances.record_missed(Recipe.get_total_price(recipes))
+		return
+	var job: Job = _work.take_order(recipes, _rack.now_minutes, _work.quote_order(recipes), true)
+	_lobby.admit(job)
 
 
-## Prints the order's ticket. `placed_at` is when the customer ordered (-1 for now) and
-## `quoted` the manager's quote (-1 for none). The debug hotkey prints straight here,
-## skipping the register.
-func _print_ticket(recipes: Array[Recipe], placed_at: int = -1, quoted: int = -1) -> void:
+## A pawn took the order at the register: its ticket prints and the customer waits.
+func _on_order_taken(job: Job) -> void:
+	var ticket: Ticket = _print_ticket(job.recipes, job.placed_at, job.quoted_minutes)
+	_lobby.order_taken(job, ticket)
+
+
+## Prints the order's ticket and returns it. `placed_at` is when the customer ordered (-1
+## for now) and `quoted` the manager's quote (-1 for none). The debug hotkey prints straight
+## here, skipping the register (and with no customer).
+func _print_ticket(recipes: Array[Recipe], placed_at: int = -1, quoted: int = -1) -> Ticket:
 	var ticket: Ticket = _rack.print_ticket(recipes, placed_at, quoted)
 	if auto_make:
 		_rack.move_ticket(ticket, Ticket.Section.MAKE, _rack.get_tickets(Ticket.Section.MAKE).size())
+	return ticket
 
 
-## Handed off: after a short wait the customer picks it up.
+## Handed off: the customer walks up for it. With no customer to collect it, it goes out
+## after a short wait.
 func _on_order_ready(ticket: Ticket) -> void:
+	if _lobby.order_ready(ticket):
+		return
 	get_tree().create_timer(ShopClock.minutes_to_seconds(pickup_wait_minutes)).timeout.connect(
-		_send_out.bind(ticket)
+		_send_out.bind(ticket, null)
 	)
 
 
-## The finished order is picked up and paid for: its stack leaves and frees its spot.
-func _send_out(ticket: Ticket) -> void:
+## The customer is at the pickup counter: they take their order, pay and leave.
+func _on_customer_at_pickup(customer: Customer) -> void:
+	_send_out(customer.ticket, customer)
+
+
+## The finished order is picked up and paid for: its stack leaves its spot, carried out by
+## `customer` (or just gone with none), and the customer heads out.
+func _send_out(ticket: Ticket, customer: Customer) -> void:
 	_finances.record_sale(ticket.get_price(), ticket.order_items.size(), ticket.get_age(_rack.now_minutes))
 	_reputation.review_order(ticket, _rack.now_minutes)
 	var stack: Item = ticket.stack_base.item if ticket.stack_base != null else null
@@ -303,8 +344,15 @@ func _send_out(ticket: Ticket) -> void:
 	if stack != null:
 		if stack.station != null:
 			stack.station.take_item(stack.spot)
-		stack.queue_free()
+		if customer != null:
+			customer.hold_item(stack)
+		else:
+			stack.queue_free()
 	_rack.send_out(ticket)
+	if customer != null:
+		_lobby.leave(customer)
+	else:
+		_lobby.ticket_done(ticket)
 
 
 ## The customer gave up: the sale is lost and whatever was made for it is thrown out.
@@ -312,6 +360,7 @@ func _on_ticket_cancelled(ticket: Ticket) -> void:
 	_finances.record_missed(ticket.get_price())
 	_reputation.review_left(false)
 	_work.throw_out_leftovers(ticket)
+	_lobby.ticket_done(ticket)
 
 
 ## Reviews move the rating, and the rating scales how often orders come in.
@@ -331,6 +380,7 @@ func _on_time_changed(_day: int, _minute: int) -> void:
 	for job: Job in _work.get_waiting_orders():
 		if _rack.now_minutes - job.placed_at >= _rack.get_patience(job.quoted_minutes):
 			_work.drop_order(job)
+			_lobby.give_up_order(job)
 			_finances.record_missed(Recipe.get_total_price(job.recipes))
 			_reputation.review_left(true)
 	_hud.update_ticket_times()

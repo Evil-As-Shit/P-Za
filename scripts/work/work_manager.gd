@@ -9,9 +9,9 @@ extends Node
 signal order_ready(ticket: Ticket)
 ## A finished step used up ingredients (or a box) costing this much.
 signal ingredients_used(cost: float)
-## A pawn took a customer's order at the register: its ticket should print now. `quoted` is
-## the manager's quoted wait in shop minutes (-1 if none).
-signal order_taken(recipes: Array[Recipe], placed_at: int, quoted: int)
+## A pawn took a customer's order at the register (`job`, with its recipes, when they
+## ordered and the manager's quote): its ticket should print now.
+signal order_taken(job: Job)
 ## The manager changed (null: nobody is).
 signal manager_changed(manager: Pawn)
 ## The number of customers waiting at the register changed.
@@ -240,7 +240,7 @@ func try_assign(pawn: Pawn, max_priority: int = Pawn.LOWEST_PRIORITY) -> bool:
 		return true
 	var jobs: Array[Job] = _rack.get_open_jobs()
 	for job: Job in _shop_jobs:
-		if job.claimed_by == null:
+		if job.claimed_by == null and not job.on_hold:
 			jobs.append(job)
 	for task: TaskType in chore_tasks:
 		if task.get_behavior().is_needed(self):
@@ -517,13 +517,25 @@ func on_container_ready(order_item: OrderItem) -> void:
 
 ## A customer orders `recipes` at shop time `placed_at`: they wait at the register until a
 ## pawn takes the order (see order_taken). `quoted` is the manager's quote (-1 if none).
-func take_order(recipes: Array[Recipe], placed_at: int, quoted: int = -1) -> void:
+## With `on_hold`, nobody takes it until release_order() (the customer is still in line).
+## Returns the take-order job.
+func take_order(recipes: Array[Recipe], placed_at: int, quoted: int = -1, on_hold: bool = false) -> Job:
 	var job := Job.new(take_order_task, null, null)
 	job.recipes = recipes
 	job.placed_at = placed_at
 	job.quoted_minutes = quoted
+	job.on_hold = on_hold
 	_shop_jobs.append(job)
 	waiting_orders_changed.emit(get_waiting_orders().size())
+	assign_all()
+	return job
+
+
+## The customer reached the register: a Cashier pawn can take their order now.
+func release_order(job: Job) -> void:
+	if not job.on_hold:
+		return
+	job.on_hold = false
 	assign_all()
 
 
@@ -767,7 +779,7 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 		_shop_jobs.erase(job)
 		if not job.recipes.is_empty():
 			waiting_orders_changed.emit(get_waiting_orders().size())
-			order_taken.emit(job.recipes, job.placed_at, job.quoted_minutes)
+			order_taken.emit(job)
 		assign_all()
 	if task.opens_station and station != null and not _next_step_opens_station(job.order_item):
 		station.set_opened(spot, false)

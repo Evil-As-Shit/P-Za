@@ -1,0 +1,25 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/customers/customer.gd" id="1_customer"]
+[ext_resource type="SpriteFrames" path="res://resources/pawns/pawn_sprite_frames.tres" id="2_frames"]
+[ext_resource type="Shader" path="res://resources/customers/shirt_swap.gdshader" id="3_shirt"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_shirt"]
+resource_local_to_scene = true
+shader = ExtResource("3_shirt")
+shader_parameter/shirt_color = Color(0.7, 0.2, 0.2, 1)
+
+[node name="Customer" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1_customer")
+
+[node name="Body" type="Node2D" parent="."]
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Body"]
+material = SubResource("ShaderMaterial_shirt")
+offset = Vector2(0.5, -20)
+sprite_frames = ExtResource("2_frames")
+animation = &"idle_down"
+
+[node name="HoldPoint" type="Marker2D" parent="Body"]
+position = Vector2(-5, -21)

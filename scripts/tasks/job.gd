@@ -17,6 +17,9 @@ var recipes: Array[Recipe] = []
 var placed_at: int = 0
 ## The manager's quoted wait for that order, in shop minutes (-1 if none).
 var quoted_minutes: int = -1
+## While true no pawn takes the job (e.g. an order whose customer hasn't reached the
+## register yet).
+var on_hold: bool = false
 ## For jobs that put something away (e.g. a folded box): the storage it goes to. Its room
 ## is claimed until it's stored.
 var destination: Station = null

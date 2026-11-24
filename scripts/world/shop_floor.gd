@@ -82,6 +82,11 @@ func set_no_wander(cell: Vector2i, on: bool) -> void:
 		_no_wander.erase(cell)
 
 
+## True if the cell is lobby floor (see no_wander_tiles).
+func is_lobby(cell: Vector2i) -> bool:
+	return has_floor(cell) and no_wander_tiles.has(get_cell_atlas_coords(cell))
+
+
 ## A random walkable cell idle pawns may wander to.
 func get_random_walkable_cell() -> Vector2i:
 	var cells: Array[Vector2i] = []
