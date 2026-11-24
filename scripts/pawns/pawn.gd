@@ -407,6 +407,20 @@ func is_on_breakdown() -> bool:
 	return mood != null and mood.is_on_breakdown()
 
 
+## Head and shoulders from the pawn's standing art, for UI portraits (null if it has none).
+func get_portrait(height: float = 18.0) -> Texture2D:
+	var sprite := get_node_or_null(^"Body/Sprite") as AnimatedSprite2D
+	if sprite == null or sprite.sprite_frames == null or not sprite.sprite_frames.has_animation(&"idle_down"):
+		return null
+	var frame := sprite.sprite_frames.get_frame_texture(&"idle_down", 0) as AtlasTexture
+	if frame == null:
+		return null
+	var portrait := AtlasTexture.new()
+	portrait.atlas = frame.atlas
+	portrait.region = Rect2(frame.region.position, Vector2(frame.region.size.x, minf(height, frame.region.size.y)))
+	return portrait
+
+
 ## True while they take no new jobs: on a breakdown or resting standing on a break.
 func is_off_work() -> bool:
 	return mood != null and (mood.is_on_breakdown() or mood.is_on_standing_break())

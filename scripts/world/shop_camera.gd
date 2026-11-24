@@ -50,6 +50,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		_pan(-motion.relative / zoom.x)
 
 
+## Centers the view on `point` (on whole pixels).
+func focus_on(point: Vector2) -> void:
+	position = point.round()
+	_pan_remainder = Vector2.ZERO
+
+
 ## Moves by `amount`, in whole pixels, carrying the fraction over to the next move. Only
 ## the whole part moves (not rounding): a leftover of exactly half a pixel would otherwise
 ## round one way, leave -0.5, round back, and shake the camera every frame.

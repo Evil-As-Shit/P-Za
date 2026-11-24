@@ -4,9 +4,9 @@
 
 [node name="PawnPanel" type="PanelContainer"]
 offset_left = 8.0
-offset_top = 8.0
+offset_top = 48.0
 offset_right = 208.0
-offset_bottom = 8.0
+offset_bottom = 48.0
 script = ExtResource("1_panel")
 
 [node name="Margin" type="MarginContainer" parent="."]

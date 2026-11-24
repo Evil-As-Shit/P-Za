@@ -84,6 +84,7 @@ func _ready() -> void:
 	_hud.supply_target_change_requested.connect(_deliveries.set_target)
 	_work.waiting_orders_changed.connect(_hud.show_waiting_orders)
 	_work.rush_changed.connect(_hud.show_rush)
+	_hud.pawn_select_requested.connect(_on_pawn_select_requested)
 	_reputation.rating_changed.connect(_on_rating_changed)
 	_on_rating_changed(_reputation.rating)
 
@@ -243,6 +244,13 @@ func _select(target: Node) -> void:
 	_select_station(target as Station)
 	_select_item(target as Item)
 	_hud.show_pawn(target as Pawn)
+
+
+## A pawn card was clicked: select them, and on a double-click center the camera on them.
+func _on_pawn_select_requested(pawn: Pawn, focus: bool) -> void:
+	_select(pawn)
+	if focus:
+		_camera.focus_on(pawn.global_position)
 
 
 func _select_item(item: Item) -> void:

@@ -93,6 +93,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/supply_panel.tscn" id="96_supply_panel"]
 [ext_resource type="Resource" path="res://resources/tasks/take_break.tres" id="97_take_break"]
 [ext_resource type="Resource" path="res://resources/station_roles/break.tres" id="98_break_role"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pawn_bar.tscn" id="99_pawn_bar"]
 
 [node name="World" type="Node2D"]
 script = ExtResource("1_world")
@@ -331,6 +332,8 @@ script = ExtResource("46_hud")
 [node name="PriorityPanel" parent="Hud" instance=ExtResource("20_priority_panel")]
 
 [node name="ClockPanel" parent="Hud" instance=ExtResource("27_clock_panel")]
+
+[node name="PawnBar" parent="Hud" instance=ExtResource("99_pawn_bar")]
 
 [node name="StationPanel" parent="Hud" instance=ExtResource("23_station_panel")]
 visible = false

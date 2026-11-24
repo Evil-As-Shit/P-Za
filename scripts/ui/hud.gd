@@ -1,7 +1,7 @@
 class_name Hud
 extends CanvasLayer
-## The on-screen panels: clock and cash, ticket rack, priorities, the selected station,
-## pawn or item, and the day report. Keeps them showing the shop's state, applies speed picks and
+## The on-screen panels: clock and cash, the pawn bar, ticket rack, priorities, the selected
+## station, pawn or item, and the day report. Keeps them showing the shop's state, applies speed picks and
 ## ticket moves directly, and passes the player's other requests up.
 
 signal priority_change_requested(pawn: Pawn, work_type: WorkType, priority: int)
@@ -15,6 +15,8 @@ signal build_choice_requested(data: StationData)
 signal build_close_requested
 signal sell_requested
 signal supply_target_change_requested(supply: SupplyItem, target: int)
+## A pawn card was clicked: select the pawn (and with `focus`, center the camera on them).
+signal pawn_select_requested(pawn: Pawn, focus: bool)
 
 var _rack: TicketRack
 var _pawns: Array[Pawn] = []
@@ -28,6 +30,7 @@ var _clock: ShopClock
 @onready var _pawn_panel: PawnPanel = $PawnPanel
 @onready var _item_panel: ItemPanel = $ItemPanel
 @onready var _clock_panel: ClockPanel = $ClockPanel
+@onready var _pawn_bar: PawnBar = $PawnBar
 @onready var _day_report_panel: DayReportPanel = $DayReportPanel
 @onready var _build_panel: BuildPanel = $BuildPanel
 @onready var _supply_panel: SupplyPanel = $SupplyPanel
@@ -61,7 +64,9 @@ func setup(
 	refresh_priorities()
 	_station_panel.role_change_requested.connect(role_change_requested.emit)
 	_station_panel.close_requested.connect(station_close_requested.emit)
-	_pawn_panel.close_requested.connect(_pawn_panel.hide)
+	_pawn_panel.close_requested.connect(show_pawn.bind(null))
+	_pawn_bar.show_pawns(pawns)
+	_pawn_bar.pawn_pressed.connect(pawn_select_requested.emit)
 	_item_panel.close_requested.connect(item_close_requested.emit)
 	_day_report_panel.continue_requested.connect(report_closed.emit)
 
@@ -105,6 +110,7 @@ func show_station(station: Station) -> void:
 
 ## Shows the pawn in the pawn panel, or hides the panel for null.
 func show_pawn(pawn: Pawn) -> void:
+	_pawn_bar.show_selected(pawn)
 	if pawn == null:
 		_pawn_panel.hide()
 	else:
