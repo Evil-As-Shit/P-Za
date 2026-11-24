@@ -1,5 +1,5 @@
 extends "res://tests/test_base.gd"
-## Oven doneness: a pizza is perfect for a minute after it's baked, over after that. The Oven
+## Oven doneness: a pizza is perfect for a short while after it's baked, over after that. The Oven
 ## pawn taking it out aims for the middle of that window, off by up to 1.5 minutes at level
 ## 0, 0.5 at level 10 and none at 20: too early is under (taken out mid-bake), too late is
 ## over. Left in the oven with nobody to take it out, it burns.
@@ -18,12 +18,16 @@ var _ticket: Ticket
 ## dictionary of nodes held until the test quits can crash Godot on exit.
 var _priorities: Array[int] = []
 var _ordered_at: int = 0
+## Minutes a pizza stays perfect (the rules' own value, restored after the under check).
+var _perfect: float = 0.0
+var _lead: float = 0.0
 
 
 func _start() -> void:
 	stop_random_orders()
 	var skill_rules: SkillRules = work.get_pawns()[0].skill_rules
-	for check: Array in [[-0.1, UNDER], [0.0, PERFECT], [1.0, PERFECT], [1.1, OVER]]:
+	_perfect = _rules.perfect_minutes
+	for check: Array in [[-0.1, UNDER], [0.0, PERFECT], [_perfect, PERFECT], [_perfect + 0.1, OVER]]:
 		if _rules.judge(check[0]) != check[1]:
 			fail("taken out %.1f min after done judged %d, expected %d" % [check[0], _rules.judge(check[0]), check[1]])
 			return
@@ -53,12 +57,16 @@ func _step() -> void:
 				return
 			# Aiming two minutes before it's done: taken out mid-bake.
 			_rules.perfect_minutes = -4.0
+			# Offered for take-out early enough to get there mid-bake.
+			_lead = work.fetch_lead_minutes
+			work.fetch_lead_minutes = 5.0
 			_phase = Phase.UNDER
 			_ticket = order_pizzas(1)
 		Phase.UNDER:
 			if doneness == DonenessRules.Doneness.NONE:
 				return
-			_rules.perfect_minutes = 1.0
+			_rules.perfect_minutes = _perfect
+			work.fetch_lead_minutes = _lead
 			if doneness != DonenessRules.Doneness.UNDER:
 				fail("a pizza taken out early came out %d, expected under" % doneness)
 				return

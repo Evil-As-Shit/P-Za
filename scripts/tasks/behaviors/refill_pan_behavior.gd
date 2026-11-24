@@ -79,14 +79,9 @@ func on_finished(job: Job, _pawn: Pawn, _work: WorkManager) -> void:
 func continue_job(job: Job, pawn: Pawn, work: WorkManager) -> bool:
 	if job.part != Part.REFILL:
 		return false
-	job.station.release(job.spot)
-	job.station = null
-	job.spot = -1
-	job.part = Part.THROW_OUT
-	job.work_done = 0.0
-	for spot: WorkSpot in work.get_free_spots(work.throw_out_task, job.target):
-		if work.start_job(pawn, job, spot, [] as Array[JobStop]):
-			return true
+	var spots: Array[WorkSpot] = work.get_free_spots(work.throw_out_task, job.target)
+	if work.start_next_part(pawn, job, Part.THROW_OUT, spots):
+		return true
 	var bag: Item = pawn.release_item()
 	job.target = null
 	if bag != null:

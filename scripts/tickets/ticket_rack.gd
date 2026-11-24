@@ -116,7 +116,10 @@ func get_open_jobs() -> Array[Job]:
 ## Call when a ticket's job finishes. After the hand-off the ticket is ready and stays on
 ## the rack until send_out().
 func complete_job(job: Job) -> void:
-	job.ticket.finish_job(job)
+	var ticket: Ticket = job.ticket
+	ticket.finish_job(job)
+	if ticket.ready and ticket.ready_at < 0:
+		ticket.ready_at = now_minutes
 	changed.emit()
 	jobs_changed.emit()
 

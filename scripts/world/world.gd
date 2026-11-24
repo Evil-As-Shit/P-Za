@@ -360,7 +360,8 @@ func _on_customer_at_pickup(customer: Customer) -> void:
 
 
 ## The finished order is picked up and paid for: its stack leaves its spot, carried out by
-## `customer` (or just gone with none), and the customer heads out.
+## `customer` (or just gone with none), and the customer heads out. Its wait (for the review
+## and the day's ticket times) ran until it was ready, not until it was collected.
 func _send_out(ticket: Ticket, customer: Customer) -> void:
 	_finances.record_sale(ticket.get_price(), ticket.order_items.size(), ticket.get_age(_rack.now_minutes))
 	_reputation.review_order(ticket, _rack.now_minutes)

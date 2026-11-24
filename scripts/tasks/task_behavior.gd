@@ -32,6 +32,16 @@ func is_under_way(work: WorkManager) -> bool:
 	return false
 
 
+## Pawns with a job of this behavior at `station` (e.g. ones that will take portions there).
+func count_jobs_at(station: Station, work: WorkManager) -> int:
+	var count: int = 0
+	for pawn: Pawn in work.get_pawns():
+		var job: Job = pawn.get_job()
+		if job != null and job.station == station and job.task_type.get_behavior() == self:
+			count += 1
+	return count
+
+
 ## Gives the pawn the job if there's a spot they can reach (with any stops on the way).
 func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 	var carried: Item = get_carried(job)

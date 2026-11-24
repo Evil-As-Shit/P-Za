@@ -151,6 +151,9 @@ func _move_line() -> void:
 			cell = _random_wait_cell(customer)
 		if cell != customer.target_cell:
 			_walk(customer, cell)
+		elif i == 0 and not customer.is_walking():
+			# Already standing at the front (e.g. a one-cell line): they're at the register.
+			_on_arrived(customer)
 
 
 func _walk(customer: Customer, cell: Vector2i) -> void:

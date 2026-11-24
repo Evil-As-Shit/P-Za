@@ -94,7 +94,7 @@ func _on_completed(ticket: Ticket) -> void:
 func _estimate(recipes: Array[Recipe]) -> float:
 	var estimate := WaitEstimate.new(
 		work.get_pawns(), work.take_order_task, rack.stack_task, rack.hand_off_task,
-		work.get_average_walk_minutes()
+		work.get_average_walk_minutes(), work.get_stations()
 	)
 	var tickets: Array[Ticket] = rack.get_tickets(Ticket.Section.WAIT)
 	tickets.append_array(rack.get_tickets(Ticket.Section.MAKE))

@@ -77,12 +77,8 @@ func on_finished(job: Job, _pawn: Pawn, _work: WorkManager) -> void:
 func continue_job(job: Job, pawn: Pawn, work: WorkManager) -> bool:
 	if job.part != Part.FOLD:
 		return false
-	job.station.release(job.spot)
-	job.station = null
-	job.spot = -1
-	job.part = Part.PUT_AWAY
-	job.work_done = 0.0
-	if work.start_job(pawn, job, WorkSpot.new(job.destination, 0), [] as Array[JobStop]):
+	var spots: Array[WorkSpot] = [WorkSpot.new(job.destination, 0)]
+	if work.start_next_part(pawn, job, Part.PUT_AWAY, spots):
 		return true
 	var put_away := Job.new(put_away_task, null, null)
 	put_away.target = job.target

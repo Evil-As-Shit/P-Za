@@ -17,6 +17,9 @@ var stack_jobs: Array[Job] = []
 var hand_off_job: Job = null
 ## Handed off and waiting to go out. It stays on the rack until then.
 var ready: bool = false
+## Shop time it was handed off and became ready (-1 until then). Its wait ends here, not
+## when the customer collects it.
+var ready_at: int = -1
 ## Shop time the customer ordered (ShopClock.get_open_minutes()). Usually when it printed,
 ## but earlier if they waited at the register.
 var printed_at: int = 0
@@ -109,9 +112,11 @@ func get_price() -> float:
 	return Recipe.get_total_price(recipes)
 
 
-## Shop minutes since it printed.
+## Shop minutes the customer has waited for it: from ordering until it was ready (or now, if
+## it isn't yet).
 func get_age(now_minutes: int) -> int:
-	return maxi(now_minutes - printed_at, 0)
+	var end: int = ready_at if ready and ready_at >= 0 else now_minutes
+	return maxi(end - printed_at, 0)
 
 
 ## Shop minutes past the quote (negative: early). 0 if there was no quote.

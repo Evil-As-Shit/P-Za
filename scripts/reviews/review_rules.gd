@@ -54,7 +54,8 @@ extends Resource
 @export var normal_rating: float = 3.0
 
 
-## The review for an order that went out `ticket.get_age(now_minutes)` after ordering.
+## The review for an order that was ready `ticket.get_age(now_minutes)` after ordering (the
+## customer's walk to the counter doesn't count).
 func judge_order(ticket: Ticket, now_minutes: int) -> Review:
 	var review := Review.new()
 	var lost: int = 0

@@ -53,20 +53,10 @@ func _get_supply_state(station: Station, work: WorkManager) -> SupplyState:
 	var container: Item = get_container(station)
 	if container == null:
 		return SupplyState.SWAP
-	var promised: int = _count_jobs_at(station, work) * amount
+	var promised: int = count_jobs_at(station, work) * amount
 	if container.portions_left - promised >= amount:
 		return SupplyState.READY
 	return SupplyState.WAIT if promised > 0 else SupplyState.SWAP
-
-
-## Pawns with a job of this task at `station` that will take portions there.
-func _count_jobs_at(station: Station, work: WorkManager) -> int:
-	var count: int = 0
-	for pawn: Pawn in work.get_pawns():
-		var job: Job = pawn.get_job()
-		if job != null and job.station == station and job.task_type.get_behavior() == self:
-			count += 1
-	return count
 
 
 ## The station's container of `supply` in its side areas, or null.

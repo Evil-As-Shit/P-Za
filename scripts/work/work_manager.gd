@@ -41,6 +41,9 @@ signal rush_changed(rushing: bool)
 @export var break_task: TaskType
 ## How many recent order jobs the average walk per job is taken over (for quotes).
 @export var walk_samples: int = 50
+## A pawn is sent for a baking item this many shop minutes before it's done (it's not
+## offered before then), enough to walk over before the earliest pull time.
+@export var fetch_lead_minutes: float = 1.0
 @export var idle_time_min: float = 0.5
 @export var idle_time_max: float = 2.0
 ## Chance an idle pawn checks their phone instead of just standing (placeholder).
@@ -183,7 +186,16 @@ func _involves(job: Job, station: Station) -> bool:
 ## True if pawns can use the item: it isn't on a station that's out of use (e.g. picked up).
 func is_available(item: Item) -> bool:
 	var station: Station = item.get_outermost().station
-	return station == null or _stations.has(station)
+	if station != null and not _stations.has(station):
+		return false
+	# A baking item isn't fetched until it's nearly done, so nobody stands at the oven for
+	# the whole bake.
+	var bake: Bake = _find_bake(item)
+	return bake == null or _now >= bake.done_at - _fetch_lead_seconds()
+
+
+func _fetch_lead_seconds() -> float:
+	return ShopClock.minutes_to_seconds(fetch_lead_minutes)
 
 
 ## Takes the pawn on as staff; they start by idling.
@@ -249,7 +261,8 @@ func quote_order(recipes: Array[Recipe]) -> int:
 	if manager == null or quote_rules == null:
 		return -1
 	var estimate := WaitEstimate.new(
-		_pawns, take_order_task, _rack.stack_task, _rack.hand_off_task, get_average_walk_minutes()
+		_pawns, take_order_task, _rack.stack_task, _rack.hand_off_task, get_average_walk_minutes(),
+		_stations
 	)
 	var tickets: Array[Ticket] = _rack.get_tickets(Ticket.Section.WAIT)
 	tickets.append_array(_rack.get_tickets(Ticket.Section.MAKE))
@@ -367,6 +380,21 @@ func start_job(pawn: Pawn, job: Job, spot: WorkSpot, stops: Array[JobStop]) -> b
 	pawn.assign_job(job, stop_paths, work_path, spot.station.get_work_target(spot.index))
 	_rack.notify_job_state_changed()
 	return true
+
+
+## For a job done in parts (see TaskBehavior.continue_job()): lets go of its spot, moves it
+## on to `part` with no work done, and gives the same pawn that part at the first of `spots`
+## they can reach. Returns false if they can't reach any.
+func start_next_part(pawn: Pawn, job: Job, part: int, spots: Array[WorkSpot]) -> bool:
+	job.station.release(job.spot)
+	job.station = null
+	job.spot = -1
+	job.part = part
+	job.work_done = 0.0
+	for spot: WorkSpot in spots:
+		if start_job(pawn, job, spot, [] as Array[JobStop]):
+			return true
+	return false
 
 
 ## Sends the pawn to work at `spot` instead of where they were headed (e.g. straight to a
@@ -635,36 +663,33 @@ func throw_out(item: Item) -> void:
 	_shop_jobs.append(job)
 
 
-## Throws out everything made for a cancelled order. Its claimed jobs must already be
-## withdrawn, so anything being carried is on the floor; that goes too.
+## Throws out everything made for a cancelled order (its items, or what they're in), wherever
+## it is. Its claimed jobs must already be withdrawn, so what was being carried is on the
+## floor. Other orders' things stay, and so does an ingredient container with units left
+## that aren't this order's (e.g. a dough tub set out for everyone, or one a pawn was
+## fetching): it's put away as usual.
 func throw_out_leftovers(ticket: Ticket) -> void:
-	var leftovers: Array[Item] = []
+	var own: Array[Item] = []
 	for order_item: OrderItem in ticket.order_items:
 		for item: Item in [order_item.item, order_item.container]:
-			if item == null or not is_instance_valid(item):
-				continue
-			var outer: Item = item.get_outermost()
-			# A dough container set out for everyone stays.
-			if outer.ingredient != null and outer.station != null:
-				continue
-			if not leftovers.has(outer):
-				leftovers.append(outer)
-	for child: Node in _entities.get_children():
-		# Loose portion containers (e.g. a sauce bucket) aren't leftovers; they're put back.
-		if child is Item and (child as Item).portions != null:
+			if item != null and is_instance_valid(item):
+				own.append(item)
+	var leftovers: Array[Item] = []
+	for item: Item in own:
+		var outer: Item = item.get_outermost()
+		if outer.ingredient != null and _has_other_units(outer, own):
 			continue
-		if child is Item and not leftovers.has(child) and not _is_shop_job_target(child as Item):
-			leftovers.append(child as Item)
+		if not leftovers.has(outer):
+			leftovers.append(outer)
 	for item: Item in leftovers:
 		throw_out(item)
 	assign_all()
 
 
-## True if a shop job is already moving the item (e.g. a folded box set down on its way to
-## storage), so it isn't a leftover.
-func _is_shop_job_target(item: Item) -> bool:
-	for job: Job in _shop_jobs:
-		if job.target == item and job.task_type != throw_out_task:
+## True if the ingredient container holds a unit that isn't one of `own`.
+func _has_other_units(container: Item, own: Array[Item]) -> bool:
+	for unit: Item in container.get_units():
+		if not own.has(unit):
 			return true
 	return false
 
@@ -833,6 +858,14 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	var station: Station = job.station
 	var spot: int = job.spot
 	_release(job)
+	var order_item: OrderItem = job.order_item
+	# A recipe step changes how the item looks (a baking pizza changes once it's done).
+	# Prep steps run alongside the others and don't.
+	var shows_step: bool = job.recipe_step and not task.prep and order_item.item != null
+	if shows_step and task.unattended:
+		# Started before the rack hands out the next step, so taking it out isn't offered
+		# until it's nearly done (see is_available()).
+		_work_unattended(order_item, task, order_item.recipe.get_stage_texture(order_item.step_index + 1))
 	if job.ticket != null:
 		# The rack moves the order on, which hands out work.
 		_rack.complete_job(job)
@@ -846,15 +879,8 @@ func _on_pawn_job_finished(job: Job, pawn: Pawn) -> void:
 	if task.opens_station and station != null and not _next_step_opens_station(job.order_item):
 		station.set_opened(spot, false)
 	behavior.after_finished(job, self)
-	# A recipe step changes how the item looks (a baking pizza changes once it's done).
-	# Prep steps run alongside the others and don't.
-	var order_item: OrderItem = job.order_item
-	if job.recipe_step and not task.prep and order_item.item != null:
-		var look: Texture2D = order_item.recipe.get_stage_texture(order_item.step_index)
-		if task.unattended:
-			_work_unattended(order_item, task, look)
-		else:
-			order_item.item.set_texture(look)
+	if shows_step and not task.unattended and order_item.item != null:
+		order_item.item.set_texture(order_item.recipe.get_stage_texture(order_item.step_index))
 	if job.ticket != null and job.ticket.ready:
 		order_ready.emit(job.ticket)
 	if not pawn.has_job():
@@ -891,6 +917,10 @@ func _work_unattended(order_item: OrderItem, task: TaskType, done_texture: Textu
 			bake.station.show_work(bake.spot, progress)
 	bake.tween.tween_method(show_progress, 0.0, 1.0, task.get_work_seconds())
 	bake.tween.finished.connect(_finish_bake.bind(bake))
+	# Offer taking it out once it's nearly done (see is_available()).
+	var lead: float = task.get_work_seconds() - _fetch_lead_seconds()
+	if lead > 0.0:
+		get_tree().create_timer(lead).timeout.connect(assign_all)
 
 
 ## The station is done with the item (or it was taken out early): it takes its new look and

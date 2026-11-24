@@ -55,15 +55,11 @@ func continue_job(job: Job, pawn: Pawn, work: WorkManager) -> bool:
 	if job.part == Part.SET_DOWN or job.dishes.is_empty():
 		return false
 	var sink: Station = job.destination
-	job.station.release(job.spot)
-	job.station = null
-	job.spot = -1
-	job.part += 1
-	job.work_done = 0.0
+	var next: int = job.part + 1
 	var spot: int = sink.data.dish_sink.clean_spot
-	if job.part <= Part.SANITIZE:
-		spot = sink.data.dish_sink.basin_spots[job.part - Part.WASH]
-	if work.start_job(pawn, job, WorkSpot.new(sink, spot), [] as Array[JobStop]):
+	if next <= Part.SANITIZE:
+		spot = sink.data.dish_sink.basin_spots[next - Part.WASH]
+	if work.start_next_part(pawn, job, next, [WorkSpot.new(sink, spot)] as Array[WorkSpot]):
 		return true
 	_put_back(job)
 	work.cancel_shop_job(job)
