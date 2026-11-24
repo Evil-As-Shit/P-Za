@@ -14,7 +14,7 @@ func _start() -> void:
 	var floor: ShopFloor = world.get_node("ShopFloor")
 	for pawn: Pawn in work.get_pawns():
 		pawn.process_mode = Node.PROCESS_MODE_DISABLED
-		pawn.global_position = floor.cell_to_global(Vector2i(9, 0))
+		pawn.global_position = floor.cell_to_global(Vector2i(16, 0))
 	world._set_build_mode(true)
 	# The walk-in in the back corner, with room in front of it.
 	var walk_in: Station = world.get_node("Entities/WalkIn")

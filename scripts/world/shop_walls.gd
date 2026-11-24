@@ -1,9 +1,10 @@
 class_name ShopWalls
 extends Node2D
 ## Walls around the edge of the shop floor. A wall stands on every edge between a floor cell
-## and empty space, except where a door is. The view mode decides which walls are drawn
-## short so the rooms behind them can be seen. Must sit under the y-sorted entities node so
-## pawns and furniture sort against each wall piece.
+## and empty space, except where a door is, plus inner walls between floor cells (the wall
+## between the kitchen and the lobby). The view mode decides which walls are drawn short so
+## the rooms behind them can be seen. Must sit under the y-sorted entities node so pawns and
+## furniture sort against each wall piece.
 
 enum Side { BACK_LEFT, BACK_RIGHT, FRONT_LEFT, FRONT_RIGHT }
 ## FULL: every wall full height. CUTAWAY: front walls short. DOWN: every wall short.
@@ -19,14 +20,20 @@ const SIDE_ANCHOR: Array[Vector2] = [Vector2(-8, -4), Vector2(8, -4), Vector2(-8
 @export var style: WallStyle
 ## Edges left open as doorways, as (cell x, cell y, Side).
 @export var doors: Array[Vector3i] = []
+## Walls between two floor cells, as (cell x, cell y, Side). Pawns can't cross them. Give
+## each from the cell it's a front wall of, so it's drawn short in cutaway view.
+@export var inner_walls: Array[Vector3i] = []
 @export var view_mode: ViewMode = ViewMode.CUTAWAY
 
 var _floor: ShopFloor = null
 
 
-## Builds the walls around the floor's painted cells.
+## Builds the walls around the floor's painted cells, and puts the inner walls up.
 func build(shop_floor: ShopFloor) -> void:
 	_floor = shop_floor
+	for wall: Vector3i in inner_walls:
+		var cell := Vector2i(wall.x, wall.y)
+		_floor.set_edge_blocked(cell, cell + SIDE_STEP[wall.z], true)
 	_rebuild()
 
 
@@ -48,6 +55,8 @@ func _rebuild() -> void:
 		var sides: Array[int] = []
 		for side: Side in Side.values():
 			if _floor.get_cell_source_id(cell + SIDE_STEP[side]) == -1 and not _is_door(cell, side):
+				sides.append(side)
+			elif inner_walls.has(Vector3i(cell.x, cell.y, side)):
 				sides.append(side)
 		add_cell_walls(self, style, _floor.cell_to_global(cell), sides, view_mode)
 

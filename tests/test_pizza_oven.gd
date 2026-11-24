@@ -16,7 +16,7 @@ func _start() -> void:
 	var shop_floor: ShopFloor = world.get_node("ShopFloor")
 	var pawns: Array[Pawn] = work.get_pawns()
 	for i: int in pawns.size():
-		pawns[i].global_position = shop_floor.cell_to_global(Vector2i(i, 0))
+		pawns[i].global_position = shop_floor.cell_to_global(Vector2i(14 + i, 0))
 	if PIZZA_OVEN.get_facings() != [0, 1, 2, 3]:
 		fail("pizza oven can face %s, expected all four" % [PIZZA_OVEN.get_facings()])
 		return
@@ -31,7 +31,7 @@ func _start() -> void:
 	build.choose(PIZZA_OVEN)
 	var placed: bool = false
 	for turn: int in 4:
-		for cell: Vector2i in [Vector2i(8, 5), Vector2i(9, 6), Vector2i(8, 6), Vector2i(9, 5)]:
+		for cell: Vector2i in [Vector2i(8, 0), Vector2i(9, 1), Vector2i(8, 1), Vector2i(9, 0)]:
 			build.hover(cell)
 			if build.fits():
 				placed = build.confirm()

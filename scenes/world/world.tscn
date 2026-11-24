@@ -96,90 +96,91 @@ y_sort_enabled = true
 y_sort_enabled = true
 script = ExtResource("24_walls")
 style = ExtResource("25_wall_style")
-doors = Array[Vector3i]([Vector3i(4, 11, 2)])
+doors = Array[Vector3i]([Vector3i(8, 13, 2)])
+inner_walls = Array[Vector3i]([Vector3i(0, 9, 2), Vector3i(1, 9, 2), Vector3i(2, 9, 2), Vector3i(3, 9, 2), Vector3i(4, 9, 2), Vector3i(5, 9, 2), Vector3i(7, 9, 2), Vector3i(8, 9, 2), Vector3i(9, 9, 2), Vector3i(11, 9, 2), Vector3i(12, 9, 2), Vector3i(13, 9, 2), Vector3i(14, 9, 2), Vector3i(15, 9, 2), Vector3i(16, 9, 2)])
 
 [node name="PrepTable" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("57_prep_table")
-cell = Vector2i(5, 5)
+cell = Vector2i(5, 0)
 role = ExtResource("13_prep")
 
 [node name="SmallOven" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("10_oven")
-cell = Vector2i(8, 5)
+cell = Vector2i(8, 0)
 
 [node name="SmallOven2" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("10_oven")
-cell = Vector2i(9, 5)
+cell = Vector2i(9, 0)
 
 [node name="GarbageCan" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("43_garbage_can")
-cell = Vector2i(10, 5)
+cell = Vector2i(8, 5)
 
 [node name="BoxRack" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("12_box_rack")
-cell = Vector2i(10, 2)
-facing = 3
+cell = Vector2i(14, 5)
 role = ExtResource("30_box_storage")
 
 [node name="WalkIn" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("71_walk_in")
-cell = Vector2i(11, 11)
-facing = 2
+cell = Vector2i(0, 0)
 
 [node name="DoughRack" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("12_box_rack")
-cell = Vector2i(8, 11)
+cell = Vector2i(0, 1)
 facing = 3
 role = ExtResource("31_dough_storage")
 
 [node name="BulkSauce" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("74_bulk_sauce")
-cell = Vector2i(11, 9)
+cell = Vector2i(3, 2)
 facing = 1
 
 [node name="CheeseRack" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("12_box_rack")
-cell = Vector2i(11, 10)
+cell = Vector2i(3, 0)
 facing = 1
 role = ExtResource("78_cheese_storage")
 
 [node name="CleanDishesRack" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("12_box_rack")
-cell = Vector2i(2, 10)
+cell = Vector2i(3, 6)
 role = ExtResource("75_clean_dishes")
 
 [node name="EmptyDishesTable" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("33_small_table")
-cell = Vector2i(3, 7)
+cell = Vector2i(3, 8)
 role = ExtResource("32_empty_dishes")
 
 [node name="BoxingTable" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("6_table")
-cell = Vector2i(5, 2)
+cell = Vector2i(9, 5)
 role = ExtResource("21_boxing_role")
 
 [node name="BoxingTable2" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("6_table")
-cell = Vector2i(8, 2)
+cell = Vector2i(12, 5)
 role = ExtResource("21_boxing_role")
 
 [node name="BoxPallet" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("53_pallet")
-cell = Vector2i(7, 2)
+cell = Vector2i(11, 5)
 role = ExtResource("54_flats")
 
 [node name="PickupCounter" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("14_counter")
-cell = Vector2i(5, 9)
+cell = Vector2i(10, 9)
+facing = 2
 role = ExtResource("22_pickup_role")
 
 [node name="Register" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("51_register")
 cell = Vector2i(6, 9)
+facing = 2
 
 [node name="DishSink" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("66_dish_sink")
-cell = Vector2i(0, 11)
+cell = Vector2i(0, 9)
 facing = 3
 
 [node name="Pawn" parent="Entities" instance=ExtResource("3_pawn")]

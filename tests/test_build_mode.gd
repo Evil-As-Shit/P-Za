@@ -19,7 +19,7 @@ func _start() -> void:
 	# up along the back wall, out of the way.
 	var pawns: Array[Pawn] = work.get_pawns()
 	for i: int in pawns.size():
-		pawns[i].global_position = _floor.cell_to_global(Vector2i(i, 0))
+		pawns[i].global_position = _floor.cell_to_global(Vector2i(14 + i, 0))
 	world._set_build_mode(true)
 	var station_count: int = world._stations.size()
 
@@ -38,7 +38,7 @@ func _start() -> void:
 
 	# On top of the prep table: doesn't fit.
 	_build.choose(OVEN)
-	_build.hover(Vector2i(5, 5))
+	_build.hover(Vector2i(6, 1))
 	if _build.fits() or _build.confirm():
 		fail("an oven fit on top of the prep table")
 		return
@@ -60,12 +60,12 @@ func _start() -> void:
 	if not _build.pick_up(can):
 		fail("couldn't pick up the idle garbage can")
 		return
-	_build.hover(Vector2i(2, 4))
+	_build.hover(Vector2i(16, 8))
 	if not _build.confirm():
-		fail("the garbage can didn't fit at (2, 4)")
+		fail("the garbage can didn't fit at (16, 8)")
 		return
-	if can.cell != Vector2i(2, 4) or not _floor.is_walkable(Vector2i(10, 5)) \
-			or _floor.is_walkable(Vector2i(2, 4)) or not world._stations.has(can):
+	if can.cell != Vector2i(16, 8) or not _floor.is_walkable(Vector2i(8, 5)) \
+			or _floor.is_walkable(Vector2i(16, 8)) or not world._stations.has(can):
 		fail("the garbage can didn't move properly")
 		return
 

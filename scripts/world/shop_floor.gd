@@ -2,6 +2,9 @@ class_name ShopFloor
 extends TileMapLayer
 ## The shop's floor. Painted cells are walkable; this node owns the pathfinding grid.
 
+## Floor tiles (atlas coords) idle pawns don't wander to or start on: the lobby's.
+@export var no_wander_tiles: Array[Vector2i] = []
+
 var _astar := WalledGrid.new()
 ## Cells covered by furniture. Kept separately so a navigation rebuild doesn't lose them.
 var _blocked: Dictionary[Vector2i, bool] = {}
@@ -83,7 +86,9 @@ func set_no_wander(cell: Vector2i, on: bool) -> void:
 func get_random_walkable_cell() -> Vector2i:
 	var cells: Array[Vector2i] = []
 	cells.assign(get_used_cells().filter(
-		func(cell: Vector2i) -> bool: return is_walkable(cell) and not _no_wander.has(cell)
+		func(cell: Vector2i) -> bool:
+			return is_walkable(cell) and not _no_wander.has(cell) \
+					and not no_wander_tiles.has(get_cell_atlas_coords(cell))
 	))
 	if cells.is_empty():
 		return Vector2i.ZERO

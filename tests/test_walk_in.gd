@@ -7,8 +7,8 @@ extends "res://tests/test_base.gd"
 
 const RACK := preload("res://resources/stations/box_rack.tres")
 const DOUGH_STORAGE := preload("res://resources/station_roles/dough_storage.tres")
-## Where the test moves the walk-in: the free back corner, door facing into the shop.
-const MOVE_TO := Vector2i(0, 0)
+## Where the test moves the walk-in: the free back-right corner, door facing into the shop.
+const MOVE_TO := Vector2i(13, 0)
 
 var _walk_in: Station
 var _rack: Station
@@ -39,8 +39,8 @@ func _start() -> void:
 
 	# A rack straddling the wall doesn't fit; one outside can't store dough.
 	_build.choose(RACK)
-	_build.hover(Vector2i(7, 9))
-	while _build._ghost.facing != 2:
+	_build.hover(Vector2i(3, 3))
+	while _build._ghost.facing != 1:
 		_build.rotate()
 	if _build.fits():
 		fail("a rack fits across the walk-in's wall")

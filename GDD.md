@@ -156,6 +156,7 @@ Each item below is a direction, not a final spec. "For now" marks placeholder be
 - A placement doesn't fit if it's off the floor or on another station, its work spots are blocked, it covers another station's work spot, a pawn is standing there, or it would cut anything off.
 - For now, building is free, works any time, and selling pays nothing back. Walls and floor building come later.
 - Pawn movement depends on the layout, so arranging the kitchen well is part of the game.
+- **Starting shop** (placeholder layout): an 18×10 kitchen with an 18×4 lobby along its front, split by a wall. The register and pickup counter sit in that wall, worked from the kitchen side; a staff door at one end joins the two, and the front door opens into the lobby. The lobby is empty floor until customers exist, and idle pawns don't wander into it. The kitchen runs back to front: the walk-in in the back corner, the prep table by its door, the ovens beside the prep table, the boxing line (tables, box pallet, box rack, garbage can) in the middle, then the counter. The dish sink stands along the side wall by the walk-in with Clean Dishes and Empty Dishes storage beside it. The back corner across from the walk-in is left open.
 
 ### Supply, cleanliness and equipment
 
