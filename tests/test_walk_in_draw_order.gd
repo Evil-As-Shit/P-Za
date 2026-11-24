@@ -25,9 +25,15 @@ func _start() -> void:
 	if not _build.confirm():
 		fail("the walk-in didn't fit in the back corner")
 		return
-	for station_name: String in ["BoxingTable", "BoxPallet", "BoxingTable2"]:
+	for station_name: String in ["BoxingTable", "BoxPallet", "BoxingTable2", "BoxingTable3", "CleanDishesRack"]:
 		_build.pick_up(world.get_node("Entities/" + station_name))
 		_build.sell()
+	# The prep table's work spots run along the walk-in's front-right wall: move it away.
+	_build.pick_up(world.get_node("Entities/PrepTable"))
+	_build.hover(Vector2i(12, 6))
+	if not _build.confirm():
+		fail("the prep table didn't fit at (12, 6)")
+		return
 	# Along the front-right wall and along the front-left wall, each beside the front corner.
 	var tables: Array[Station] = []
 	for placement: Array in [[Vector2i(4, 3), 3], [Vector2i(3, 4), 0]]:

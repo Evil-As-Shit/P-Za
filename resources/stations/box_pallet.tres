@@ -27,8 +27,8 @@ script = ExtResource("6_layout")
 kind = ExtResource("7_kind")
 textures = Array[Texture2D]([ExtResource("8_flat")])
 piles_at_spots = true
-per_pile = 12
-pile_step = 1.0
+per_pile = 144
+pile_step = 0.25
 stocked_at_start = true
 
 [resource]

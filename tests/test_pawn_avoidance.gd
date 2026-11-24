@@ -3,7 +3,7 @@ extends "res://tests/test_base.gd"
 ## overlapping, slow down while passing, and settle back to their paths once clear.
 
 const PAWN_SCENE := preload("res://scenes/pawns/pawn.tscn")
-const ROW: int = 4
+const ROW: int = 7
 
 var _a: Pawn
 var _b: Pawn

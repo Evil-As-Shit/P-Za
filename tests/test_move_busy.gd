@@ -55,7 +55,7 @@ func _step() -> void:
 				_phase = 1
 		1:
 			# An oven baking.
-			for path: String in ["Entities/SmallOven", "Entities/SmallOven2"]:
+			for path: String in ["Entities/PizzaOven", "Entities/PizzaOven2"]:
 				var oven: Station = world.get_node(path)
 				if oven.is_working():
 					_pick_up(oven)

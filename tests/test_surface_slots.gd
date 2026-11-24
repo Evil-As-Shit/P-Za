@@ -6,7 +6,7 @@ extends "res://tests/test_base.gd"
 const BOXING := preload("res://resources/station_roles/boxing.tres")
 
 const STATIONS := [
-	"PrepTable", "BoxingTable", "PickupCounter", "EmptyDishesTable", "SmallOven", "Register",
+	"PrepTable", "BoxingTable", "PickupCounter", "EmptyDishesTable", "PizzaOven", "Register",
 	"BoxRack",
 ]
 

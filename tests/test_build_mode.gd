@@ -16,10 +16,10 @@ func _start() -> void:
 	_build = world.get_node("BuildMode")
 	_floor = world.get_node("ShopFloor")
 	# Pawns start on random cells, and a pawn standing where we build blocks it. Line them
-	# up along the back wall, out of the way.
+	# up near the front, out of the way.
 	var pawns: Array[Pawn] = work.get_pawns()
 	for i: int in pawns.size():
-		pawns[i].global_position = _floor.cell_to_global(Vector2i(13 + i, 0))
+		pawns[i].global_position = _floor.cell_to_global(Vector2i(12 + i, 7))
 	world._set_build_mode(true)
 	var station_count: int = world._stations.size()
 
@@ -43,11 +43,11 @@ func _start() -> void:
 		fail("an oven fit on top of the prep table")
 		return
 	# Free floor in a corner: fits, and the tool stays ready for another.
-	_build.hover(Vector2i(11, 0))
+	_build.hover(Vector2i(17, 0))
 	if not _build.confirm():
-		fail("an oven didn't fit on free floor at (11, 0)")
+		fail("an oven didn't fit on free floor at (17, 0)")
 		return
-	if world._stations.size() != station_count + 1 or _floor.is_walkable(Vector2i(11, 0)):
+	if world._stations.size() != station_count + 1 or _floor.is_walkable(Vector2i(17, 0)):
 		fail("the new oven wasn't set up")
 		return
 	if not _build.has_ghost():
@@ -64,7 +64,7 @@ func _start() -> void:
 	if not _build.confirm():
 		fail("the garbage can didn't fit at (16, 8)")
 		return
-	if can.cell != Vector2i(16, 8) or not _floor.is_walkable(Vector2i(8, 5)) \
+	if can.cell != Vector2i(16, 8) or not _floor.is_walkable(Vector2i(7, 4)) \
 			or _floor.is_walkable(Vector2i(16, 8)) or not world._stations.has(can):
 		fail("the garbage can didn't move properly")
 		return
@@ -72,13 +72,13 @@ func _start() -> void:
 	# Sell the oven we built: it's gone and its cell is free again.
 	var built: Station = null
 	for station: Station in world._stations:
-		if station.cell == Vector2i(11, 0):
+		if station.cell == Vector2i(17, 0):
 			built = station
 	if built == null or not _build.pick_up(built) or not _build.sell():
 		fail("couldn't pick up and sell the new oven")
 		return
 	if world._stations.has(built) or work.get_stations().has(built) \
-			or not _floor.is_walkable(Vector2i(11, 0)):
+			or not _floor.is_walkable(Vector2i(17, 0)):
 		fail("the sold oven is still in use or still blocks its cell")
 		return
 	if _build.sell():

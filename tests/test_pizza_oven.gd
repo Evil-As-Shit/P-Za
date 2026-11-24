@@ -1,5 +1,5 @@
 extends "res://tests/test_base.gd"
-## The 2x2 pizza oven: it replaces the small ovens, bakes two pizzas side by side (its
+## The 2x2 pizza oven (the starting shop's ovens): it bakes two pizzas side by side (its
 ## cover shows the lit window while baking), and the order still goes out.
 
 const PIZZA_OVEN := preload("res://resources/stations/pizza_oven.tres")
@@ -12,44 +12,20 @@ var _saw_both: bool = false
 
 func _start() -> void:
 	stop_random_orders()
-	var build: BuildMode = world.get_node("BuildMode")
-	var shop_floor: ShopFloor = world.get_node("ShopFloor")
-	var pawns: Array[Pawn] = work.get_pawns()
-	for i: int in pawns.size():
-		pawns[i].global_position = shop_floor.cell_to_global(Vector2i(13 + i, 0))
 	if PIZZA_OVEN.get_facings() != [0, 1, 2, 3]:
 		fail("pizza oven can face %s, expected all four" % [PIZZA_OVEN.get_facings()])
 		return
-
+	# Only one oven, so both pizzas bake in it.
 	world._set_build_mode(true)
-	for path: String in ["Entities/SmallOven", "Entities/SmallOven2"]:
-		if not build.pick_up(world.get_node(path)) or not build.sell():
-			fail("couldn't sell %s" % path)
-			return
-
-	# Put the pizza oven down where the small ovens were, at whichever facing fits.
-	build.choose(PIZZA_OVEN)
-	var placed: bool = false
-	for turn: int in 4:
-		for cell: Vector2i in [Vector2i(8, 0), Vector2i(9, 1), Vector2i(8, 1), Vector2i(9, 0)]:
-			build.hover(cell)
-			if build.fits():
-				placed = build.confirm()
-				break
-		if placed:
-			break
-		build.rotate()
-	build.cancel()
-	if not placed:
-		fail("the pizza oven didn't fit where the small ovens were")
-		return
-	for station: Station in world._stations:
-		if station.data == PIZZA_OVEN:
-			_oven = station
-	if _oven == null or _oven.get_footprint_cells().size() != 4:
-		fail("the pizza oven wasn't set up with a 2x2 footprint")
+	var build: BuildMode = world.get_node("BuildMode")
+	if not build.pick_up(world.get_node("Entities/PizzaOven2")) or not build.sell():
+		fail("couldn't sell the second pizza oven")
 		return
 	world._set_build_mode(false)
+	_oven = world.get_node("Entities/PizzaOven")
+	if _oven.data != PIZZA_OVEN or _oven.get_footprint_cells().size() != 4:
+		fail("the starting oven isn't a 2x2 pizza oven")
+		return
 
 	clock.set_speed(6)
 	rack.patience_minutes = 100000

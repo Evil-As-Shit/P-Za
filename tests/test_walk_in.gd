@@ -7,8 +7,8 @@ extends "res://tests/test_base.gd"
 
 const RACK := preload("res://resources/stations/box_rack.tres")
 const DOUGH_STORAGE := preload("res://resources/station_roles/dough_storage.tres")
-## Where the test moves the walk-in: the free back-right corner, door facing into the shop.
-const MOVE_TO := Vector2i(13, 0)
+## Where the test moves the walk-in: free floor on the right, door facing into the shop.
+const MOVE_TO := Vector2i(13, 5)
 
 var _walk_in: Station
 var _rack: Station
@@ -34,7 +34,7 @@ func _start() -> void:
 			return
 	var pawns: Array[Pawn] = work.get_pawns()
 	for i: int in pawns.size():
-		pawns[i].global_position = _floor.cell_to_global(Vector2i(6 + i, 4))
+		pawns[i].global_position = _floor.cell_to_global(Vector2i(6 + i, 7))
 	world._set_build_mode(true)
 
 	# A rack straddling the wall doesn't fit; one outside can't store dough.

@@ -58,10 +58,11 @@ func _start() -> void:
 		fail("a full shop got a delivery")
 		return
 
-	# Stock gets used up: 6 cheese bags, all flat boxes, 30 sauce portions and all the dough.
+	# Stock gets used up: 6 cheese bags, a bundle of flat boxes, 30 sauce portions and all the
+	# dough.
 	for i: int in 6:
 		_take_unit(_cheese_rack)
-	while _box_pallet.get_stock() > 0:
+	for i: int in BOXES.units_per_case:
 		_take_unit(_box_pallet)
 	_bulk_sauce._bulk_left -= 30
 	_bulk_dough._bulk_left = 0

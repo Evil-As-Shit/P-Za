@@ -16,27 +16,15 @@ var _parking: Array[Job] = []
 
 func _start() -> void:
 	stop_random_orders()
+	# One oven (two spots), so five pizzas overflow onto the starting shop's rack.
 	var build: BuildMode = world.get_node("BuildMode")
 	world._set_build_mode(true)
-	build.choose(PIZZA_RACK)
-	var placed: bool = false
-	for y: int in range(0, 12):
-		for x: int in range(0, 12):
-			build.hover(Vector2i(x, y))
-			if build.fits():
-				placed = build.confirm()
-				break
-		if placed:
-			break
-	build.cancel()
-	world._set_build_mode(false)
-	if not placed:
-		fail("couldn't find a place for the pizza rack")
+	if not build.pick_up(world.get_node("Entities/PizzaOven2")) or not build.sell():
+		fail("couldn't sell the second pizza oven")
 		return
-	for station: Station in world._stations:
-		if station.data == PIZZA_RACK:
-			_rack_station = station
-	if _rack_station == null or _rack_station.get_spot_count() != 17:
+	world._set_build_mode(false)
+	_rack_station = world.get_node("Entities/PizzaRack")
+	if _rack_station.data != PIZZA_RACK or _rack_station.get_spot_count() != 17:
 		fail("the pizza rack wasn't set up with 17 slots")
 		return
 

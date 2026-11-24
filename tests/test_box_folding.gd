@@ -14,6 +14,7 @@ var _folders: Dictionary[Job, Pawn] = {}
 var _phase: int = 0
 var _ticket: Ticket
 var _saw_fold_on_demand: bool = false
+var _pallet_start: int = 0
 
 
 func _start() -> void:
@@ -24,8 +25,9 @@ func _start() -> void:
 	if _rack.get_stock() != 0:
 		fail("box storage should start empty, has %d" % _rack.get_stock())
 		return
-	if _pallet.get_stock() == 0:
-		fail("the pallet should start with flat boxes")
+	_pallet_start = _pallet.get_stock()
+	if _pallet_start <= _rack.get_capacity():
+		fail("the pallet should start with more flat boxes than box storage holds")
 		return
 
 
@@ -72,12 +74,12 @@ func _step() -> void:
 						return
 	match _phase:
 		0:
-			# Folding ahead: box storage fills up from the pallet, until the pallet is empty
-			# (it doesn't refill itself).
-			if _rack.get_stock() < 12:
+			# Folding ahead: box storage fills up from the pallet, which doesn't refill itself.
+			if _rack.get_stock() < _rack.get_capacity():
 				return
-			if _pallet.get_stock() != 0:
-				fail("the pallet has %d flat boxes left after 12 were folded" % _pallet.get_stock())
+			if _pallet.get_stock() != _pallet_start - _rack.get_capacity():
+				fail("the pallet has %d flat boxes left after %d were folded from %d" % [
+					_pallet.get_stock(), _rack.get_capacity(), _pallet_start])
 				return
 			if not _saw_fold_at_pallet or not _saw_put_away:
 				fail("boxes were stored without being folded at the pallet and carried over")
