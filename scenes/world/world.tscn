@@ -370,6 +370,7 @@ base_interval_minutes = 15.0
 
 [node name="ShopFinances" type="Node" parent="."]
 script = ExtResource("36_finances")
+starting_cash = 2000.0
 bills = Array[ExtResource("37_bill")]([ExtResource("38_rent"), ExtResource("39_electricity"), ExtResource("40_gas"), ExtResource("41_water")])
 
 [node name="Deliveries" type="Node" parent="."]

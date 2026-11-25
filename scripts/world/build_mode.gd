@@ -5,7 +5,8 @@ extends Node
 ## click places it (and keeps the tool for another), R turns it, right-click or Esc lets go.
 ## Clicking a station picks it up to move (with what's on it, even if it's in use), or to
 ## sell with Delete. A walk-in carries the stations inside it along, and can only be sold
-## empty. Building is free for now, and selling pays nothing back.
+## empty. A new station only fits while the shop can afford its price (the owner pays on
+## station_built and pays it back on station_sold); moving is free.
 
 ## A new station was placed. The owner sets it up (blocks its cells, puts it to work).
 signal station_built(station: Station)
@@ -31,6 +32,8 @@ var _stations: Array[Station] = []
 var _pawns: Array[Pawn] = []
 ## Returns the items lying on the floor (Array[Item]), which can't be built over.
 var _floor_items: Callable
+## Takes a price and returns true if the shop can pay it. Unset, everything is affordable.
+var _can_afford: Callable
 ## The station following the mouse (new, or picked up to move), or null.
 var _ghost: Station = null
 ## True if the ghost is an existing station being moved.
@@ -45,16 +48,18 @@ var _fits: bool = false
 
 
 ## `stations` and `pawns` are the owner's live lists, used to check placements, and
-## `floor_items` returns the items lying on the floor.
+## `floor_items` returns the items lying on the floor, and `can_afford` (optional) whether
+## the shop can pay a price.
 func setup(
 	shop_floor: ShopFloor, entities: Node2D, stations: Array[Station], pawns: Array[Pawn],
-	floor_items: Callable
+	floor_items: Callable, can_afford: Callable = Callable()
 ) -> void:
 	_floor = shop_floor
 	_entities = entities
 	_stations = stations
 	_pawns = pawns
 	_floor_items = floor_items
+	_can_afford = can_afford
 
 
 func set_active(on: bool) -> void:
@@ -102,8 +107,7 @@ func pick_up(station: Station) -> bool:
 	return true
 
 
-## Sells the picked-up station. Building is free for now, so selling pays nothing back.
-## Returns false if no existing station is picked up, if something sits on it (orders
+## Sells the picked-up station (the owner pays its price back). Returns false if no existing station is picked up, if something sits on it (orders
 ## would lose what they're made in, e.g. an open pizza box), or if it's a walk-in with
 ## anything inside.
 func sell() -> bool:
@@ -129,7 +133,7 @@ func hover(cell: Vector2i) -> void:
 	_ghost.cell = cell
 	_ghost.place(_floor)
 	_carry_contents()
-	_fits = _fits_here(_group())
+	_fits = _affordable() and _fits_here(_group())
 	for station: Station in _group():
 		station.show_as_ghost(_fits)
 
@@ -148,7 +152,7 @@ func rotate() -> void:
 ## Puts the ghost down if it fits. A new station is replaced by another ghost of the same
 ## type, ready to place again. Returns false if it doesn't fit.
 func confirm() -> bool:
-	if _ghost == null or not _fits:
+	if _ghost == null or not _fits or not _affordable():
 		return false
 	var group: Array[Station] = _group()
 	_ghost = null
@@ -237,6 +241,11 @@ func handle_input(event: InputEvent) -> bool:
 		if station != null:
 			pick_up(station)
 	return true
+
+
+## True if the ghost is being moved (free), or the shop can afford a new one.
+func _affordable() -> bool:
+	return _moving or not _can_afford.is_valid() or _can_afford.call(_ghost.data.price)
 
 
 ## The ghost, then what's inside it.

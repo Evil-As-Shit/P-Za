@@ -64,6 +64,7 @@ work_area = Rect2i(17, 9, 6, 6)
 [resource]
 script = ExtResource("1_data")
 display_name = "Prep Table"
+price = 1200.0
 roles = Array[ExtResource("2_role")]([ExtResource("3_prep")])
 default_role = ExtResource("3_prep")
 footprint = Vector2i(3, 2)

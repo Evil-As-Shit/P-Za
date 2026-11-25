@@ -37,6 +37,19 @@ func record_missed(sales: float) -> void:
 	_today.sales_missed += sales
 
 
+## True if cash covers `amount` (e.g. a station to build).
+func can_afford(amount: float) -> bool:
+	return cash >= amount
+
+
+## A station was bought (positive `cost`) or sold (negative, its price paid back).
+func record_equipment(cost: float) -> void:
+	if cost == 0.0:
+		return
+	_today.equipment += cost
+	_change_cash(-cost)
+
+
 ## A supply delivery arrived and was paid for.
 func record_supplies(cost: float) -> void:
 	if cost == 0.0:

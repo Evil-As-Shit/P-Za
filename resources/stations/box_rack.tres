@@ -75,6 +75,7 @@ stocked_at_start = true
 [resource]
 script = ExtResource("1_data")
 display_name = "Rack"
+price = 100.0
 default_facing = 3
 roles = Array[ExtResource("3_role")]([ExtResource("7_boxes"), ExtResource("8_dough"), ExtResource("14_clean"), ExtResource("16_cheese")])
 footprint = Vector2i(2, 1)

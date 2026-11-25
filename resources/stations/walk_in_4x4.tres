@@ -14,5 +14,6 @@ floor_texture = ExtResource("5_floor")
 [resource]
 script = ExtResource("1_data")
 display_name = "Walk-in 4x4"
+price = 3500.0
 footprint = Vector2i(4, 4)
 walk_in = SubResource("Resource_walk_in")

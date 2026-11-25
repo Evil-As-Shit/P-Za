@@ -51,6 +51,7 @@ item_cell = Vector2i(1, 1)
 [resource]
 script = ExtResource("1_data")
 display_name = "Pizza Oven"
+price = 2000.0
 task_types = Array[ExtResource("2_task_type")]([ExtResource("3_task")])
 footprint = Vector2i(2, 2)
 facing_textures = Array[Texture2D]([SubResource("AtlasTexture_closed0"), SubResource("AtlasTexture_closed1"), SubResource("AtlasTexture_closed2"), SubResource("AtlasTexture_closed3")])

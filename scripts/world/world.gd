@@ -118,8 +118,13 @@ func _ready() -> void:
 	_hud.setup_hiring(_hiring)
 	_update_orders_open()
 
-	_build.setup(_floor, _entities, _stations, _work.get_pawns(), _work.get_floor_items)
+	_build.setup(
+		_floor, _entities, _stations, _work.get_pawns(), _work.get_floor_items, _finances.can_afford
+	)
+	_build.station_built.connect(_on_station_bought)
 	_build.station_built.connect(_on_station_built)
+	_build.station_sold.connect(_on_station_sold)
+	_hud.restart_requested.connect(_restart)
 	_build.move_started.connect(_on_station_move_started)
 	_build.move_finished.connect(_on_station_built)
 	_hud.setup_build(_build.catalog)
@@ -238,6 +243,16 @@ func _on_station_built(station: Station) -> void:
 	_work.reroute_around(cells)
 	_work.assign_all()
 	_lobby.refresh()
+
+
+## A new station was placed: it's paid for.
+func _on_station_bought(station: Station) -> void:
+	_finances.record_equipment(station.data.price)
+
+
+## A station was sold: its price is paid back in full.
+func _on_station_sold(station: Station) -> void:
+	_finances.record_equipment(-station.data.price)
 
 
 ## A station was picked up to move: nobody uses it until it's put down, and pawns using it
@@ -536,7 +551,8 @@ func _on_shifts_changed() -> void:
 	_update_orders_open()
 
 
-## A day ended: pay wages and bills, and pause on the day's report until it's closed.
+## A day ended: pay wages and bills, and pause on the day's report until it's closed. If
+## that leaves cash below zero, the game is lost: the report is the game-over screen.
 ## Orders still open carry over into the new day. The new day's delivery (if any) arrives
 ## as prep starts (see _on_time_changed()).
 func _on_day_started(day: int) -> void:
@@ -564,7 +580,16 @@ func _close_day(day: int) -> void:
 	_reputation.close_day(report)
 	if _clock.speed > 0:
 		_clock.toggle_pause()
+	if report.is_out_of_money():
+		# Nothing runs but the game-over screen.
+		get_tree().paused = true
 	_hud.show_report(report)
+
+
+## Starts the game over from the starting shop.
+func _restart() -> void:
+	get_tree().paused = false
+	get_tree().reload_current_scene()
 
 
 func _on_report_closed() -> void:

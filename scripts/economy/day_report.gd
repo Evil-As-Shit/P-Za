@@ -15,6 +15,8 @@ var sales_missed: float = 0.0
 var revenue: float = 0.0
 ## Supply deliveries paid for today.
 var supplies: float = 0.0
+## Stations bought today, less those sold (their prices paid back).
+var equipment: float = 0.0
 var wages: float = 0.0
 var staff_count: int = 0
 ## Scheduled hours, all staff together.
@@ -51,6 +53,11 @@ static func get_top(tally: Dictionary[String, int], count: int) -> Array[String]
 	return texts.slice(0, count)
 
 
+## The shop couldn't pay its wages and bills: the game is lost.
+func is_out_of_money() -> bool:
+	return cash_after < -0.005
+
+
 func get_bills_total() -> float:
 	var total: float = 0.0
 	for amount: float in bills.values():
@@ -59,7 +66,7 @@ func get_bills_total() -> float:
 
 
 func get_profit() -> float:
-	return revenue - supplies - wages - get_bills_total()
+	return revenue - supplies - equipment - wages - get_bills_total()
 
 
 func get_average_minutes() -> float:

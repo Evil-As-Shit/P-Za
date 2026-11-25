@@ -34,6 +34,7 @@ stocked_at_start = true
 [resource]
 script = ExtResource("1_data")
 display_name = "Box Pallet"
+price = 50.0
 roles = Array[ExtResource("2_role")]([ExtResource("3_flats")])
 default_role = ExtResource("3_flats")
 footprint = Vector2i(1, 1)

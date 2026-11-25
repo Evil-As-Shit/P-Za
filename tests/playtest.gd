@@ -243,7 +243,9 @@ func _step() -> void:
 	_turned_away = 0
 	_cancelled = 0
 	_report_frame = -1
-	if report.day >= _days:
+	if report.day >= _days or report.is_out_of_money():
+		if report.is_out_of_money():
+			print("Out of money after day %d" % report.day)
 		pass_test("%d days: served %d, missed %d, profit %s" % [
 			_days, _totals.served, _totals.missed, ShopFinances.format_money(_totals.profit),
 		])

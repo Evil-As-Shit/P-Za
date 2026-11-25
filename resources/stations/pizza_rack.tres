@@ -148,6 +148,7 @@ item_height = 48.0
 [resource]
 script = ExtResource("1_data")
 display_name = "Pizza Rack"
+price = 120.0
 task_types = Array[ExtResource("3_task_type")]([ExtResource("4_rack_pizza")])
 footprint = Vector2i(1, 1)
 facing_textures = Array[Texture2D]([SubResource("AtlasTexture_base0"), SubResource("AtlasTexture_base1"), SubResource("AtlasTexture_base2"), SubResource("AtlasTexture_base3")])

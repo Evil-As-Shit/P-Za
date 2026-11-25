@@ -26,6 +26,7 @@ work_area = Rect2i(1, 1, 6, 6)
 [resource]
 script = ExtResource("1_data")
 display_name = "Small Table"
+price = 80.0
 roles = Array[ExtResource("2_role")]([ExtResource("4_prep"), ExtResource("5_boxing"), ExtResource("6_pickup"), ExtResource("8_empty"), ExtResource("20_break")])
 footprint = Vector2i(1, 1)
 facing_textures = Array[Texture2D]([SubResource("AtlasTexture_table"), SubResource("AtlasTexture_table"), SubResource("AtlasTexture_table"), SubResource("AtlasTexture_table")])

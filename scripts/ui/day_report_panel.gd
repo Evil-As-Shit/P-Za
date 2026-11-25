@@ -1,9 +1,11 @@
 class_name DayReportPanel
 extends PanelContainer
 ## End-of-day summary: orders, ticket times, reviews and the money in and out. Shown at
-## closing while the game is paused; Continue starts the next day.
+## closing while the game is paused; Continue starts the next day. If the shop ran out of
+## money it's the game-over screen instead, and its button restarts the game.
 
 signal continue_requested
+signal restart_requested
 
 const DIM := Color(1.0, 1.0, 1.0, 0.6)
 const GOOD := Color(0.55, 0.9, 0.5)
@@ -20,16 +22,21 @@ var report: DayReport = null
 
 
 func _ready() -> void:
-	_continue.pressed.connect(continue_requested.emit)
+	_continue.pressed.connect(_on_continue_pressed)
 
 
 func show_report(p_report: DayReport) -> void:
 	report = p_report
-	_title.text = "Day %d closed" % report.day
+	var game_over: bool = report.is_out_of_money()
+	_title.text = "Out of money" if game_over else "Day %d closed" % report.day
+	_continue.text = "Restart" if game_over else "Start next day"
 	for child: Node in _lines.get_children():
 		_lines.remove_child(child)
 		child.queue_free()
 
+	if game_over:
+		_add_line("Days run", "%d" % report.day, "", BAD)
+		_add_gap()
 	_add_line("Orders served", "%d (%d pizzas)" % [report.orders_served, report.pizzas_served])
 	_add_line(
 		"Orders missed", "%d" % report.orders_missed, "",
@@ -46,6 +53,8 @@ func show_report(p_report: DayReport) -> void:
 	if report.orders_missed > 0:
 		_add_line("Sales lost", ShopFinances.format_money(report.sales_missed), "", DIM)
 	_add_line("Supplies", _cost(report.supplies))
+	if report.equipment != 0.0:
+		_add_line("Equipment", _cost(report.equipment), "bought less sold")
 	_add_line(
 		"Wages", _cost(report.wages),
 		"%d staff, %d h" % [report.staff_count, roundi(report.staff_hours)]
@@ -76,6 +85,13 @@ func _add_reviews() -> void:
 		_add_line("  " + text, "×%d" % report.complaints[text], "", BAD)
 	for text: String in DayReport.get_top(report.compliments, TOP_COUNT):
 		_add_line("  " + text, "×%d" % report.compliments[text], "", GOOD)
+
+
+func _on_continue_pressed() -> void:
+	if report != null and report.is_out_of_money():
+		restart_requested.emit()
+	else:
+		continue_requested.emit()
 
 
 func _cost(amount: float) -> String:

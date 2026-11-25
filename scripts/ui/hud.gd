@@ -20,6 +20,8 @@ signal role_change_requested(station: Station, role: StationRole)
 signal station_close_requested
 signal item_close_requested
 signal report_closed
+## The game-over screen's Restart was pressed.
+signal restart_requested
 signal build_choice_requested(data: StationData)
 signal build_close_requested
 signal sell_requested
@@ -77,6 +79,8 @@ func setup(
 	_clock_panel.show_speed(clock.speed)
 	finances.cash_changed.connect(_clock_panel.show_cash)
 	_clock_panel.show_cash(finances.cash)
+	finances.cash_changed.connect(_build_panel.show_cash)
+	_build_panel.show_cash(finances.cash)
 
 	rack.changed.connect(refresh_rack)
 	_rack_panel.move_requested.connect(rack.move_ticket)
@@ -100,6 +104,7 @@ func setup(
 	_pawn_bar.pawn_pressed.connect(pawn_select_requested.emit)
 	_item_panel.close_requested.connect(item_close_requested.emit)
 	_day_report_panel.continue_requested.connect(_on_report_continue)
+	_day_report_panel.restart_requested.connect(restart_requested.emit)
 	_bottom_bar.tab_toggled.connect(
 		func(tab: StringName, on: bool) -> void: open_window(tab if on else &"")
 	)
