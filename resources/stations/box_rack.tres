@@ -18,6 +18,7 @@
 [ext_resource type="Resource" path="res://resources/station_roles/cheese_storage.tres" id="16_cheese"]
 [ext_resource type="Resource" path="res://resources/storage_kinds/cheese.tres" id="17_cheese_kind"]
 [ext_resource type="Texture2D" path="res://resources/items/cheese_bag.tres" id="18_bag"]
+[ext_resource type="Resource" path="res://resources/build_categories/storage.tres" id="90_build_cat"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_base"]
 atlas = ExtResource("4_sheet")
@@ -76,6 +77,7 @@ stocked_at_start = true
 script = ExtResource("1_data")
 display_name = "Rack"
 price = 100.0
+build_category = ExtResource("90_build_cat")
 default_facing = 3
 roles = Array[ExtResource("3_role")]([ExtResource("7_boxes"), ExtResource("8_dough"), ExtResource("14_clean"), ExtResource("16_cheese")])
 footprint = Vector2i(2, 1)

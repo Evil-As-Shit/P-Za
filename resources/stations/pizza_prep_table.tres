@@ -10,6 +10,7 @@
 [ext_resource type="Resource" path="res://resources/storage_layouts/sauce_in_cooler.tres" id="8_cooler"]
 [ext_resource type="Script" path="res://scripts/stations/ingredient_pan.gd" id="9_pan_script"]
 [ext_resource type="Resource" path="res://resources/items/cheese_pan.tres" id="10_cheese"]
+[ext_resource type="Resource" path="res://resources/build_categories/kitchen.tres" id="90_build_cat"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_closed0"]
 atlas = ExtResource("4_sheet")
@@ -65,6 +66,7 @@ work_area = Rect2i(17, 9, 6, 6)
 script = ExtResource("1_data")
 display_name = "Prep Table"
 price = 1200.0
+build_category = ExtResource("90_build_cat")
 roles = Array[ExtResource("2_role")]([ExtResource("3_prep")])
 default_role = ExtResource("3_prep")
 footprint = Vector2i(3, 2)

@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" path="res://Assets/Sprites/stations/three_sink_sheet.png" id="4_sheet"]
 [ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="5_spot"]
 [ext_resource type="Script" path="res://scripts/stations/dish_sink.gd" id="6_sink"]
+[ext_resource type="Resource" path="res://resources/build_categories/cleaning.tres" id="90_build_cat"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_facing0"]
 atlas = ExtResource("4_sheet")
@@ -55,6 +56,7 @@ script = ExtResource("6_sink")
 script = ExtResource("1_data")
 display_name = "Dish Sink"
 price = 600.0
+build_category = ExtResource("90_build_cat")
 task_types = Array[ExtResource("2_task_type")]([ExtResource("3_wash")])
 footprint = Vector2i(5, 1)
 facing_textures = Array[Texture2D]([SubResource("AtlasTexture_facing0"), SubResource("AtlasTexture_facing1"), SubResource("AtlasTexture_facing2"), SubResource("AtlasTexture_facing3")])

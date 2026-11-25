@@ -5,6 +5,7 @@
 [ext_resource type="Resource" path="res://resources/tasks/take_order.tres" id="3_task"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/placeholder/register_sheet.png" id="4_sheet"]
 [ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="5_spot"]
+[ext_resource type="Resource" path="res://resources/build_categories/tables.tres" id="90_build_cat"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_facing0"]
 atlas = ExtResource("4_sheet")
@@ -31,6 +32,7 @@ item_cell = Vector2i(0, 0)
 script = ExtResource("1_data")
 display_name = "Register"
 price = 300.0
+build_category = ExtResource("90_build_cat")
 task_types = Array[ExtResource("2_task_type")]([ExtResource("3_task")])
 footprint = Vector2i(1, 1)
 facing_textures = Array[Texture2D]([SubResource("AtlasTexture_facing0"), SubResource("AtlasTexture_facing1"), SubResource("AtlasTexture_facing2"), SubResource("AtlasTexture_facing3")])

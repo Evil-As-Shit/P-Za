@@ -6,6 +6,8 @@ extends Resource
 @export var display_name: String
 ## What building one costs; selling one pays it all back. The starting shop's are owned.
 @export var price: float = 0.0
+## Where it's listed in the build menu. Stations without one go under "Other".
+@export var build_category: BuildCategory
 ## Task types a pawn can do here, for stations with a fixed purpose (e.g. an oven).
 @export var task_types: Array[TaskType] = []
 ## Roles the player can assign (e.g. a table as Prep or Boxing). If set, the station's

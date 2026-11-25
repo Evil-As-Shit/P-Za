@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/stations/storage_layout.gd" id="6_layout"]
 [ext_resource type="Resource" path="res://resources/storage_kinds/flat_box.tres" id="7_kind"]
 [ext_resource type="Texture2D" path="res://resources/items/box/flat.tres" id="8_flat"]
+[ext_resource type="Resource" path="res://resources/build_categories/storage.tres" id="90_build_cat"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_facing0"]
 atlas = ExtResource("4_sheet")
@@ -35,6 +36,7 @@ stocked_at_start = true
 script = ExtResource("1_data")
 display_name = "Box Pallet"
 price = 50.0
+build_category = ExtResource("90_build_cat")
 roles = Array[ExtResource("2_role")]([ExtResource("3_flats")])
 default_role = ExtResource("3_flats")
 footprint = Vector2i(1, 1)
