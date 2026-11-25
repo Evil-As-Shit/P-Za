@@ -12,6 +12,10 @@ signal manager_change_requested(pawn: Pawn, on: bool)
 signal wage_change_requested(pawn: Pawn, wage: float)
 ## The player gave (`give`) or turned down the raise a pawn asked for.
 signal raise_answered(pawn: Pawn, give: bool)
+## The player confirmed firing a pawn in the pawn panel.
+signal fire_requested(pawn: Pawn)
+signal hire_requested(applicant: Applicant)
+signal pass_requested(applicant: Applicant)
 signal role_change_requested(station: Station, role: StationRole)
 signal station_close_requested
 signal item_close_requested
@@ -38,6 +42,7 @@ var _clock: ShopClock
 var _last_report: DayReport = null
 ## The report showing was reopened from the bottom bar (closing it doesn't resume the day).
 var _report_reopened: bool = false
+var _hiring: Hiring = null
 
 @onready var _rack_panel: TicketRackPanel = $TicketRackPanel
 @onready var _priority_panel: PriorityPanel = $PriorityPanel
@@ -51,6 +56,7 @@ var _report_reopened: bool = false
 @onready var _day_report_panel: DayReportPanel = $DayReportPanel
 @onready var _build_panel: BuildPanel = $BuildPanel
 @onready var _supply_panel: SupplyPanel = $SupplyPanel
+@onready var _hiring_panel: HiringPanel = $HiringPanel
 
 
 func setup(
@@ -87,6 +93,9 @@ func setup(
 	_pawn_panel.close_requested.connect(show_pawn.bind(null))
 	_pawn_panel.wage_change_requested.connect(wage_change_requested.emit)
 	_pawn_panel.raise_answered.connect(raise_answered.emit)
+	_pawn_panel.fire_requested.connect(fire_requested.emit)
+	_hiring_panel.hire_requested.connect(hire_requested.emit)
+	_hiring_panel.pass_requested.connect(pass_requested.emit)
 	_pawn_bar.show_pawns(pawns)
 	_pawn_bar.pawn_pressed.connect(pawn_select_requested.emit)
 	_item_panel.close_requested.connect(item_close_requested.emit)
@@ -133,16 +142,48 @@ func refresh_schedules() -> void:
 		_schedule_panel.show_schedules(_pawns, _clock.hours, _clock.get_minute_of_day())
 
 
-## Opens one of the bottom bar's windows (BottomBar.PRIORITIES, SCHEDULE, BUILD or SUPPLIES)
-## and closes the others; &"" closes them all. Build mode is the world's: it's asked for.
+## Staff were hired or let go: the pawn bar, priorities and schedules list them anew, and a
+## pawn who's gone leaves the pawn panel.
+func refresh_staff() -> void:
+	var shown: Pawn = get_shown_pawn()
+	_pawn_bar.show_pawns(_pawns)
+	if shown != null and not _pawns.has(shown):
+		show_pawn(null)
+	else:
+		_pawn_bar.show_selected(shown)
+	refresh_priorities()
+	refresh_schedules()
+
+
+## Shows the resume stack in the hiring window and its count on the bottom bar (refreshed
+## when it changes).
+func setup_hiring(hiring: Hiring) -> void:
+	_hiring = hiring
+	hiring.resumes_changed.connect(refresh_hiring)
+	refresh_hiring()
+
+
+func refresh_hiring() -> void:
+	if _hiring == null:
+		return
+	_bottom_bar.show_resume_count(_hiring.get_resumes().size())
+	if _hiring_panel.visible:
+		_hiring_panel.show_resumes(_hiring, _clock.day)
+
+
+## Opens one of the bottom bar's windows (BottomBar.PRIORITIES, SCHEDULE, BUILD, SUPPLIES or
+## HIRING) and closes the others; &"" closes them all. Build mode is the world's: it's asked
+## for.
 func open_window(tab: StringName) -> void:
 	if _build_panel.visible and tab != BottomBar.BUILD:
 		build_mode_requested.emit(false)
 	_priority_panel.visible = tab == BottomBar.PRIORITIES
 	_schedule_panel.visible = tab == BottomBar.SCHEDULE
 	_supply_panel.visible = tab == BottomBar.SUPPLIES
+	_hiring_panel.visible = tab == BottomBar.HIRING
 	refresh_schedules()
 	refresh_supplies()
+	refresh_hiring()
 	if tab == BottomBar.BUILD and not _build_panel.visible:
 		build_mode_requested.emit(true)
 	_bottom_bar.show_open(_get_open_window())
@@ -157,6 +198,8 @@ func _get_open_window() -> StringName:
 		return BottomBar.SCHEDULE
 	if _supply_panel.visible:
 		return BottomBar.SUPPLIES
+	if _hiring_panel.visible:
+		return BottomBar.HIRING
 	return &""
 
 
@@ -288,6 +331,7 @@ func show_build(shown: bool) -> void:
 		_priority_panel.hide()
 		_schedule_panel.hide()
 		_supply_panel.hide()
+		_hiring_panel.hide()
 	_bottom_bar.show_open(_get_open_window())
 
 

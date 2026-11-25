@@ -78,6 +78,8 @@ var shop_floor: ShopFloor = null
 var mood: PawnMood = null
 ## False once their shift is over: they take no new jobs and head home (set by their owner).
 var on_shift: bool = true
+## Fired: they finish their job, walk out and are gone (see WorkManager.fire()).
+var let_go: bool = false
 
 var _state: State = State.IDLE
 var _path: PackedVector2Array = PackedVector2Array()

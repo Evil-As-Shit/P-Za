@@ -60,6 +60,15 @@ focus_mode = 0
 toggle_mode = true
 text = "Supplies"
 
+[node name="Hiring" type="Button" parent="Margin/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+tooltip_text = "Resumes to hire from"
+focus_mode = 0
+toggle_mode = true
+text = "Hiring"
+
 [node name="Report" type="Button" parent="Margin/Buttons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(90, 0)

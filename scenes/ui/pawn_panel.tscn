@@ -32,6 +32,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Pawn"
 
+[node name="Fire" type="Button" parent="Margin/Lines/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Let this pawn go: they finish their job and leave"
+focus_mode = 0
+theme_override_font_sizes/font_size = 11
+text = "Fire"
+
 [node name="Close" type="Button" parent="Margin/Lines/Header"]
 unique_name_in_owner = true
 layout_mode = 2

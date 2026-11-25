@@ -10,16 +10,39 @@ var _floor: ShopFloor
 var _pawns: Array[Pawn] = []
 ## "id_id" (lower instance id first) -> the pair's chemistry.
 var _chemistry: Dictionary[String, float] = {}
+var _rng := RandomNumberGenerator.new()
 
 
-## Call once the pawns are in play (and have their traits).
+## Call once the pawns are in play (and have their traits). `pawns` is the staff list, kept
+## up to date as pawns are hired and let go (see add_pawn() and remove_pawn()).
 func setup(pawns: Array[Pawn], shop_floor: ShopFloor, rng: RandomNumberGenerator) -> void:
 	_pawns = pawns
 	_floor = shop_floor
+	_rng = rng
 	for i: int in _pawns.size():
 		for j: int in range(i + 1, _pawns.size()):
-			var rolled: float = rng.randf_range(-rules.chemistry_range, rules.chemistry_range)
-			_chemistry[_key(_pawns[i], _pawns[j])] = rolled + get_trait_match(_pawns[i], _pawns[j])
+			_roll_chemistry(_pawns[i], _pawns[j])
+
+
+## A new hire (already in the staff list): rolls their chemistry with everyone else.
+func add_pawn(pawn: Pawn) -> void:
+	for other: Pawn in _pawns:
+		if other != pawn:
+			_roll_chemistry(pawn, other)
+
+
+## A pawn left (already out of the staff list): their chemistry and everyone's opinion of
+## them are forgotten.
+func remove_pawn(pawn: Pawn) -> void:
+	for other: Pawn in _pawns:
+		_chemistry.erase(_key(pawn, other))
+		if other.mood != null:
+			other.mood.opinions.erase(pawn)
+
+
+func _roll_chemistry(a: Pawn, b: Pawn) -> void:
+	var rolled: float = _rng.randf_range(-rules.chemistry_range, rules.chemistry_range)
+	_chemistry[_key(a, b)] = rolled + get_trait_match(a, b)
 
 
 func _process(delta: float) -> void:

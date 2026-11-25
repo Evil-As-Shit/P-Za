@@ -37,6 +37,7 @@ var _delivered_day: int = 1
 @onready var _lobby: Lobby = $Lobby
 @onready var _deliveries: Deliveries = $Deliveries
 @onready var _social: Social = $Social
+@onready var _hiring: Hiring = $Hiring
 
 
 func _ready() -> void:
@@ -61,9 +62,10 @@ func _ready() -> void:
 			pawn.roll_skills(_work.get_skill_types(), rng)
 			pawn.roll_traits(rng)
 			pawn.start_at_fair_wage()
-			pawn.cell_reached.connect(_floor_dirt.add_step)
-			_work.add_pawn(pawn)
+			_add_staff(pawn)
 	_social.setup(_work.get_pawns(), _floor, rng)
+	_hiring.setup(_work.get_skill_types(), _work.work_types, _work.get_pawns().size())
+	_work.pawn_left.connect(_on_pawn_left)
 
 	_rack.jobs_changed.connect(_work.assign_all)
 	_rack.job_withdrawn.connect(_work.withdraw_job)
@@ -87,8 +89,9 @@ func _ready() -> void:
 	_hud.hours_change_requested.connect(_on_hours_change_requested)
 	_work.manager_changed.connect(_on_manager_changed)
 	_on_manager_changed(_work.get_manager())
-	for pawn: Pawn in _work.get_pawns():
-		pawn.skill_leveled_up.connect(_hud.refresh_priorities.unbind(2))
+	_hud.fire_requested.connect(_work.fire)
+	_hud.hire_requested.connect(_on_hire_requested)
+	_hud.pass_requested.connect(_hiring.pass_on)
 	_hud.role_change_requested.connect(_on_role_change_requested)
 	_hud.station_close_requested.connect(_select_station.bind(null))
 	_hud.setup_items(_rack.find_order_item, _work.quality_rules)
@@ -110,10 +113,9 @@ func _ready() -> void:
 	var span: Vector2i = _get_day_span()
 	_clock.restart_day(span.x, span.y)
 	_clock.hours.changed.connect(_on_shifts_changed)
-	for pawn: Pawn in _work.get_pawns():
-		if pawn.schedule != null:
-			pawn.schedule.changed.connect(_on_shifts_changed)
 	_work.update_shifts(_clock.get_minute_of_day(), true)
+	_hiring.new_day(_clock.day, _reputation.rating)
+	_hud.setup_hiring(_hiring)
 	_update_orders_open()
 
 	_build.setup(_floor, _entities, _stations, _work.get_pawns(), _work.get_floor_items)
@@ -339,6 +341,40 @@ func _on_hours_change_requested(mark: ShopHours.Mark, minute: int) -> void:
 	_hud.refresh_schedules()
 
 
+## Takes on a pawn (already under Entities) as staff.
+func _add_staff(pawn: Pawn) -> void:
+	pawn.cell_reached.connect(_floor_dirt.add_step)
+	pawn.skill_leveled_up.connect(_hud.refresh_priorities.unbind(2))
+	if pawn.schedule != null:
+		pawn.schedule.changed.connect(_on_shifts_changed)
+	_work.add_pawn(pawn)
+
+
+## A resume was hired: the new pawn joins the staff at home, with no shifts until the
+## player schedules them.
+func _on_hire_requested(applicant: Applicant) -> void:
+	var pawn: Pawn = _hiring.hire(applicant)
+	if pawn == null:
+		return
+	_entities.add_child(pawn)
+	pawn.global_position = _floor.cell_to_global(_floor.get_random_walkable_cell())
+	_add_staff(pawn)
+	pawn.on_shift = false
+	pawn.set_away(true)
+	_social.add_pawn(pawn)
+	_hud.refresh_staff()
+
+
+## A fired pawn is out the door: they're gone for good.
+func _on_pawn_left(pawn: Pawn) -> void:
+	_social.remove_pawn(pawn)
+	if pawn.schedule != null and pawn.schedule.changed.is_connected(_on_shifts_changed):
+		pawn.schedule.changed.disconnect(_on_shifts_changed)
+	_hud.refresh_staff()
+	pawn.queue_free()
+	_on_shifts_changed()
+
+
 func _on_wage_change_requested(pawn: Pawn, wage: float) -> void:
 	pawn.set_wage(wage)
 
@@ -510,6 +546,7 @@ func _on_day_started(day: int) -> void:
 	for pawn: Pawn in _work.get_pawns():
 		pawn.rest_overnight()
 		pawn.check_raise(day)
+	_hiring.new_day(day, _reputation.rating)
 
 
 ## Wages are paid for each pawn's scheduled hours.

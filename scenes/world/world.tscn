@@ -96,6 +96,12 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/pawn_bar.tscn" id="99_pawn_bar"]
 [ext_resource type="Script" path="res://scripts/pawns/social.gd" id="100_social"]
 [ext_resource type="Resource" path="res://resources/pawns/social_rules.tres" id="101_social_rules"]
+[ext_resource type="Script" path="res://scripts/hiring/hiring.gd" id="201_hiring"]
+[ext_resource type="Resource" path="res://resources/hiring/hiring_rules.tres" id="202_hiring_rules"]
+[ext_resource type="Resource" path="res://resources/pawns/skill_rules.tres" id="203_skill_rules"]
+[ext_resource type="Resource" path="res://resources/pawns/trait_rules.tres" id="204_trait_rules"]
+[ext_resource type="Resource" path="res://resources/pawns/pay_rules.tres" id="205_pay_rules"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hiring_panel.tscn" id="206_hiring_panel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/bottom_bar.tscn" id="102_bottom_bar"]
 [ext_resource type="Script" path="res://scripts/world/floor_dirt.gd" id="103_floor_dirt"]
 [ext_resource type="Resource" path="res://resources/tasks/mop_floor.tres" id="104_mop"]
@@ -378,6 +384,14 @@ rules = ExtResource("63_review_rules")
 script = ExtResource("100_social")
 rules = ExtResource("101_social_rules")
 
+[node name="Hiring" type="Node" parent="."]
+script = ExtResource("201_hiring")
+rules = ExtResource("202_hiring_rules")
+pawn_scene = ExtResource("3_pawn")
+skill_rules = ExtResource("203_skill_rules")
+trait_rules = ExtResource("204_trait_rules")
+pay_rules = ExtResource("205_pay_rules")
+
 [node name="TicketRack" type="Node" parent="."]
 script = ExtResource("7_rack")
 stack_task = ExtResource("34_stack_box")
@@ -409,6 +423,8 @@ visible = false
 visible = false
 
 [node name="SupplyPanel" parent="Hud" instance=ExtResource("96_supply_panel")]
+
+[node name="HiringPanel" parent="Hud" instance=ExtResource("206_hiring_panel")]
 
 [node name="BuildPanel" parent="Hud" instance=ExtResource("49_build_panel")]
 visible = false

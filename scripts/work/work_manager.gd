@@ -16,6 +16,8 @@ signal manager_changed(manager: Pawn)
 signal waiting_orders_changed(count: int)
 ## The shop started or stopped rushing (see is_rushing()).
 signal rush_changed(rushing: bool)
+## A fired pawn is out the door and no longer staff (see fire()).
+signal pawn_left(pawn: Pawn)
 
 ## Columns of the priority grid, left to right. On a priority tie, pawns pick leftmost.
 @export var work_types: Array[WorkType] = []
@@ -230,6 +232,27 @@ func get_pawns() -> Array[Pawn]:
 	return _pawns
 
 
+## Lets `pawn` go: they finish their job, walk out the door and are gone (pawn_left). A
+## fired manager leaves the shop with none.
+func fire(pawn: Pawn) -> void:
+	if not _pawns.has(pawn) or pawn.let_go:
+		return
+	pawn.let_go = true
+	pawn.on_shift = false
+	if pawn.is_manager:
+		set_manager(null)
+	if pawn.is_away():
+		_remove_pawn(pawn)
+	elif not pawn.has_job():
+		_send_home(pawn)
+
+
+func _remove_pawn(pawn: Pawn) -> void:
+	_pawns.erase(pawn)
+	_leaving.erase(pawn)
+	pawn_left.emit(pawn)
+
+
 ## Pawns at the shop on shift (not gone home or heading out).
 func get_pawns_on_shift() -> Array[Pawn]:
 	var on_shift: Array[Pawn] = []
@@ -252,7 +275,7 @@ func set_staff_door(door_cell: Vector2i, outside_cell: Vector2i) -> void:
 ## `instant`, pawns off shift are simply gone (e.g. as the game starts).
 func update_shifts(minute_of_day: int, instant: bool = false) -> void:
 	for pawn: Pawn in _pawns:
-		var on: bool = pawn.is_scheduled_at(minute_of_day)
+		var on: bool = not pawn.let_go and pawn.is_scheduled_at(minute_of_day)
 		pawn.on_shift = on
 		if pawn.mood != null:
 			var rules: MoodRules = pawn.mood.rules
@@ -281,6 +304,8 @@ func _send_home(pawn: Pawn) -> void:
 		return
 	if not _has_door:
 		pawn.set_away(true)
+		if pawn.let_go:
+			_remove_pawn(pawn)
 		return
 	_leaving.append(pawn)
 	pawn.stop_walking()
@@ -825,9 +850,11 @@ func _has_other_units(container: Item, own: Array[Item]) -> bool:
 
 func _on_pawn_path_finished(pawn: Pawn) -> void:
 	if _leaving.has(pawn):
-		# Out the door: gone until their next shift.
+		# Out the door: gone until their next shift (or for good, if fired).
 		_leaving.erase(pawn)
 		pawn.set_away(true)
+		if pawn.let_go:
+			_remove_pawn(pawn)
 		return
 	_work_or_wander(pawn)
 
@@ -1134,10 +1161,14 @@ func _wait_then_wander(pawn: Pawn) -> void:
 	if pawn.is_off_work() or randf() < phone_chance * pawn.get_slack():
 		pawn.use_phone()
 		wait = randf_range(phone_time_min, phone_time_max)
-	get_tree().create_timer(wait).timeout.connect(_send_to_random_cell.bind(pawn))
+	# By id: a fired pawn may be gone by then.
+	get_tree().create_timer(wait).timeout.connect(_send_to_random_cell.bind(pawn.get_instance_id()))
 
 
-func _send_to_random_cell(pawn: Pawn) -> void:
+func _send_to_random_cell(pawn_id: int) -> void:
+	var pawn := instance_from_id(pawn_id) as Pawn
+	if pawn == null or not _pawns.has(pawn):
+		return
 	# Gone home, or on their way in or out (their walk's end picks things up again).
 	if pawn.has_job() or pawn.is_away() or _leaving.has(pawn) or pawn.is_walking():
 		return

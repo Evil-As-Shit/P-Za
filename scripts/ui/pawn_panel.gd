@@ -10,6 +10,11 @@ signal close_requested
 signal wage_change_requested(pawn: Pawn, wage: float)
 ## The player gave (`give`) or turned down the raise the pawn asked for.
 signal raise_answered(pawn: Pawn, give: bool)
+## The player pressed Fire, then pressed it again to confirm.
+signal fire_requested(pawn: Pawn)
+
+const FIRE_TEXT := "Fire"
+const CONFIRM_FIRE_TEXT := "Confirm fire"
 
 const BAR_SIZE := Vector2(60, 6)
 
@@ -45,6 +50,7 @@ var _bars: Dictionary[WorkType, ProgressBar] = {}
 @onready var _raise: HBoxContainer = %Raise
 @onready var _give_raise: Button = %GiveRaise
 @onready var _turn_down: Button = %TurnDown
+@onready var _fire: Button = %Fire
 
 
 func _ready() -> void:
@@ -53,6 +59,16 @@ func _ready() -> void:
 	_wage_up.pressed.connect(_step_wage.bind(1))
 	_give_raise.pressed.connect(func() -> void: raise_answered.emit(pawn, true))
 	_turn_down.pressed.connect(func() -> void: raise_answered.emit(pawn, false))
+	_fire.pressed.connect(_on_fire_pressed)
+
+
+## The first press asks to confirm; the second fires.
+func _on_fire_pressed() -> void:
+	if _fire.text != CONFIRM_FIRE_TEXT:
+		_fire.text = CONFIRM_FIRE_TEXT
+		return
+	_fire.text = FIRE_TEXT
+	fire_requested.emit(pawn)
 
 
 func _process(_delta: float) -> void:
@@ -76,6 +92,9 @@ func _update_pay() -> void:
 	_fair_wage.text = "Thinks they deserve %s/h" % ShopFinances.format_money(pawn.get_fair_wage())
 	_pay_mood.text = get_pay_mood_line(pawn)
 	_raise.visible = pawn.wants_raise()
+	_fire.disabled = pawn.let_go
+	if pawn.let_go:
+		_fire.text = "Leaving"
 
 
 ## "Underpaid -6", "Well paid +4" or "Fairly paid".
@@ -89,6 +108,8 @@ static func get_pay_mood_line(of: Pawn) -> String:
 
 
 func show_pawn(p_pawn: Pawn, work_types: Array[WorkType]) -> void:
+	if p_pawn != pawn:
+		_fire.text = FIRE_TEXT
 	pawn = p_pawn
 	_title.text = pawn.display_name
 	_show_traits()
