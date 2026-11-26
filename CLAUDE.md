@@ -39,7 +39,7 @@ Check with the designer before:
 
 ## Project layout
 
-- `scenes/`, `scripts/`, `resources/` (custom `Resource` data), `Assets/` (art, audio, fonts), `tests/`, `docs/` (sprite list, draw order), `art_templates/` (drawing guides, ignored by Godot). Organize by feature inside them.
+- `scenes/`, `scripts/`, `resources/` (custom `Resource` data), `Assets/` (art, audio, fonts; the color palette is in `Assets/Palettes/`: `za_palette.gpl` for Aseprite, a labeled `za_palette_reference.png`, rebuilt by `make_palette.ps1`), `tests/`, `docs/` (sprite list, draw order), `art_templates/` (drawing guides, ignored by Godot). Organize by feature inside them.
 - Files and folders in `snake_case`; classes and nodes in `PascalCase`.
 
 ## Where things live in `scripts/`

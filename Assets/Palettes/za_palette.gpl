@@ -1,0 +1,81 @@
+GIMP Palette
+Name: Za
+Columns: 8
+#
+ 44  44  44	Outline - Charcoal
+ 34  32  52	Outline - Ink
+  0   0   0	Outline - Black
+255 255 255	Steel - White
+223 231 234	Steel - Steel White
+188 198 207	Steel - Steel Light
+155 173 183	Steel - Steel
+107 111 128	Steel - Steel Dark
+ 70  65  82	Steel - Steel Deep
+221 210 184	Stone - Stone Light
+170 154 128	Stone - Stone
+123 112  93	Stone - Stone Dark
+100  89  73	Stone - Stone Deep
+183 176 186	Slate - Slate Light
+132 126 135	Slate - Slate
+106  98 118	Slate - Slate Dark
+ 74  68  82	Slate - Slate Deep
+217 160 102	Wood - Wood Light
+174 122  68	Wood - Wood
+147  95  50	Wood - Wood Mid
+118  74  38	Wood - Wood Dark
+ 86  54  28	Wood - Wood Deep
+232 207 160	Cardboard - Box Light
+208 170 135	Cardboard - Box
+176 138  98	Cardboard - Box Dark
+138 106  72	Cardboard - Box Deep
+239 198 188	Skin - Skin 1
+233 175 162	Skin - Skin 2
+192 150 140	Skin - Skin 3
+156 107  84	Skin - Skin 4
+107  69  53	Skin - Skin 5
+ 63  42  34	Skin - Skin 6
+138 219 203	Staff Teal - Teal Light
+ 74 171 156	Staff Teal - Teal
+  1 117 100	Staff Teal - Teal Dark
+  0  64  56	Staff Teal - Teal Deep
+240 122  90	Sauce - Sauce Light
+165  62  46	Sauce - Sauce
+129   0   0	Sauce - Sauce Dark
+ 74   8   8	Sauce - Sauce Deep
+255 244 194	Cheese - Cheese Light
+255 217  90	Cheese - Cheese
+232 176  48	Cheese - Cheese Melt
+176 122  30	Cheese - Cheese Dark
+245 230 200	Crust - Raw Dough
+243 192 144	Crust - Crust Light
+217 148  78	Crust - Crust Golden
+168 100  46	Crust - Crust Well
+ 90  48  24	Crust - Crust Burnt
+168 224 122	Leaf - Leaf Light
+ 95 176  74	Leaf - Leaf
+ 47 122  52	Leaf - Leaf Dark
+ 24  69  42	Leaf - Leaf Deep
+203 219 252	Blue - Sky
+150 210 230	Blue - Water
+ 99 155 255	Blue - Blue
+ 40 120 170	Blue - Blue Dark
+ 27  63 110	Blue - Navy
+200 184 238	Purple - Lilac
+138 114 208	Purple - Purple
+ 66  71 130	Purple - Purple Dark
+ 38  35  74	Purple - Purple Deep
+255 224 239	Pink - Pink Pale
+244 154 193	Pink - Pink
+194  69 126	Pink - Berry
+122  35  80	Pink - Berry Dark
+184 168 120	Grime - Grime Light
+138 122  80	Grime - Grime
+ 94  82  54	Grime - Grime Dark
+ 58  50  34	Grime - Mud
+  0 114 178	UI Signals - Good (blue)
+ 86 180 233	UI Signals - Info (sky)
+  0 158 115	UI Signals - OK (teal)
+240 228  66	UI Signals - Caution (yellow)
+230 159   0	UI Signals - Warn (orange)
+213  94   0	UI Signals - Bad (vermillion)
+204 121 167	UI Signals - Special (pink)
