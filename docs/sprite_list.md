@@ -42,7 +42,10 @@ Script-drawn stand-ins in `Assets/Sprites/placeholder/`, using the same palette 
 - `pizza_screen.png`: 32×16, laid out like the pizza stages. A pizza screen drawn under each pizza on the rack, so stacked layers read apart.
 - `bulk_dough_tub.png`: the bulk sauce bucket recolored with dough, 1×1. Used by the Bulk Dough Tub station in the walk-in.
 - `delivery_pallet_sheet.png`: `pallet_sheet.png` recolored grey, 1×1, 32×48 per facing. Used by the Delivery Pallet station, where delivered cases are stacked (4 piles of 3).
-- `supply_case_sheet.png`: 32×16 cells like the items. A cardboard case with a colored band, one per supply: cheese, flat boxes, sauce, dough. Stacked on the delivery pallet and carried while putting a delivery away.
+- Isometric stackable items, on 32×32 cells with the item's base center at (16, 24) (used as `AtlasTexture` region 32×32, margin `(0, 32, 0, 32)`, which lines up with the 32×16 items). Each stacks flush at its height. Drawn by `gen_iso_items.gd` in the same folder (sizes and colors are constants at the top of each section); rebuild with `godot --headless --path . --script res://Assets/Sprites/placeholder/gen_iso_items.gd`:
+  - `supply_case_sheet.png`: taped cardboard case, 16×8 footprint (a quarter cell), 9 px tall. One per supply band: cheese (yellow), flat boxes (brown), sauce (red), dough (white). Stacked on the delivery pallet and carried while putting a delivery away.
+  - `cheese_bag.png`: bag of shredded cheese lying flat, crimped seals and a blue label, 5 px tall. Stored on racks (3 per pile).
+  - `can_10_sheet.png`: large #10 can, 14×7 footprint, 12 px tall, steel lid and rims. Label colors red, green, tan, yellow. Not used yet.
 - `ingredient_icons.png`: on the 16×16 item guide. Dough, sauce, cheese, pepperoni, mushroom, olives.
 
 ## Priority 1: the pizza loop (next slices)

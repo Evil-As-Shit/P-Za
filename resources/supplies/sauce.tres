@@ -6,8 +6,8 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_case"]
 atlas = ExtResource("2_sheet")
-region = Rect2(64, 0, 32, 16)
-margin = Rect2(0, 48, 0, 48)
+region = Rect2(64, 0, 32, 32)
+margin = Rect2(0, 32, 0, 32)
 
 [resource]
 script = ExtResource("1_supply")
