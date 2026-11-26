@@ -35,10 +35,11 @@ func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 	var filler: Station = found[3]
 	job.part = Part.FILL if filler != null else Part.PUT_AWAY
 	var spot := WorkSpot.new(filler if filler != null else storage, 0)
-	var stops: Array[JobStop] = [JobStop.take_supply(source, dish)]
+	var stops: Array[JobStop] = [JobStop.take_supply(source, clean_kind, dish)]
 	if not work.start_job(pawn, job, spot, stops):
 		return false
-	storage.claim_room()
+	storage.claim_room(dish.put_away_kind)
+	job.destination_kind = dish.put_away_kind
 	job.destination = storage
 	work.add_shop_job(job)
 	return true
@@ -64,12 +65,12 @@ func on_work_started(job: Job, pawn: Pawn, _work: WorkManager) -> void:
 		return
 	var item: Item = pawn.release_item()
 	if item == null:
-		job.destination.unclaim_room()
+		job.destination.unclaim_room(job.destination_kind)
 		job.destination = null
 		return
 	item.queue_free()
 	job.target = null
-	job.destination.add_stock()
+	job.destination.add_stock(job.destination_kind)
 	job.destination = null
 
 
@@ -98,7 +99,7 @@ func continue_job(job: Job, pawn: Pawn, work: WorkManager) -> bool:
 	var spots: Array[WorkSpot] = [WorkSpot.new(job.destination, 0)]
 	if work.start_next_part(pawn, job, Part.PUT_AWAY, spots):
 		return true
-	job.destination.unclaim_room()
+	job.destination.unclaim_room(job.destination_kind)
 	job.destination = null
 	job.target = null
 	work.drop_on_floor(pawn.release_item(), work.get_cell(pawn))
@@ -111,7 +112,7 @@ func continue_job(job: Job, pawn: Pawn, work: WorkManager) -> bool:
 ## ReturnBucketBehavior).
 func on_withdrawn(job: Job, work: WorkManager) -> void:
 	if job.destination != null and is_instance_valid(job.destination):
-		job.destination.unclaim_room()
+		job.destination.unclaim_room(job.destination_kind)
 	if job.target != null and is_instance_valid(job.target) and job.target.ingredient != null:
 		job.target.set_lid(null)
 	job.target = null
@@ -126,7 +127,7 @@ func _find_clean(work: WorkManager) -> Array:
 		if not source.has_supply(clean_kind):
 			continue
 		var seen: Array[Dish] = []
-		for dish: Dish in source.get_stock_dishes():
+		for dish: Dish in source.get_stock_dishes(clean_kind):
 			if seen.has(dish):
 				continue
 			seen.append(dish)

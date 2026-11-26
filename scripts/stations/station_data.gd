@@ -13,7 +13,8 @@ extends Resource
 ## Roles the player can assign (e.g. a table as Prep or Boxing). If set, the station's
 ## role decides its task types instead of task_types.
 @export var roles: Array[StationRole] = []
-## Role a newly built one starts with (e.g. a pallet storing flat boxes). Null means unused.
+## Role a newly built one starts with. For one with no `roles` to pick from, its fixed role
+## (e.g. a rack or pallet is always Storage). Null means unused.
 @export var default_role: StationRole = null
 ## Facing a newly built one starts at. Stations with art for only one facing always use it.
 @export_range(0, 3) var default_facing: int = 0
@@ -52,13 +53,14 @@ extends Resource
 ## in the item frame layout.
 @export var item_underlay: Texture2D
 
-## How each kind of thing this station can store is stacked on it. Storage roles need a
-## layout for their kind. Pawns fetch and drop off stored things at spot 0.
+## Each kind of thing this station can store with a storage role, and how it looks. Pawns
+## fetch and drop off stored things at spot 0.
 @export var storage_layouts: Array[StorageLayout] = []
-## Storage built into the station, used whatever its role unless the role stores something
-## itself (e.g. the prep table's cooler of spare sauce buckets). A layout with no textures
-## or piles drawn keeps it hidden.
+## Storage built into the station, used whatever its role unless the role is storage (e.g.
+## the prep table's cooler of spare sauce buckets). A layout with no textures is hidden.
 @export var built_in_storage: StorageLayout
+## Where stored things stand (shelves, tabletop), in the order they're filled.
+@export var storage_surfaces: Array[StorageSurface] = []
 ## Ingredient pans built into the station (e.g. the prep table's cheese pan).
 @export var pans: Array[IngredientPan] = []
 ## Makes the station a dish sink: drainboards for dirty and clean dishes, and basins.

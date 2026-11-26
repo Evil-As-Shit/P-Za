@@ -28,8 +28,9 @@ func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 	var stops: Array[JobStop] = [JobStop.take_dish(sink, dish)]
 	if not work.start_job(pawn, job, WorkSpot.new(storage, 0), stops):
 		return false
-	storage.claim_room()
+	storage.claim_room(clean_kind, dish)
 	job.destination = storage
+	job.destination_dish = dish
 	work.add_shop_job(job)
 	return true
 
@@ -49,12 +50,12 @@ func on_stop_reached(job: Job, stop: JobStop, pawn: Pawn, work: WorkManager) -> 
 func on_work_started(job: Job, pawn: Pawn, _work: WorkManager) -> void:
 	var item: Item = pawn.release_item()
 	if item == null:
-		job.destination.unclaim_room()
+		job.destination.unclaim_room(clean_kind, job.destination_dish)
 		job.destination = null
 		return
 	item.queue_free()
 	job.target = null
-	job.destination.add_stock(-1, job.taken_dish)
+	job.destination.add_stock(clean_kind, -1, job.taken_dish)
 	job.destination = null
 
 
@@ -63,7 +64,7 @@ func on_work_started(job: Job, pawn: Pawn, _work: WorkManager) -> void:
 ## too (see ReturnBucketBehavior).
 func on_withdrawn(job: Job, work: WorkManager) -> void:
 	if job.destination != null and is_instance_valid(job.destination):
-		job.destination.unclaim_room()
+		job.destination.unclaim_room(clean_kind, job.destination_dish)
 	if job.target != null and is_instance_valid(job.target) and job.target.ingredient != null:
 		job.target.set_lid(null)
 	job.target = null
@@ -73,10 +74,9 @@ func on_withdrawn(job: Job, work: WorkManager) -> void:
 ## [sink, dish, storage]: a sink with an unclaimed clean dish, and storage with room for it.
 ## Empty if there's none.
 func _find_clean(work: WorkManager) -> Array:
-	var storage: Station = work.find_room(clean_kind)
-	if storage == null:
-		return []
 	for sink: Station in work.get_sinks():
 		for dish: Dish in sink.get_dish_boards().get_free_clean():
-			return [sink, dish, storage]
+			var storage: Station = work.find_room(clean_kind, dish)
+			if storage != null:
+				return [sink, dish, storage]
 	return []

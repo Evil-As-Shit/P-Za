@@ -6,3 +6,5 @@
 script = ExtResource("1_kind")
 id = &"sauce"
 display_name = "Sauce"
+slot_size = Vector2i(2, 2)
+stack_height = 1.0

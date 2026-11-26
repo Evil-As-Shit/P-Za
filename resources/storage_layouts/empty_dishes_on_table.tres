@@ -9,7 +9,4 @@
 script = ExtResource("1_layout")
 kind = ExtResource("4_kind")
 textures = Array[Texture2D]([ExtResource("2_back"), ExtResource("3_front")])
-piles_at_spots = true
-per_pile = 8
-pile_step = 2.0
 holds_dishes = true

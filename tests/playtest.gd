@@ -265,6 +265,7 @@ func _stock_text() -> String:
 	for supply: SupplyItem in _deliveries.catalog.items:
 		parts.append("%s %d" % [supply.display_name, _deliveries.get_stock(supply)])
 	for station: Station in work.get_stations():
-		if station.get_stored_kind() != null and station.get_capacity() > 0:
-			parts.append("%s %d/%d" % [station.name, station.get_stock(), station.get_capacity()])
+		for kind: StorageKind in station.get_stored_kinds():
+			parts.append("%s %d/%d" % [
+				station.name, station.get_stock(kind), station.get_capacity_for(kind)])
 	return ", ".join(parts)

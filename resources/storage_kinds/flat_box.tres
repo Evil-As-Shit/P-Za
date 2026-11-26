@@ -1,8 +1,13 @@
 [gd_resource type="Resource" script_class="StorageKind" format=3]
 
 [ext_resource type="Script" path="res://scripts/stations/storage_kind.gd" id="1_kind"]
+[ext_resource type="Resource" path="res://resources/storage_groups/boxes.tres" id="2_group"]
 
 [resource]
 script = ExtResource("1_kind")
 id = &"flat_box"
 display_name = "Flat Boxes"
+group = ExtResource("2_group")
+slot_size = Vector2i(6, 6)
+stack_height = 1.8
+units_per_item = 12

@@ -72,8 +72,9 @@ func _start() -> void:
 	_bulk_dough._bulk_left = 0
 	# A washed dough container waits on the Clean Dishes rack, with room for it on the rack.
 	_take_unit(_dough_rack)
-	_clean_rack.claim_room()
-	_clean_rack.add_stock(-1, DOUGH_DISH)
+	var clean: StorageKind = preload("res://resources/storage_kinds/clean_dishes.tres")
+	_clean_rack.claim_room(clean, DOUGH_DISH)
+	_clean_rack.add_stock(clean, -1, DOUGH_DISH)
 
 	if _deliveries.deliver(2) != 0.0:
 		fail("a delivery came on a Tuesday")
@@ -118,10 +119,10 @@ func _step() -> void:
 			# Everything but one sauce case is put away; that one has no room yet.
 			if _count_cases(SAUCE) != 1 or _count_cases(CHEESE) + _count_cases(BOXES) + _count_cases(DOUGH) > 0:
 				return
-			if _clean_rack.get_stock() != 0 or _dough_rack.get_stock() != _dough_rack.get_capacity():
+			if _clean_rack.get_stock() != 0 or _dough_rack.get_stock() != _dough_rack.get_capacity_for(DOUGH_DISH.put_away_kind):
 				return
 			# (Flat boxes start being folded as soon as they're on the box pallet.)
-			if _cheese_rack.get_stock() != _cheese_rack.get_capacity():
+			if _cheese_rack.get_stock() != _cheese_rack.get_capacity_for(CHEESE.storage_kind):
 				fail("the cheese cases weren't put away in full")
 				return
 			var dough_poured: int = _ordered[DOUGH] * DOUGH.units_per_case
@@ -175,5 +176,4 @@ func _dough_fill() -> int:
 
 ## Takes one stored unit out of `station`, as a pawn using it would.
 func _take_unit(station: Station) -> void:
-	station.claim_supply()
-	station.take_supply()
+	take_units(station, station.get_stored_kinds()[0], 1)

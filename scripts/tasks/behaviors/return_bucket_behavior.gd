@@ -44,7 +44,11 @@ func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 		if destination.get_dish_boards() != null:
 			destination.get_dish_boards().claim_dirty_room()
 		else:
-			destination.claim_room()
+			job.destination_kind = (
+				supply.full_kind if item.portions_left > 0 else supply.empty_kind
+			)
+			job.destination_dish = null if item.portions_left > 0 else supply.dish
+			destination.claim_room(job.destination_kind, job.destination_dish)
 		work.add_shop_job(job)
 		return true
 	job.target = null
@@ -61,10 +65,10 @@ func on_work_started(job: Job, pawn: Pawn, _work: WorkManager) -> void:
 	job.target = null
 	if job.destination.get_dish_boards() != null:
 		job.destination.get_dish_boards().add_dirty(supply.dish)
-	elif job.destination.get_stored_kind() == supply.full_kind:
-		job.destination.add_stock()
+	elif job.destination_kind == supply.full_kind:
+		job.destination.add_stock(job.destination_kind)
 	else:
-		job.destination.add_stock(-1, supply.dish)
+		job.destination.add_stock(job.destination_kind, -1, supply.dish)
 
 
 ## Interrupted: the room is handed back; the container stays where it is for later.
@@ -73,7 +77,7 @@ func on_withdrawn(job: Job, work: WorkManager) -> void:
 		if job.destination.get_dish_boards() != null:
 			job.destination.get_dish_boards().unclaim_dirty_room()
 		else:
-			job.destination.unclaim_room()
+			job.destination.unclaim_room(job.destination_kind, job.destination_dish)
 	job.target = null
 	work.cancel_shop_job(job)
 
@@ -92,4 +96,4 @@ func _find_destination(item: Item, work: WorkManager) -> Station:
 	if item.portions_left > 0:
 		return work.find_room(supply.full_kind)
 	var sink: Station = work.find_dish_room() if supply.dish != null else null
-	return sink if sink != null else work.find_room(supply.empty_kind)
+	return sink if sink != null else work.find_room(supply.empty_kind, supply.dish)

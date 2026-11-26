@@ -93,6 +93,7 @@ func _ready() -> void:
 	_hud.hire_requested.connect(_on_hire_requested)
 	_hud.pass_requested.connect(_hiring.pass_on)
 	_hud.role_change_requested.connect(_on_role_change_requested)
+	_hud.storage_filter_change_requested.connect(_on_storage_filter_change_requested)
 	_hud.station_close_requested.connect(_select_station.bind(null))
 	_hud.setup_items(_rack.find_order_item, _work.quality_rules)
 	_hud.item_close_requested.connect(_select_item.bind(null))
@@ -191,8 +192,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 ## Puts a station to work: its cells (or a walk-in's walls) block pawns, and a walk-in's
-## floor is off limits to wandering. A station inside a walk-in can take roles that need
-## one; one outside loses them.
+## floor is off limits to wandering. Only storage inside a walk-in takes kinds that need one
+## (see Station.can_store()).
 func _setup_station(station: Station) -> void:
 	station.place(_floor)
 	station.set_wall_view(_walls.view_mode)
@@ -200,8 +201,6 @@ func _setup_station(station: Station) -> void:
 		_floor.set_cell_blocked(cell, true)
 	_set_walls_up(station, true)
 	station.in_walk_in = _walk_in_around(station) != null
-	if station.role != null and station.role.needs_walk_in and not station.in_walk_in:
-		station.set_role(null)
 	_stations.append(station)
 	_work.add_station(station)
 
@@ -325,7 +324,7 @@ func _select_station(station: Station) -> void:
 ## Pawns using the station stop: what they were fetching or bringing may not be stored there
 ## any more. Their jobs keep their progress and are offered again, under the new role.
 func _on_role_change_requested(station: Station, role: StationRole) -> void:
-	if role != null and not station.get_available_roles().has(role):
+	if not station.has_roles() or (role != null and not station.get_available_roles().has(role)):
 		return
 	if role != station.role:
 		station.set_role(role)
@@ -333,6 +332,15 @@ func _on_role_change_requested(station: Station, role: StationRole) -> void:
 	# Refreshed even when unchanged, so the picked role's button stays pressed.
 	if station == _selected_station:
 		_hud.show_station(station)
+	_work.assign_all()
+
+
+## The player ticked or unticked kinds in a storage station's filter. Pawns already bringing
+## something keep their place; new room may let waiting work start.
+func _on_storage_filter_change_requested(
+	station: Station, kinds: Array[StorageKind], allowed: bool
+) -> void:
+	station.set_kinds_allowed(kinds, allowed)
 	_work.assign_all()
 
 

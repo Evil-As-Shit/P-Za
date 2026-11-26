@@ -31,23 +31,26 @@ func get_carried(job: Job) -> Item:
 func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 	if get_carried(job) != null:
 		return super(pawn, job, work)
+	var kind: StorageKind = supply
 	var storage: Station = work.find_supply(supply)
 	var extra: float = 0.0
 	if storage == null and fallback_supply != null:
+		kind = fallback_supply
 		storage = work.find_supply(fallback_supply)
 		extra = fallback_extra_minutes
 	if storage == null:
 		return false
 	job.extra_minutes = extra
 	for spot: WorkSpot in get_spots(job, work):
-		if work.start_job(pawn, job, spot, [JobStop.take_supply(storage)] as Array[JobStop]):
+		var stops: Array[JobStop] = [JobStop.take_supply(storage, kind)]
+		if work.start_job(pawn, job, spot, stops):
 			return true
 	job.extra_minutes = 0.0
 	return false
 
 
 func on_supply_taken(job: Job, station: Station, pawn: Pawn, work: WorkManager) -> void:
-	job.order_item.container = work.spawn_item(station.get_storage_layout().textures[0])
+	job.order_item.container = work.spawn_item(station.get_storage_layout(job.taken_kind).textures[0])
 	job.order_item.container.display_name = "Box"
 	pawn.hold_item(job.order_item.container)
 

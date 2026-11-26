@@ -28,31 +28,35 @@ func get_case_price() -> float:
 	return units_per_case * portions_per_unit * price_per_portion
 
 
-## True if `station` is where this supply's units are kept (its storage or its bulk tub).
+## True if `station` is where this supply's units are kept (storage holding or allowing it,
+## or its bulk tub).
 func is_kept_at(station: Station) -> bool:
 	if bulk_station != null:
 		return station.data == bulk_station
-	return storage_kind != null and station.get_stored_kind() == storage_kind
+	return (
+		storage_kind != null
+		and (station.holds(storage_kind) or station.allows(storage_kind))
+	)
 
 
 ## Units of it kept at `station` (stored units, or portions in its bulk tub).
 func get_units_at(station: Station) -> int:
-	if not is_kept_at(station):
-		return 0
-	return station.get_bulk_left() if bulk_station != null else station.get_stock()
+	if bulk_station != null:
+		return station.get_bulk_left() if is_kept_at(station) else 0
+	return station.get_stock(storage_kind) if storage_kind != null else 0
 
 
 ## Units `station` holds when full.
 func get_capacity_at(station: Station) -> int:
 	if not is_kept_at(station):
 		return 0
-	return station.get_bulk_capacity() if bulk_station != null else station.get_capacity()
+	if bulk_station != null:
+		return station.get_bulk_capacity()
+	return station.get_capacity_for(storage_kind)
 
 
 ## True if `station` has unpromised room for one whole case.
 func has_room_for_case(station: Station) -> bool:
-	if not is_kept_at(station):
-		return false
 	if bulk_station != null:
-		return station.get_bulk_room() >= units_per_case
-	return station.get_free_room() >= units_per_case
+		return is_kept_at(station) and station.get_bulk_room() >= units_per_case
+	return station.get_room_for(storage_kind) >= units_per_case

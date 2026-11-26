@@ -21,7 +21,7 @@ func _start() -> void:
 	_rack = dough_storage()
 	_prep = world.get_node("Entities/PrepTable")
 	# A bucket with one ball left was put away earlier: it's the next one taken out.
-	_rack._partial.append(1)
+	set_next_partial(_rack, DOUGH.full_kind, 1)
 	rack.ticket_completed.connect(func(_t: Ticket) -> void: _ticket_done = true)
 	order_pizzas(1)
 
@@ -32,7 +32,7 @@ func _step() -> void:
 			if _empty_on_station():
 				fail("the one-ball bucket was set out and left there empty")
 			elif _ticket_done:
-				if _rack.get_partial_stock().size() != 0:
+				if _rack.get_partial_stock(DOUGH.full_kind).size() != 0:
 					fail("the one-ball bucket wasn't the one used")
 					return
 				_planted = IngredientBehavior.spawn_container(DOUGH, work, 0)

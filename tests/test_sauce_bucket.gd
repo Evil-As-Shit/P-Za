@@ -38,7 +38,7 @@ func _start() -> void:
 	if _prep._side_items[_bucket] != SLOT:
 		fail("the bucket isn't in the slot between pizzas 1 and 2")
 		return
-	if _prep.get_stored_kind() != BUCKET.full_kind or _prep.get_stock() != 1:
+	if not _prep.holds(BUCKET.full_kind) or _prep.get_stock() != 1:
 		fail("the cooler should hold 1 spare bucket, holds %d" % _prep.get_stock())
 		return
 	# Turned to each facing and back, it comes along and stays on whole pixels.
@@ -85,7 +85,7 @@ func _step() -> void:
 				order_pizzas(1)
 				_phase = 2
 		2:
-			if _empties.get_stock() == 1 and _empties.get_top_dish() == BUCKET.dish:
+			if _empties.get_stock() == 1 and _empties.get_top_dish(BUCKET.empty_kind) == BUCKET.dish:
 				_boards._dirty_room_claimed -= BUCKET.portions
 				work.assign_all()
 				_phase = 3

@@ -55,7 +55,7 @@ func on_work_started(job: Job, pawn: Pawn, _work: WorkManager) -> void:
 		job.destination.add_bulk(supply.units_per_case)
 	else:
 		for i: int in supply.units_per_case:
-			job.destination.add_stock()
+			job.destination.add_stock(job.supply.storage_kind)
 	if job.supply_source != null and is_instance_valid(job.supply_source):
 		job.supply_source.get_dock_cases().finish(supply)
 	job.supply = null
@@ -100,7 +100,7 @@ static func _claim_room(station: Station, supply: SupplyItem) -> void:
 		station.claim_bulk_room(supply.units_per_case)
 	else:
 		for i: int in supply.units_per_case:
-			station.claim_room()
+			station.claim_room(supply.storage_kind)
 
 
 static func _unclaim_room(station: Station, supply: SupplyItem) -> void:
@@ -108,4 +108,4 @@ static func _unclaim_room(station: Station, supply: SupplyItem) -> void:
 		station.unclaim_bulk_room(supply.units_per_case)
 	else:
 		for i: int in supply.units_per_case:
-			station.unclaim_room()
+			station.unclaim_room(supply.storage_kind)

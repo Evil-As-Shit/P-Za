@@ -1,4 +1,4 @@
-﻿class_name Station
+class_name Station
 extends Node2D
 ## A piece of kitchen equipment placed on the floor grid. Each of its spots holds one
 ## item and is worked by one pawn at a time. Storage stations also hold a supply stock.
@@ -35,6 +35,9 @@ const DIRTY_TINT := Color(0.62, 0.5, 0.36)
 @export_range(0, 3) var facing: int = 0
 ## Assigned role, for stations that take one (see StationData.roles). Null means unused.
 @export var role: StationRole = null
+## Its storage filter: the kinds it may store while its role is storage (see allows()). A
+## new station allows nothing.
+@export var allowed_kinds: Array[StorageKind] = []
 
 ## True while it stands inside a walk-in (set by the owner when it's put to work).
 var in_walk_in: bool = false
@@ -56,19 +59,11 @@ var _items: Array[Item] = []
 var _reserved: Array[bool] = []
 ## Spots being worked by a task that opens the station (see TaskType.opens_station).
 var _opened: Array[bool] = []
-## Stored units (of the storage role's kind), how many are promised to pawns on their way to
-## take one, and how many free places are promised to pawns bringing one.
-var _stock: int = 0
-var _stock_claimed: int = 0
-var _room_claimed: int = 0
-## How much is left in each partly used unit in stock (e.g. a dough container put back
-## with 4 balls); the rest of the stock is full. Taken out first.
-var _partial: Array[int] = []
-## For storage that holds dishes (see StorageLayout.holds_dishes): each unit's dish, bottom
-## of the stock first.
-var _stock_dishes: Array[Dish] = []
-## One array of unit nodes per pile, bottom to top. Inside piles first, then on-top piles.
-var _pile_units: Array[Array] = []
+## What's stored: stacks standing on its storage surfaces (see StoredStack), in the order
+## they were set down.
+var _stacks: Array[StoredStack] = []
+## Units of each kind promised to pawns on their way to take one.
+var _stock_claimed: Dictionary[StorageKind, int] = {}
 var _origin_center: Vector2 = Vector2.ZERO
 ## Placed at least once (later placements are moves, which keep the stock).
 var _placed: bool = false
@@ -183,7 +178,7 @@ func place(shop_floor: ShopFloor) -> void:
 		if art.texture != null:
 			_art_top = minf(_art_top, art.global_position.y + _opaque_top(art.texture))
 	_origin_center = shop_floor.cell_to_global(cell)
-	_build_piles(_placed)
+	_draw_storage()
 	_place_dish_boards()
 	_place_dock_cases()
 	_place_room()
@@ -197,13 +192,14 @@ func place(shop_floor: ShopFloor) -> void:
 
 ## Assigns a role (or null for unused). Only for stations that take roles.
 func set_role(new_role: StationRole) -> void:
-	var old_kind: StorageKind = get_stored_kind()
+	var was_storage: bool = is_storage()
 	role = new_role
 	_update_role_label()
 	if _placed:
 		_set_out_role_side_items()
-	if get_stored_kind() != old_kind:
-		_build_piles()
+	# Its storage changes between the filter's and its built-in one: emptied.
+	if is_storage() != was_storage:
+		_clear_storage()
 
 
 ## Highlights the station and shows its work spots while it's selected.
@@ -276,7 +272,9 @@ func _update_dirt_art() -> void:
 
 ## True if nothing is on it or on its way to or from it.
 func is_idle() -> bool:
-	if _stock_claimed > 0 or _room_claimed > 0 or _bulk_room_claimed > 0:
+	if _bulk_room_claimed > 0 or _stock_claimed.values().any(func(n: int) -> bool: return n > 0):
+		return false
+	if _stacks.any(func(stack: StoredStack) -> bool: return stack.room_claimed > 0):
 		return false
 	for spot: int in get_spot_count():
 		if _items[spot] != null or _reserved[spot]:
@@ -307,13 +305,9 @@ func is_room_cell(at: Vector2i) -> bool:
 	return data.walk_in != null and _footprint.has(at)
 
 
-## The roles the player can give it here: a role that needs a walk-in only inside one.
+## The roles the player can give it.
 func get_available_roles() -> Array[StationRole]:
-	var roles: Array[StationRole] = []
-	for each: StationRole in data.roles:
-		if in_walk_in or not each.needs_walk_in:
-			roles.append(each)
-	return roles
+	return data.roles
 
 
 ## Draws a walk-in's walls to match the shop's (see ShopWalls.ViewMode).
@@ -719,17 +713,78 @@ func get_work_target(spot: int) -> Vector2:
 	return _floor.cell_to_global(data.get_item_cell(cell, facing, spot))
 
 
-## Kind of thing the station stores (from its role, or else its built-in storage), or null
-## if it stores nothing.
-func get_stored_kind() -> StorageKind:
-	var layout: StorageLayout = get_storage_layout()
-	return layout.kind if layout != null else null
+## How `kind` is stacked here: its layout for the storage role, or the built-in storage's if
+## that's `kind` and the role isn't storage. Null if it can't be kept here now.
+func get_storage_layout(kind: StorageKind) -> StorageLayout:
+	if kind == null:
+		return null
+	if is_storage():
+		return data.get_storage_layout(kind)
+	var built_in: StorageLayout = data.built_in_storage
+	return built_in if built_in != null and built_in.kind == kind else null
 
 
-func get_storage_layout() -> StorageLayout:
-	if role != null and role.stores != null:
-		return data.get_storage_layout(role.stores)
-	return data.built_in_storage
+## True if it has units of `kind` stored.
+func holds(kind: StorageKind) -> bool:
+	return get_stock(kind) > 0
+
+
+## The kinds it has stored, in pile order.
+func get_stored_kinds() -> Array[StorageKind]:
+	var kinds: Array[StorageKind] = []
+	for stack: StoredStack in _stacks:
+		if not stack.lefts.is_empty() and not kinds.has(stack.kind):
+			kinds.append(stack.kind)
+	return kinds
+
+
+## True if new units of `kind` may be brought: its filter allows it, or it's the built-in
+## storage's kind.
+func _accepts(kind: StorageKind) -> bool:
+	if is_storage():
+		return allows(kind)
+	return get_storage_layout(kind) != null
+
+
+#region Storage filter
+
+## True if its role is storage (its filter decides what it keeps).
+func is_storage() -> bool:
+	return role != null and role.is_storage
+
+
+## The kinds its filter can list: those it has a layout for, in layout order.
+func get_storable_kinds() -> Array[StorageKind]:
+	var kinds: Array[StorageKind] = []
+	for layout: StorageLayout in data.storage_layouts:
+		if layout.kind != null and layout.kind.group != null and not kinds.has(layout.kind):
+			kinds.append(layout.kind)
+	return kinds
+
+
+## True if it can keep `kind` where it stands: it has a layout for it, and is inside a
+## walk-in if the kind needs one.
+func can_store(kind: StorageKind) -> bool:
+	return (
+		kind != null and get_storable_kinds().has(kind)
+		and (in_walk_in or not kind.needs_walk_in)
+	)
+
+
+## True if its role is storage and its filter lets `kind` in.
+func allows(kind: StorageKind) -> bool:
+	return is_storage() and allowed_kinds.has(kind) and can_store(kind)
+
+
+## Lets `kinds` into its filter, or keeps them out. What's already stored stays until used.
+func set_kinds_allowed(kinds: Array[StorageKind], allowed: bool) -> void:
+	for kind: StorageKind in kinds:
+		if allowed and not allowed_kinds.has(kind):
+			allowed_kinds.append(kind)
+		elif not allowed:
+			allowed_kinds.erase(kind)
+
+#endregion
 
 
 ## Portions left in `pan`, or -1 if the station doesn't have it.
@@ -801,14 +856,20 @@ func use_fill() -> void:
 
 
 ## Fills the station for the starting shop: storage marked stocked at start (see
-## StorageLayout.stocked_at_start) and its bulk tub. Stations built later start empty.
+## StorageLayout.stocked_at_start), as far as there's room, and its bulk tub. Stations built
+## later start empty.
 func stock_up() -> void:
-	var layout: StorageLayout = get_storage_layout()
-	if layout != null and layout.stocked_at_start:
-		_stock = get_capacity()
-		_partial.clear()
-		_stock_dishes.clear()
-		_update_piles()
+	var kinds: Array[StorageKind] = allowed_kinds.duplicate()
+	if not is_storage() and data.built_in_storage != null:
+		kinds.clear()
+		kinds.append(data.built_in_storage.kind)
+	for kind: StorageKind in kinds:
+		var layout: StorageLayout = get_storage_layout(kind)
+		if layout == null or not layout.stocked_at_start:
+			continue
+		while has_room(kind):
+			claim_room(kind)
+			add_stock(kind)
 	_bulk_left = get_bulk_capacity()
 
 
@@ -854,188 +915,327 @@ func _place_dish_boards() -> void:
 	)
 
 
-## Stored units (promised or not).
-func get_stock() -> int:
-	return _stock
+#region Stock
+
+## Stored units of `kind` (promised or not), or of every kind if `kind` is null.
+func get_stock(kind: StorageKind = null) -> int:
+	var total: int = 0
+	for stack: StoredStack in _stacks:
+		if kind == null or stack.kind == kind:
+			total += stack.get_units()
+	return total
 
 
 ## True if one unit of `kind` is in stock and not already promised to a pawn.
 func has_supply(kind: StorageKind) -> bool:
-	return kind != null and get_stored_kind() == kind and _stock - _stock_claimed > 0
+	return kind != null and get_stock(kind) - _stock_claimed.get(kind, 0) > 0
 
 
-## Promises one unit to a pawn on its way. Undo with unclaim_supply() if it never arrives.
-func claim_supply() -> void:
-	_stock_claimed += 1
+## Promises one unit of `kind` to a pawn on its way. Undo with unclaim_supply() if it never
+## arrives.
+func claim_supply(kind: StorageKind) -> void:
+	_stock_claimed[kind] = _stock_claimed.get(kind, 0) + 1
 
 
-func unclaim_supply() -> void:
-	_stock_claimed -= 1
+func unclaim_supply(kind: StorageKind) -> void:
+	_stock_claimed[kind] = maxi(_stock_claimed.get(kind, 0) - 1, 0)
 
 
-## Removes a claimed unit from stock and returns how much is left in it: -1 for a full one,
+## Removes a claimed unit of `kind` and returns how much is left in it: -1 for a full one,
 ## or the count put back with it (see add_stock()). Partly used ones go out first. For
 ## storage that holds dishes, get_top_dish() beforehand says which one this is, or `dish`
-## picks one (the top-most of its kind).
-func take_supply(dish: Dish = null) -> int:
-	_stock_claimed -= 1
-	_stock -= 1
-	var left: int = _partial.pop_back() if not _partial.is_empty() else -1
-	if dish != null and _stock_dishes.has(dish):
-		_stock_dishes.remove_at(_stock_dishes.rfind(dish))
-	elif not _stock_dishes.is_empty():
-		_stock_dishes.pop_back()
-	_update_piles()
+## picks one (from the last stack of it).
+func take_supply(kind: StorageKind, dish: Dish = null) -> int:
+	unclaim_supply(kind)
+	var stack: StoredStack = _find_taken_stack(kind, dish)
+	if stack == null:
+		push_warning("%s has no %s to take" % [data.display_name, kind.display_name])
+		return -1
+	var left: int = stack.take()
+	_settle(stack)
 	return left
 
 
-## The dish the next take_supply() takes, for storage that holds dishes; else null.
-func get_top_dish() -> Dish:
-	return _stock_dishes.back() if not _stock_dishes.is_empty() else null
+## The dish the next take_supply(`kind`) takes, for storage that holds dishes; else null.
+func get_top_dish(kind: StorageKind) -> Dish:
+	var stack: StoredStack = _find_taken_stack(kind, null)
+	return stack.dish if stack != null else null
 
 
-## The dishes in stock, for storage that holds dishes, bottom first.
-func get_stock_dishes() -> Array[Dish]:
-	return _stock_dishes.duplicate()
+## The dishes of `kind` in stock (one per item), for storage that holds dishes.
+func get_stock_dishes(kind: StorageKind) -> Array[Dish]:
+	var found: Array[Dish] = []
+	for stack: StoredStack in _stacks:
+		if stack.kind == kind and stack.dish != null:
+			for left: int in stack.lefts:
+				found.append(stack.dish)
+	return found
 
 
-## Units its storage holds when full (0 if it stores nothing).
-func get_capacity() -> int:
+## How much is left in each partly used item of `kind` in stock (see add_stock()).
+func get_partial_stock(kind: StorageKind) -> Array[int]:
+	var found: Array[int] = []
+	for stack: StoredStack in _stacks:
+		if stack.kind == kind:
+			for left: int in stack.lefts:
+				if left >= 0:
+					found.append(left)
+	return found
+
+
+## The stack a unit of `kind` is taken from: the last one of `dish` if given, else the last
+## one with a partly used item, else the last one. Null if there's none.
+func _find_taken_stack(kind: StorageKind, dish: Dish) -> StoredStack:
+	var last: StoredStack = null
+	for i: int in range(_stacks.size() - 1, -1, -1):
+		var stack: StoredStack = _stacks[i]
+		if stack.kind != kind or stack.lefts.is_empty():
+			continue
+		if dish != null:
+			if stack.dish == dish:
+				return stack
+			continue
+		if stack.lefts.any(func(left: int) -> bool: return left >= 0):
+			return stack
+		if last == null:
+			last = stack
+	return last
+
+
+## True if there's a free place for one unit of `kind` (as `dish`, for storage that holds
+## dishes) not already promised to a pawn.
+func has_room(kind: StorageKind, dish: Dish = null) -> bool:
+	return get_room_for(kind, dish) > 0
+
+
+## Units of `kind` (as `dish`, for storage that holds dishes) that could still be brought and
+## nobody has been promised room for: on its stacks, and in new stacks in free slots.
+func get_room_for(kind: StorageKind, dish: Dish = null) -> int:
+	if kind == null or not _accepts(kind):
+		return 0
+	var key: Dish = _stack_dish(kind, dish)
 	var total: int = 0
-	for pile: Array in _pile_units:
-		total += pile.size()
+	for stack: StoredStack in _stacks:
+		if stack.kind == kind and stack.dish == key:
+			total += maxi(stack.get_room(), 0)
+	return total + _count_new_units(kind, key)
+
+
+## Units of `kind` it holds when full: on its stacks, plus new stacks in free slots if new
+## ones may be brought.
+func get_capacity_for(kind: StorageKind) -> int:
+	if kind == null:
+		return 0
+	var total: int = 0
+	for stack: StoredStack in _stacks:
+		if stack.kind == kind:
+			total += stack.get_max_units()
+	if _accepts(kind):
+		total += _count_new_units(kind, null)
 	return total
 
 
-## Free places in its storage nobody has been promised.
-func get_free_room() -> int:
-	return get_capacity() - _stock - _room_claimed
-
-
-## True if there's a free place for one unit of `kind` not already promised to a pawn.
-func has_room(kind: StorageKind) -> bool:
-	return (
-		kind != null and get_stored_kind() == kind
-		and get_free_room() > 0
-	)
-
-
-## Promises a free place to a pawn bringing a unit. Undo with unclaim_room().
-func claim_room() -> void:
-	_room_claimed += 1
-
-
-func unclaim_room() -> void:
-	_room_claimed -= 1
-
-
-## Stores a unit in a claimed place. `left` is how much is still in it, for a partly used
-## one (e.g. a dough container with 4 of its 6 balls); -1 for a full one. Storage that clears
-## when full (see StorageLayout.clears_when_full) does so the moment it fills. `dish` is the
-## unit, for storage that holds dishes (see StorageLayout.holds_dishes).
-func add_stock(left: int = -1, dish: Dish = null) -> void:
-	_room_claimed -= 1
-	_stock += 1
-	if left >= 0:
-		_partial.append(left)
-	var layout: StorageLayout = get_storage_layout()
-	if dish != null and layout != null and layout.holds_dishes:
-		_stock_dishes.append(dish)
-	if layout != null and layout.clears_when_full and _stock >= get_capacity():
-		_stock = 0
-		_partial.clear()
-		_stock_dishes.clear()
-	_update_piles()
-
-
-## How much is left in each partly used unit in stock (see add_stock()).
-func get_partial_stock() -> Array[int]:
-	return _partial.duplicate()
-
-
-## Lays out the piles for the stored kind. With `keep_stock` (after a move) the stock stays;
-## otherwise it starts empty (the starting shop's are filled by stock_up()). Units and places promised to pawns stay promised until they hand them back
-## (a role change interrupts them, see world.gd).
-func _build_piles(keep_stock: bool = false) -> void:
-	for pile: Array in _pile_units:
-		for unit: Node2D in pile:
-			unit.queue_free()
-	_pile_units.clear()
-	var kept: int = _stock
-	_stock = 0
-	var layout: StorageLayout = get_storage_layout()
-	if layout == null:
+## Promises a place to a pawn bringing a unit of `kind` (as `dish`, for storage that holds
+## dishes; see has_room()): on an unfinished stack of it, else on a new stack in the first
+## free slots that fit. Undo with unclaim_room().
+func claim_room(kind: StorageKind, dish: Dish = null) -> void:
+	var stack: StoredStack = _find_room_stack(kind, _stack_dish(kind, dish))
+	if stack == null:
+		push_warning("%s has no room for %s" % [data.display_name, kind.display_name])
 		return
-	if layout.piles_at_spots:
-		for item_position: Vector2 in _item_positions:
-			_pile_units.append(
-				_make_pile(layout, _supply_inside, item_position, _pile_units.size())
-			)
-	else:
-		_make_piles(layout, layout.piles, _supply_inside, 0)
-		_make_piles(layout, layout.piles_on_top, _supply_on_top, layout.piles.size())
-	if keep_stock:
-		_stock = mini(kept, get_capacity())
-		_partial.resize(mini(_partial.size(), _stock))
-		_stock_dishes.resize(mini(_stock_dishes.size(), _stock))
-	else:
-		_partial.clear()
-		_stock_dishes.clear()
-	_update_piles()
+	stack.room_claimed += 1
 
 
-## Adds a pile at each of `offsets` (see StorageLayout.piles), numbered from `first_index`.
-## They're built back to front, so nearer piles draw over farther ones at any facing.
-func _make_piles(
-	layout: StorageLayout, offsets: Array[Vector3], parent: Node2D, first_index: int
-) -> void:
-	var step_x: Vector2 = _floor.cell_to_global(cell + Vector2i.RIGHT) - _origin_center
-	var step_y: Vector2 = _floor.cell_to_global(cell + Vector2i.DOWN) - _origin_center
-	var bases: Array[Vector2] = []
-	for offset: Vector3 in offsets:
-		var turned: Vector2 = StationData.rotate_point(Vector2(offset.x, offset.y), facing)
-		bases.append(_origin_center + step_x * turned.x + step_y * turned.y - Vector2(0.0, offset.z))
-	var order: Array[int] = []
-	for i: int in offsets.size():
-		order.append(i)
-	order.sort_custom(func(a: int, b: int) -> bool: return bases[a].y < bases[b].y)
-	_pile_units.resize(first_index + offsets.size())
-	for i: int in order:
-		_pile_units[first_index + i] = _make_pile(layout, parent, bases[i], first_index + i)
+func unclaim_room(kind: StorageKind, dish: Dish = null) -> void:
+	var key: Dish = _stack_dish(kind, dish)
+	for i: int in range(_stacks.size() - 1, -1, -1):
+		var stack: StoredStack = _stacks[i]
+		if stack.kind == kind and stack.dish == key and stack.room_claimed > 0:
+			stack.room_claimed -= 1
+			_settle(stack)
+			return
 
 
-func _make_pile(layout: StorageLayout, parent: Node2D, base: Vector2, index: int) -> Array[Node2D]:
-	var pile: Array[Node2D] = []
-	for level: int in layout.get_pile_size(index):
-		var unit := Node2D.new()
-		for texture: Texture2D in layout.textures:
-			var sprite := Sprite2D.new()
-			sprite.texture = texture
-			sprite.centered = false
-			sprite.offset = Vector2(-16, -56)
-			# Stored things turn with a mirrored station.
-			sprite.flip_h = data.is_mirrored(facing)
-			unit.add_child(sprite)
-		parent.add_child(unit)
-		unit.global_position = base - Vector2(0.0, level * layout.pile_step)
-		pile.append(unit)
-	return pile
+## Stores a unit of `kind` in a claimed place. `left` is how much is still in it, for a
+## partly used one (e.g. a dough container with 4 of its 6 balls); -1 for a full one. `dish`
+## is the unit, for storage that holds dishes (see StorageLayout.holds_dishes).
+func add_stock(kind: StorageKind, left: int = -1, dish: Dish = null) -> void:
+	var key: Dish = _stack_dish(kind, dish)
+	var stack: StoredStack = null
+	for each: StoredStack in _stacks:
+		if each.kind == kind and each.dish == key and each.room_claimed > 0:
+			stack = each
+			stack.room_claimed -= 1
+			break
+	if stack == null:
+		stack = _find_room_stack(kind, key)
+	if stack == null:
+		push_warning("%s has no room for %s" % [data.display_name, kind.display_name])
+		return
+	stack.add(left)
+	_draw_stack(stack)
 
 
-## Shows the first `_stock` units, filling piles in order, bottom up. A unit that's a dish
-## is drawn with its dish's art.
-func _update_piles() -> void:
-	var shown: int = 0
-	for pile: Array in _pile_units:
-		for unit: Node2D in pile:
-			unit.visible = shown < _stock
-			if unit.visible and shown < _stock_dishes.size():
-				_show_dish_unit(unit, _stock_dishes[shown])
-			shown += 1
+## The dish a unit of `kind` stacks as: `dish` for storage that holds dishes, else null.
+func _stack_dish(kind: StorageKind, dish: Dish) -> Dish:
+	var layout: StorageLayout = get_storage_layout(kind)
+	return dish if layout != null and layout.holds_dishes else null
 
 
-## Draws a stored unit as `dish`: its back and front art on the unit's first two sprites.
-func _show_dish_unit(unit: Node2D, dish: Dish) -> void:
-	var textures: Array[Texture2D] = [dish.back_texture, dish.front_texture]
-	for i: int in unit.get_child_count():
-		(unit.get_child(i) as Sprite2D).texture = textures[i] if i < textures.size() else null
+## Slots one item of `kind` (as `dish`) takes.
+func _slot_size(kind: StorageKind, dish: Dish) -> Vector2i:
+	return dish.slot_size if dish != null else kind.slot_size
+
+
+## Items of `kind` a stack on `surface` holds: as many as fit under its clearance, counting
+## each item below the top by its stacked height and the top one by its own height (at least
+## one).
+func _max_items(kind: StorageKind, surface: StorageSurface) -> int:
+	var top: float = kind.item_height if kind.item_height > 0.0 else kind.stack_height
+	return maxi(floori((surface.clearance - top) / kind.stack_height + 0.001) + 1, 1)
+
+
+## A stack of `kind` (as `dish`) with unpromised room: an unfinished one, else a new one in
+## the first free slots that fit (see _find_free_area()). Null if there's no room.
+func _find_room_stack(kind: StorageKind, dish: Dish) -> StoredStack:
+	if not _accepts(kind):
+		return null
+	for stack: StoredStack in _stacks:
+		if stack.kind == kind and stack.dish == dish and stack.get_room() > 0:
+			return stack
+	var size: Vector2i = _slot_size(kind, dish)
+	var taken: Array[Array] = _get_taken_areas()
+	for index: int in data.storage_surfaces.size():
+		var area: Rect2i = _find_free_area(index, size, taken[index])
+		if area.has_area():
+			var surface: StorageSurface = data.storage_surfaces[index]
+			var stack := StoredStack.new(kind, dish, index, area, _max_items(kind, surface))
+			_stacks.append(stack)
+			_draw_stack(stack)
+			return stack
+	return null
+
+
+## Units of `kind` (as `dish`) new stacks could hold in the free slots, placed one after
+## another as claim_room() would.
+func _count_new_units(kind: StorageKind, dish: Dish) -> int:
+	var size: Vector2i = _slot_size(kind, dish)
+	var taken: Array[Array] = _get_taken_areas()
+	var total: int = 0
+	for index: int in data.storage_surfaces.size():
+		var per_stack: int = _max_items(kind, data.storage_surfaces[index]) * kind.units_per_item
+		while true:
+			var area: Rect2i = _find_free_area(index, size, taken[index])
+			if not area.has_area():
+				break
+			taken[index].append(area)
+			total += per_stack
+	return total
+
+
+## The slots each surface's stacks take, one array of Rect2i per surface.
+func _get_taken_areas() -> Array[Array]:
+	var taken: Array[Array] = []
+	for surface: StorageSurface in data.storage_surfaces:
+		taken.append([])
+	for stack: StoredStack in _stacks:
+		taken[stack.surface].append(stack.area)
+	return taken
+
+
+## The first free area of `size` slots on surface `index`, back of the surface first (as the
+## station faces), clear of `taken`. An empty Rect2i if none fits.
+func _find_free_area(index: int, size: Vector2i, taken: Array) -> Rect2i:
+	var bounds: Rect2i = data.storage_surfaces[index].area
+	var best := Rect2i()
+	var best_depth: float = INF
+	for y: int in range(bounds.position.y, bounds.end.y - size.y + 1):
+		for x: int in range(bounds.position.x, bounds.end.x - size.x + 1):
+			var area := Rect2i(Vector2i(x, y), size)
+			if taken.any(func(other: Rect2i) -> bool: return other.intersects(area)):
+				continue
+			# Farther back is higher up the screen: a smaller sum of map offsets.
+			var point: Vector2 = StationData.get_area_point(area, facing)
+			var depth: float = point.x + point.y
+			if depth < best_depth - 0.001:
+				best = area
+				best_depth = depth
+	return best
+
+
+## Redraws a stack, and takes it away once it's empty with nothing promised.
+func _settle(stack: StoredStack) -> void:
+	if stack.is_unused():
+		_stacks.erase(stack)
+		if stack.node != null:
+			stack.node.queue_free()
+			stack.node = null
+		return
+	_draw_stack(stack)
+
+#endregion
+
+
+#region Storage drawing
+
+## Empties its storage (its role changed between storage and its built-in storage). Units
+## promised stay promised until the pawns hand them back (a role change interrupts them,
+## see world.gd).
+func _clear_storage() -> void:
+	for stack: StoredStack in _stacks:
+		if stack.node != null:
+			stack.node.queue_free()
+	_stacks.clear()
+
+
+## Redraws every stack where it stands now (after a move or turn, what's stored stays).
+func _draw_storage() -> void:
+	for stack: StoredStack in _stacks:
+		_draw_stack(stack)
+
+
+## Draws a stack's items bottom up on its surface, with its kind's art (or its dish's), and
+## keeps the stacks on that surface drawn back to front.
+func _draw_stack(stack: StoredStack) -> void:
+	if _floor == null:
+		return
+	var surface: StorageSurface = data.storage_surfaces[stack.surface]
+	var parent: Node2D = _supply_on_top if surface.on_top else _supply_inside
+	if stack.node == null:
+		stack.node = Node2D.new()
+		parent.add_child(stack.node)
+	stack.node.global_position = _area_on_floor(stack.area) - Vector2(0.0, surface.height)
+	for unit: Node in stack.node.get_children():
+		stack.node.remove_child(unit)
+		unit.queue_free()
+	var layout: StorageLayout = get_storage_layout(stack.kind)
+	if layout != null:
+		var textures: Array[Texture2D] = layout.textures
+		if stack.dish != null:
+			textures = [stack.dish.back_texture, stack.dish.front_texture]
+		for level: int in stack.lefts.size():
+			var unit := Node2D.new()
+			for texture: Texture2D in textures:
+				var sprite := Sprite2D.new()
+				sprite.texture = texture
+				sprite.centered = false
+				sprite.offset = Vector2(-16, -56)
+				# Stored things turn with a mirrored station.
+				sprite.flip_h = data.is_mirrored(facing)
+				unit.add_child(sprite)
+			stack.node.add_child(unit)
+			unit.position = Vector2(0.0, -level * stack.kind.stack_height)
+	_sort_stacks(parent)
+
+
+## Orders the stack nodes under `parent` back to front.
+func _sort_stacks(parent: Node2D) -> void:
+	var nodes: Array[Node2D] = []
+	for stack: StoredStack in _stacks:
+		if stack.node != null and stack.node.get_parent() == parent:
+			nodes.append(stack.node)
+	nodes.sort_custom(func(a: Node2D, b: Node2D) -> bool: return a.global_position.y < b.global_position.y)
+	for node: Node2D in nodes:
+		parent.move_child(node, -1)
+
+#endregion

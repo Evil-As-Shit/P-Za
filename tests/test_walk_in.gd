@@ -1,12 +1,13 @@
 extends "res://tests/test_base.gd"
 ## The walk-in cooler: its walls stand on its outer edges, so its whole floor is open and
-## pawns get in only through the door. Racks are built inside it; only one inside can store
-## dough, and one moved out loses the role. Nothing can straddle its wall. Moving it
+## pawns get in only through the door. Racks are built inside it; only storage inside can
+## keep dough (see StorageKind.needs_walk_in). Nothing can straddle its wall. Moving it
 ## brings the racks inside along, stock and layout kept, and it can't be sold with anything
 ## inside. Then a pawn walks in for dough and the order goes out.
 
 const RACK := preload("res://resources/stations/box_rack.tres")
-const DOUGH_STORAGE := preload("res://resources/station_roles/dough_storage.tres")
+const STORAGE := preload("res://resources/station_roles/storage.tres")
+const DOUGH := preload("res://resources/storage_kinds/dough.tres")
 ## Where the test moves the walk-in: free floor on the right, door facing into the shop.
 const MOVE_TO := Vector2i(13, 5)
 
@@ -46,20 +47,22 @@ func _start() -> void:
 		fail("a rack fits across the walk-in's wall")
 		return
 	_build.cancel()
-	if _rack.get_available_roles().has(DOUGH_STORAGE) == false:
+	if not _rack.allows(DOUGH):
 		fail("the rack inside the walk-in can't store dough")
 		return
 	var box_rack: Station = world.get_node("Entities/BoxRack")
-	if box_rack.get_available_roles().has(DOUGH_STORAGE):
-		fail("a rack outside the walk-in offers Dough storage")
+	box_rack.set_kinds_allowed([DOUGH] as Array[StorageKind], true)
+	if box_rack.can_store(DOUGH) or box_rack.has_room(DOUGH):
+		fail("a rack outside the walk-in takes dough")
 		return
+	box_rack.set_kinds_allowed([DOUGH] as Array[StorageKind], false)
 
 	# Clear room where it's going.
 	if not _build.pick_up(world.get_node("Entities/BreakTable")) or not _build.sell():
 		fail("couldn't sell the break table")
 		return
 	# Move it with the rack partly emptied: the rack and its stock come along; no selling.
-	_rack._stock = 2
+	take_units(_rack, DOUGH, _rack.get_stock(DOUGH) - 2)
 	if not _build.pick_up(_walk_in):
 		fail("couldn't pick up the walk-in")
 		return
@@ -85,7 +88,7 @@ func _start() -> void:
 	if problem != "":
 		fail("after the move: " + problem)
 		return
-	if _rack.get_stock() != 2 or _rack.role != DOUGH_STORAGE:
+	if _rack.get_stock() != 2 or _rack.role != STORAGE or not _rack.holds(DOUGH):
 		fail("the rack lost its stock or role in the move")
 		return
 

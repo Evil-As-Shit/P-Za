@@ -25,7 +25,7 @@ func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 	if source == null or sink == null:
 		return false
 	var spot := WorkSpot.new(sink, sink.data.dish_sink.dirty_spot)
-	if not work.start_job(pawn, job, spot, [JobStop.take_supply(source)] as Array[JobStop]):
+	if not work.start_job(pawn, job, spot, [JobStop.take_supply(source, empty_kind)] as Array[JobStop]):
 		return false
 	sink.get_dish_boards().claim_dirty_room()
 	job.destination = sink

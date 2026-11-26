@@ -116,13 +116,16 @@ func _check_station(label: String, data: StationData, facing: int, background: I
 	station.cell = ORIGIN
 	station.facing = facing
 	if label == "box rack":
-		station.role = load("res://resources/station_roles/box_storage.tres")
+		station.role = load("res://resources/station_roles/storage.tres")
 	_entities.add_child(station)
 	station.place(_floor)
 	if label == "box rack":
 		# Box storage starts empty; fill it.
-		station._stock = station.get_capacity()
-		station._update_piles()
+		var box: StorageKind = load("res://resources/storage_kinds/box.tres")
+		station.allowed_kinds = [box] as Array[StorageKind]
+		while station.has_room(box):
+			station.claim_room(box)
+			station.add_stock(box)
 	if label == "long table" or label == "prep table":
 		for spot: int in station.get_spot_count():
 			var box: Item = ITEM_SCENE.instantiate()

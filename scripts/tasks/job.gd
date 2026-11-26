@@ -23,11 +23,17 @@ var on_hold: bool = false
 ## For jobs that put something away (e.g. a folded box): the storage it goes to. Its room
 ## is claimed until it's stored.
 var destination: Station = null
+## The kind it's stored as there (its room is claimed for that kind).
+var destination_kind: StorageKind = null
+## The dish it's stored as, for storage that holds dishes (else null).
+var destination_dish: Dish = null
 ## Shop minutes of work on top of the task's own (e.g. folding a flat box first).
 var extra_minutes: float = 0.0
 ## How much was left in the unit last taken from storage (e.g. dough balls in a container
 ## put back partly used), or -1 for a full one. See Station.take_supply().
 var taken_left: int = -1
+## The kind of the unit last taken from storage.
+var taken_kind: StorageKind = null
 ## The dish last taken from storage that holds dishes (e.g. Empty Dishes), or null.
 var taken_dish: Dish = null
 ## The supply case a pawn is putting away, and the drop-off it came from (see

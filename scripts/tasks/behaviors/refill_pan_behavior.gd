@@ -28,7 +28,7 @@ func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 	for spot: int in station.get_spot_count():
 		if station.is_reserved(spot):
 			continue
-		var stops: Array[JobStop] = [JobStop.take_supply(storage)]
+		var stops: Array[JobStop] = [JobStop.take_supply(storage, pan.bag_kind)]
 		if work.start_job(pawn, job, WorkSpot.new(station, spot), stops):
 			work.add_shop_job(job)
 			return true

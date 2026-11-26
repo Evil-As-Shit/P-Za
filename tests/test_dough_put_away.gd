@@ -50,7 +50,7 @@ func _bucket_put_away(expected: Array[int]) -> bool:
 	for item: Item in work.get_floor_items():
 		if item.ingredient != null:
 			return false
-	return _rack.get_stock() == _start_stock and _rack.get_partial_stock() == expected
+	return _rack.get_stock() == _start_stock and _rack.get_partial_stock(preload("res://resources/storage_kinds/dough.tres")) == expected
 
 
 func _stretch_waiting() -> bool:

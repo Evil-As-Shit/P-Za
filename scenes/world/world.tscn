@@ -16,6 +16,14 @@
 [ext_resource type="Resource" path="res://resources/stations/counter.tres" id="14_counter"]
 [ext_resource type="Resource" path="res://resources/station_roles/boxing.tres" id="21_boxing_role"]
 [ext_resource type="Resource" path="res://resources/station_roles/pickup.tres" id="22_pickup_role"]
+[ext_resource type="Resource" path="res://resources/station_roles/storage.tres" id="30_storage"]
+[ext_resource type="Script" path="res://scripts/stations/storage_kind.gd" id="30_kind_script"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/box.tres" id="30_kind_box"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/clean_dishes.tres" id="30_kind_clean_dishes"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/empty_dishes.tres" id="30_kind_empty_dishes"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/dough.tres" id="30_kind_dough"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/flat_box.tres" id="30_kind_flat_box"]
+[ext_resource type="Resource" path="res://resources/storage_kinds/cheese.tres" id="30_kind_cheese"]
 [ext_resource type="PackedScene" path="res://scenes/ui/station_panel.tscn" id="23_station_panel"]
 [ext_resource type="Script" path="res://scripts/world/shop_walls.gd" id="24_walls"]
 [ext_resource type="Resource" path="res://resources/walls/plain_wall.tres" id="25_wall_style"]
@@ -32,9 +40,6 @@
 [ext_resource type="Resource" path="res://resources/work_types/cashier.tres" id="19_cashier"]
 [ext_resource type="Resource" path="res://resources/work_types/hauling.tres" id="19_hauling"]
 [ext_resource type="PackedScene" path="res://scenes/ui/priority_panel.tscn" id="20_priority_panel"]
-[ext_resource type="Resource" path="res://resources/station_roles/box_storage.tres" id="30_box_storage"]
-[ext_resource type="Resource" path="res://resources/station_roles/dough_storage.tres" id="31_dough_storage"]
-[ext_resource type="Resource" path="res://resources/station_roles/empty_dishes_storage.tres" id="32_empty_dishes"]
 [ext_resource type="Resource" path="res://resources/stations/small_table.tres" id="33_small_table"]
 [ext_resource type="Resource" path="res://resources/tasks/stack_box.tres" id="34_stack_box"]
 [ext_resource type="Resource" path="res://resources/tasks/hand_off.tres" id="35_hand_off"]
@@ -56,7 +61,6 @@
 [ext_resource type="Resource" path="res://resources/stations/register.tres" id="51_register"]
 [ext_resource type="Resource" path="res://resources/tasks/take_order.tres" id="52_take_order"]
 [ext_resource type="Resource" path="res://resources/stations/box_pallet.tres" id="53_pallet"]
-[ext_resource type="Resource" path="res://resources/station_roles/flat_box_storage.tres" id="54_flats"]
 [ext_resource type="Resource" path="res://resources/tasks/fold_box.tres" id="55_fold_box"]
 [ext_resource type="Script" path="res://scripts/tasks/task_type.gd" id="56_task_type"]
 [ext_resource type="Resource" path="res://resources/stations/pizza_prep_table.tres" id="57_prep_table"]
@@ -78,10 +82,8 @@
 [ext_resource type="Resource" path="res://resources/stations/walk_in_3x3.tres" id="72_walk_in_small"]
 [ext_resource type="Resource" path="res://resources/stations/walk_in_5x4.tres" id="73_walk_in_large"]
 [ext_resource type="Resource" path="res://resources/stations/bulk_sauce_bucket.tres" id="74_bulk_sauce"]
-[ext_resource type="Resource" path="res://resources/station_roles/clean_dishes_storage.tres" id="75_clean_dishes"]
 [ext_resource type="Resource" path="res://resources/tasks/store_clean_dishes.tres" id="76_store_clean"]
 [ext_resource type="Resource" path="res://resources/tasks/refill_cheese.tres" id="77_refill_cheese"]
-[ext_resource type="Resource" path="res://resources/station_roles/cheese_storage.tres" id="78_cheese_storage"]
 [ext_resource type="Script" path="res://scripts/customers/lobby.gd" id="80_lobby"]
 [ext_resource type="PackedScene" path="res://scenes/customers/customer.tscn" id="81_customer"]
 [ext_resource type="Resource" path="res://resources/recipes/quality_rules.tres" id="79_quality"]
@@ -157,7 +159,8 @@ cell = Vector2i(7, 4)
 [node name="BoxRack" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("12_box_rack")
 cell = Vector2i(13, 3)
-role = ExtResource("30_box_storage")
+role = ExtResource("30_storage")
+allowed_kinds = Array[ExtResource("30_kind_script")]([ExtResource("30_kind_box")])
 
 [node name="WalkIn" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("71_walk_in")
@@ -167,7 +170,8 @@ cell = Vector2i(0, 0)
 data = ExtResource("12_box_rack")
 cell = Vector2i(0, 1)
 facing = 3
-role = ExtResource("31_dough_storage")
+role = ExtResource("30_storage")
+allowed_kinds = Array[ExtResource("30_kind_script")]([ExtResource("30_kind_dough")])
 
 [node name="BulkSauce" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("74_bulk_sauce")
@@ -200,18 +204,21 @@ cell = Vector2i(15, 2)
 data = ExtResource("12_box_rack")
 cell = Vector2i(3, 0)
 facing = 1
-role = ExtResource("78_cheese_storage")
+role = ExtResource("30_storage")
+allowed_kinds = Array[ExtResource("30_kind_script")]([ExtResource("30_kind_cheese")])
 
 [node name="CleanDishesRack" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("12_box_rack")
 cell = Vector2i(2, 4)
-role = ExtResource("75_clean_dishes")
+role = ExtResource("30_storage")
+allowed_kinds = Array[ExtResource("30_kind_script")]([ExtResource("30_kind_clean_dishes")])
 
 [node name="EmptyDishesTable" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("33_small_table")
 cell = Vector2i(0, 4)
 facing = 3
-role = ExtResource("32_empty_dishes")
+role = ExtResource("30_storage")
+allowed_kinds = Array[ExtResource("30_kind_script")]([ExtResource("30_kind_empty_dishes")])
 
 [node name="BoxingTable" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("6_table")
@@ -236,7 +243,8 @@ role = ExtResource("98_break_role")
 [node name="BoxPallet" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("53_pallet")
 cell = Vector2i(12, 4)
-role = ExtResource("54_flats")
+role = ExtResource("30_storage")
+allowed_kinds = Array[ExtResource("30_kind_script")]([ExtResource("30_kind_flat_box")])
 
 [node name="PickupCounter" parent="Entities" instance=ExtResource("5_station")]
 data = ExtResource("14_counter")

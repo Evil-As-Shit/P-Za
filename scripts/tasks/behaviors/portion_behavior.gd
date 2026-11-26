@@ -85,7 +85,7 @@ func _plan_swap(spot: WorkSpot, work: WorkManager, stops: Array[JobStop]) -> boo
 			return false
 		stops.append(JobStop.take_side(empty, cell))
 		stops.append(drop)
-	stops.append(JobStop.take_supply(storage))
+	stops.append(JobStop.take_supply(storage, supply.full_kind))
 	stops.append(JobStop.set_side(station, cell))
 	return true
 
@@ -96,8 +96,8 @@ func _find_drop(work: WorkManager) -> JobStop:
 	var sink: Station = work.find_dish_room() if supply.dish != null else null
 	if sink != null:
 		return JobStop.drop_dish(sink)
-	var empties: Station = work.find_room(supply.empty_kind)
-	return JobStop.store_empty(empties) if empties != null else null
+	var empties: Station = work.find_room(supply.empty_kind, supply.dish)
+	return JobStop.store_empty(empties, supply.empty_kind, supply.dish) if empties != null else null
 
 
 ## True if a pawn is on their way to set a container out at `station`.
@@ -132,7 +132,7 @@ func on_stop_reached(_job: Job, stop: JobStop, pawn: Pawn, work: WorkManager) ->
 			if stop.action == JobStop.Action.DROP_DISH:
 				stop.station.get_dish_boards().add_dirty(supply.dish)
 			else:
-				stop.station.add_stock(-1, supply.dish)
+				stop.station.add_stock(stop.kind, -1, supply.dish)
 		JobStop.Action.SET_SIDE:
 			var full: Item = pawn.release_item()
 			if full != null and not stop.station.put_side_item(full, supply.slot_size):

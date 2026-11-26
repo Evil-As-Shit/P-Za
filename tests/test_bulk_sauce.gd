@@ -28,12 +28,11 @@ func _start() -> void:
 	_clean_rack = world.get_node("Entities/CleanDishesRack")
 	_build = world.get_node("BuildMode")
 	for station: Station in work.get_stations():
-		if station.get_stored_kind() == SAUCE:
+		if station.holds(SAUCE):
 			_cooler = station
 	_full_stock = _cooler.get_stock()
 	# A bucket was used up: it's dirty at the sink, with room for it in the cooler.
-	_cooler._stock -= 1
-	_cooler._update_piles()
+	take_units(_cooler, SAUCE, 1)
 	var boards: DishBoards = _sink.get_dish_boards()
 	boards.claim_dirty_room()
 	boards.add_dirty(SAUCE_BUCKET.dish)
@@ -51,7 +50,7 @@ func _step() -> void:
 			_filled_at_bulk = true
 	match _phase:
 		0:
-			if not _clean_rack.get_stock_dishes().has(SAUCE_BUCKET.dish):
+			if not _clean_rack.get_stock_dishes(preload("res://resources/storage_kinds/clean_dishes.tres")).has(SAUCE_BUCKET.dish):
 				return
 			if _waiting_since < 0:
 				_waiting_since = frame

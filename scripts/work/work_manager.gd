@@ -622,10 +622,11 @@ func find_supply(kind: StorageKind) -> Station:
 	return null
 
 
-## First storage station with an unclaimed free place for `kind`, or null.
-func find_room(kind: StorageKind) -> Station:
+## First storage station with an unclaimed free place for `kind` (as `dish`, for storage
+## that holds dishes), or null.
+func find_room(kind: StorageKind, dish: Dish = null) -> Station:
 	for station: Station in _stations:
-		if station.has_room(kind):
+		if station.has_room(kind, dish):
 			return station
 	return null
 
@@ -882,8 +883,9 @@ func _on_pawn_stop_reached(job: Job, pawn: Pawn) -> void:
 				return
 			_pick_up(job, pawn)
 		JobStop.Action.TAKE_SUPPLY:
-			job.taken_dish = stop.dish if stop.dish != null else stop.station.get_top_dish()
-			job.taken_left = stop.station.take_supply(stop.dish)
+			job.taken_kind = stop.kind
+			job.taken_dish = stop.dish if stop.dish != null else stop.station.get_top_dish(stop.kind)
+			job.taken_left = stop.station.take_supply(stop.kind, stop.dish)
 			behavior.on_supply_taken(job, stop.station, pawn, self)
 		_:
 			behavior.on_stop_reached(job, stop, pawn, self)

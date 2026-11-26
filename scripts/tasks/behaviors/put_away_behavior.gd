@@ -27,4 +27,4 @@ func on_work_started(job: Job, pawn: Pawn, _work: WorkManager) -> void:
 	if item != null:
 		item.queue_free()
 	job.target = null
-	job.destination.add_stock()
+	job.destination.add_stock(job.destination_kind)

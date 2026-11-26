@@ -4,6 +4,8 @@ extends "res://tests/test_base.gd"
 ## pawn at a time; Boxing tables stay free. With no folded boxes to be had, a pawn setting
 ## out a box folds a flat one on the spot, which takes longer.
 
+const BOX := preload("res://resources/storage_kinds/box.tres")
+
 var _rack: Station
 var _pallet: Station
 var _boxing_role: StationRole = preload("res://resources/station_roles/boxing.tres")
@@ -26,7 +28,7 @@ func _start() -> void:
 		fail("box storage should start empty, has %d" % _rack.get_stock())
 		return
 	_pallet_start = _pallet.get_stock()
-	if _pallet_start <= _rack.get_capacity():
+	if _pallet_start <= _rack.get_capacity_for(BOX):
 		fail("the pallet should start with more flat boxes than box storage holds")
 		return
 
@@ -75,11 +77,11 @@ func _step() -> void:
 	match _phase:
 		0:
 			# Folding ahead: box storage fills up from the pallet, which doesn't refill itself.
-			if _rack.get_stock() < _rack.get_capacity():
+			if _rack.get_stock() < _rack.get_capacity_for(BOX):
 				return
-			if _pallet.get_stock() != _pallet_start - _rack.get_capacity():
+			if _pallet.get_stock() != _pallet_start - _rack.get_capacity_for(BOX):
 				fail("the pallet has %d flat boxes left after %d were folded from %d" % [
-					_pallet.get_stock(), _rack.get_capacity(), _pallet_start])
+					_pallet.get_stock(), _rack.get_capacity_for(BOX), _pallet_start])
 				return
 			if not _saw_fold_at_pallet or not _saw_put_away:
 				fail("boxes were stored without being folded at the pallet and carried over")
@@ -89,7 +91,8 @@ func _step() -> void:
 			# Take box storage away: no folded boxes anywhere.
 			if not _rack.is_idle():
 				return
-			world._on_role_change_requested(_rack, null)
+			world._on_storage_filter_change_requested(_rack, [BOX] as Array[StorageKind], false)
+			take_units(_rack, BOX, _rack.get_stock(BOX))
 			# Flat boxes are delivered again, to fold on demand.
 			_pallet.stock_up()
 			_ticket = order_pizzas(1)

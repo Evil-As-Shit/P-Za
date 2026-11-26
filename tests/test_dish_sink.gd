@@ -7,6 +7,7 @@ extends "res://tests/test_base.gd"
 ##    Dough storage), and comes back to Dough storage clean.
 
 const DISH := preload("res://resources/items/dough_container_dish.tres")
+const DOUGH_KIND := preload("res://resources/storage_kinds/dough.tres")
 
 var _sink: Station
 var _boards: DishBoards
@@ -31,7 +32,7 @@ func _start() -> void:
 	_empties = world.get_node("Entities/EmptyDishesTable")
 	_full_stock = _dough.get_stock()
 	# Three containers were used up: they're dirty at the sink, with room for them in storage.
-	_dough._stock -= 3
+	take_units(_dough, DOUGH_KIND, 3)
 	for i: int in 3:
 		_boards.claim_dirty_room()
 		_boards.add_dirty(DISH)
@@ -59,7 +60,7 @@ func _step() -> void:
 					_wash_spots.clear()
 					_batch_sizes.clear()
 					# One ball left in the next container, so one pizza empties it.
-					_dough._partial.append(1)
+					set_next_partial(_dough, DOUGH_KIND, 1)
 					order_pizzas(1)
 					_phase = 1
 		1:

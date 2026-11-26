@@ -1,14 +1,14 @@
 [gd_resource type="Resource" script_class="StationData" format=3]
 
 [ext_resource type="Script" path="res://scripts/stations/station_data.gd" id="1_data"]
-[ext_resource type="Script" path="res://scripts/stations/station_role.gd" id="2_role"]
-[ext_resource type="Resource" path="res://resources/station_roles/flat_box_storage.tres" id="3_flats"]
+[ext_resource type="Resource" path="res://resources/station_roles/storage.tres" id="3_flats"]
 [ext_resource type="Texture2D" path="res://Assets/Sprites/placeholder/pallet_sheet.png" id="4_sheet"]
 [ext_resource type="Script" path="res://scripts/stations/station_spot.gd" id="5_spot"]
 [ext_resource type="Script" path="res://scripts/stations/storage_layout.gd" id="6_layout"]
 [ext_resource type="Resource" path="res://resources/storage_kinds/flat_box.tres" id="7_kind"]
 [ext_resource type="Texture2D" path="res://resources/items/box/flat.tres" id="8_flat"]
 [ext_resource type="Resource" path="res://resources/build_categories/storage.tres" id="90_build_cat"]
+[ext_resource type="Script" path="res://scripts/stations/storage_surface.gd" id="95_surface"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_facing0"]
 atlas = ExtResource("4_sheet")
@@ -27,20 +27,23 @@ item_cell = Vector2i(0, 0)
 script = ExtResource("6_layout")
 kind = ExtResource("7_kind")
 textures = Array[Texture2D]([ExtResource("8_flat")])
-piles_at_spots = true
-per_pile = 240
-pile_step = 0.15
 stocked_at_start = true
+
+[sub_resource type="Resource" id="Resource_surface1"]
+script = ExtResource("95_surface")
+area = Rect2i(0, 0, 8, 8)
+height = 3.0
+clearance = 36.0
 
 [resource]
 script = ExtResource("1_data")
 display_name = "Box Pallet"
 price = 50.0
 build_category = ExtResource("90_build_cat")
-roles = Array[ExtResource("2_role")]([ExtResource("3_flats")])
 default_role = ExtResource("3_flats")
 footprint = Vector2i(1, 1)
 facing_textures = Array[Texture2D]([SubResource("AtlasTexture_facing0"), SubResource("AtlasTexture_facing1"), SubResource("AtlasTexture_facing0"), SubResource("AtlasTexture_facing1")])
 spots = Array[ExtResource("5_spot")]([SubResource("Resource_spot")])
 item_offset = Vector2(0, -3)
 storage_layouts = Array[ExtResource("6_layout")]([SubResource("Resource_flats")])
+storage_surfaces = Array[ExtResource("95_surface")]([SubResource("Resource_surface1")])

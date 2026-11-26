@@ -32,7 +32,7 @@ func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 			if spot.is_same(set_out_spot):
 				continue
 			var stops: Array[JobStop] = [
-				JobStop.take_supply(storage),
+				JobStop.take_supply(storage, ingredient.full_kind),
 				JobStop.set_out(set_out_spot.station, set_out_spot.index),
 			]
 			if work.start_job(pawn, job, spot, stops):
@@ -83,7 +83,7 @@ func on_stop_reached(job: Job, stop: JobStop, pawn: Pawn, work: WorkManager) -> 
 			if stop.action == JobStop.Action.DROP_DISH:
 				stop.station.get_dish_boards().add_dirty(ingredient.dish)
 			else:
-				stop.station.add_stock(-1, ingredient.dish)
+				stop.station.add_stock(stop.kind, -1, ingredient.dish)
 			work.assign_all()
 
 
@@ -148,10 +148,10 @@ func _detour_to_store_empty(job: Job, pawn: Pawn, work: WorkManager) -> bool:
 	if sink != null:
 		stop = JobStop.drop_dish(sink)
 	else:
-		var empties: Station = work.find_room(ingredient.empty_kind)
+		var empties: Station = work.find_room(ingredient.empty_kind, ingredient.dish)
 		if empties == null:
 			return false
-		stop = JobStop.store_empty(empties)
+		stop = JobStop.store_empty(empties, ingredient.empty_kind, ingredient.dish)
 	var to_stop: PackedVector2Array = work.get_walk_path(work.get_cell(pawn), stop.cell)
 	var to_work: PackedVector2Array = work.get_walk_path(
 		stop.cell, job.station.get_work_cell(job.spot)

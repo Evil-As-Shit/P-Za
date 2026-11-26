@@ -40,6 +40,8 @@ var container: Item = null
 var dish: Dish = null
 ## The supply case taken (TAKE_CASE).
 var supply: SupplyItem = null
+## The kind taken (TAKE_SUPPLY) or the kind of empty stored (STORE_EMPTY).
+var kind: StorageKind = null
 
 
 func _init(p_action: Action, p_cell: Vector2i) -> void:
@@ -51,10 +53,12 @@ static func pick_up(p_cell: Vector2i) -> JobStop:
 	return JobStop.new(Action.PICK_UP, p_cell)
 
 
-## Taking a unit from storage: for storage that holds dishes, `p_dish` (or its top one).
-static func take_supply(p_station: Station, p_dish: Dish = null) -> JobStop:
+## Taking a unit of `p_kind` from storage: for storage that holds dishes, `p_dish` (or its
+## top one).
+static func take_supply(p_station: Station, p_kind: StorageKind, p_dish: Dish = null) -> JobStop:
 	var stop := JobStop.new(Action.TAKE_SUPPLY, p_station.get_work_cell(0))
 	stop.station = p_station
+	stop.kind = p_kind
 	stop.dish = p_dish
 	return stop
 
@@ -74,9 +78,11 @@ static func take_unit(p_container: Item) -> JobStop:
 	return stop
 
 
-static func store_empty(p_station: Station) -> JobStop:
+static func store_empty(p_station: Station, p_kind: StorageKind, p_dish: Dish) -> JobStop:
 	var stop := JobStop.new(Action.STORE_EMPTY, p_station.get_work_cell(0))
 	stop.station = p_station
+	stop.kind = p_kind
+	stop.dish = p_dish
 	return stop
 
 
@@ -124,13 +130,13 @@ static func take_case(p_station: Station, p_supply: SupplyItem) -> JobStop:
 func claim() -> void:
 	match action:
 		Action.TAKE_SUPPLY:
-			station.claim_supply()
+			station.claim_supply(kind)
 		Action.SET_OUT:
 			station.reserve(spot)
 		Action.TAKE_UNIT:
 			container.claim_unit()
 		Action.STORE_EMPTY:
-			station.claim_room()
+			station.claim_room(kind, dish)
 		Action.DROP_DISH:
 			station.get_dish_boards().claim_dirty_room()
 		Action.TAKE_DISH:
@@ -143,14 +149,14 @@ func claim() -> void:
 func release() -> void:
 	match action:
 		Action.TAKE_SUPPLY:
-			station.unclaim_supply()
+			station.unclaim_supply(kind)
 		Action.SET_OUT:
 			station.release(spot)
 		Action.TAKE_UNIT:
 			if is_instance_valid(container):
 				container.unclaim_unit()
 		Action.STORE_EMPTY:
-			station.unclaim_room()
+			station.unclaim_room(kind, dish)
 		Action.DROP_DISH:
 			station.get_dish_boards().unclaim_dirty_room()
 		Action.TAKE_DISH:

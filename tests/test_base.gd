@@ -97,9 +97,45 @@ func keep_flat_boxes_stocked() -> void:
 func dough_storage() -> Station:
 	var dough: StorageKind = load("res://resources/storage_kinds/dough.tres")
 	for station: Station in work.get_stations():
-		if station.get_stored_kind() == dough:
+		if station.holds(dough):
 			return station
 	return null
+
+
+## Takes `count` units of `kind` out of `station`'s storage, as if pawns had.
+func take_units(station: Station, kind: StorageKind, count: int) -> void:
+	for i: int in count:
+		station.claim_supply(kind)
+		station.take_supply(kind)
+
+
+## Fills `station`'s storage with `kind` as far as it has room.
+func fill_with(station: Station, kind: StorageKind) -> void:
+	while station.has_room(kind):
+		station.claim_room(kind)
+		station.add_stock(kind)
+
+
+## Makes the next unit of `kind` taken from `station` a partly used one with `left` in it.
+func set_next_partial(station: Station, kind: StorageKind, left: int) -> void:
+	var stack: StoredStack = station._find_taken_stack(kind, null)
+	stack.lefts[-1] = left
+
+
+## Units of every kind promised to pawns coming to take one from `station`.
+func stock_claimed(station: Station) -> int:
+	var total: int = 0
+	for count: int in station._stock_claimed.values():
+		total += count
+	return total
+
+
+## Places in `station`'s storage promised to pawns bringing a unit.
+func room_claimed(station: Station) -> int:
+	var total: int = 0
+	for stack: StoredStack in station._stacks:
+		total += stack.room_claimed
+	return total
 
 
 ## Prints an order of `count` pizzas (straight into Make) and returns its ticket.

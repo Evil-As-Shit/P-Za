@@ -17,6 +17,8 @@ signal fire_requested(pawn: Pawn)
 signal hire_requested(applicant: Applicant)
 signal pass_requested(applicant: Applicant)
 signal role_change_requested(station: Station, role: StationRole)
+## The player let `kinds` into a storage station's filter, or kept them out.
+signal storage_filter_change_requested(station: Station, kinds: Array[StorageKind], allowed: bool)
 signal station_close_requested
 signal item_close_requested
 signal report_closed
@@ -93,6 +95,7 @@ func setup(
 	_schedule_panel.mark_change_requested.connect(hours_change_requested.emit)
 	clock.time_changed.connect(refresh_schedules.unbind(2))
 	_station_panel.role_change_requested.connect(role_change_requested.emit)
+	_station_panel.filter_change_requested.connect(storage_filter_change_requested.emit)
 	_station_panel.close_requested.connect(station_close_requested.emit)
 	_pawn_panel.close_requested.connect(show_pawn.bind(null))
 	_pawn_panel.wage_change_requested.connect(wage_change_requested.emit)

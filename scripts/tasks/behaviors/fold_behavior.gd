@@ -36,10 +36,11 @@ func try_start(pawn: Pawn, job: Job, work: WorkManager) -> bool:
 	if source == null or destination == null or source.is_reserved(0):
 		return false
 	var spot := WorkSpot.new(source, 0)
-	if not work.start_job(pawn, job, spot, [JobStop.take_supply(source)] as Array[JobStop]):
+	if not work.start_job(pawn, job, spot, [JobStop.take_supply(source, supply)] as Array[JobStop]):
 		return false
-	destination.claim_room()
+	destination.claim_room(stores)
 	job.destination = destination
+	job.destination_kind = stores
 	work.add_shop_job(job)
 	return true
 
@@ -51,7 +52,7 @@ func get_work_seconds(job: Job) -> float:
 
 
 func on_supply_taken(job: Job, station: Station, pawn: Pawn, work: WorkManager) -> void:
-	job.target = work.spawn_item(station.get_storage_layout().textures[0])
+	job.target = work.spawn_item(station.get_storage_layout(job.taken_kind).textures[0])
 	job.target.display_name = "Box"
 	pawn.hold_item(job.target)
 
@@ -64,7 +65,7 @@ func on_work_started(job: Job, pawn: Pawn, _work: WorkManager) -> void:
 	if item != null:
 		item.queue_free()
 	job.target = null
-	job.destination.add_stock()
+	job.destination.add_stock(job.destination_kind)
 
 
 func on_finished(job: Job, _pawn: Pawn, _work: WorkManager) -> void:
@@ -83,6 +84,7 @@ func continue_job(job: Job, pawn: Pawn, work: WorkManager) -> bool:
 	var put_away := Job.new(put_away_task, null, null)
 	put_away.target = job.target
 	put_away.destination = job.destination
+	put_away.destination_kind = job.destination_kind
 	work.add_shop_job(put_away)
 	work.drop_on_floor(pawn.release_item(), work.get_cell(pawn))
 	return false
@@ -93,7 +95,7 @@ func continue_job(job: Job, pawn: Pawn, work: WorkManager) -> bool:
 func on_withdrawn(job: Job, work: WorkManager) -> void:
 	var stored: bool = job.part == Part.PUT_AWAY and job.target == null
 	if not stored and job.destination != null and is_instance_valid(job.destination):
-		job.destination.unclaim_room()
+		job.destination.unclaim_room(job.destination_kind)
 	if job.target != null and is_instance_valid(job.target):
 		job.target.queue_free()
 	job.target = null

@@ -17,3 +17,5 @@ extends Resource
 ## Station type it's filled at on its way to storage (e.g. a sauce bucket at the bulk sauce
 ## bucket), or null if it goes straight there.
 @export var filled_at: StationData
+## Surface slots it takes in storage that holds dishes (see SlotGrid).
+@export var slot_size: Vector2i = Vector2i(6, 6)

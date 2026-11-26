@@ -1,4 +1,4 @@
-﻿extends "res://tests/test_base.gd"
+extends "res://tests/test_base.gd"
 ## Stations can be moved while they're in use, with what's on them. Picked up, a station is
 ## out of use: pawns working at it or heading to it stop, and nobody starts a job there or
 ## takes anything off it. Put down somewhere else, its items are there with it, and the
@@ -42,10 +42,10 @@ func _step() -> void:
 		return
 	# The box rack, while a pawn is folding a box for it (its room is set aside).
 	var box_rack: Station = world.get_node("Entities/BoxRack")
-	if not _moved_rack and box_rack._room_claimed > 0:
+	if not _moved_rack and room_claimed(box_rack) > 0:
 		_rack_stock = box_rack.get_stock()
 		_pick_up(box_rack)
-		if box_rack._room_claimed != 0:
+		if room_claimed(box_rack) != 0:
 			fail("the interrupted folder's room on the rack wasn't handed back")
 		return
 	match _phase:
